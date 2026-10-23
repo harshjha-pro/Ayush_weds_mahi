@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────
-   Opening intro: photographic layers (assets/intro/) moved like a camera.
+   Opening intro: a storybook illustration (artwork in intro-art.js).
    Isolated from the site's styles; everything is scoped to .intro.
    Portrait (9:16) first, then wider screens.
    ───────────────────────────────────────────── */
@@ -11,6 +11,9 @@
   --i-antique: #b99a5b;
   --i-blush: #f3dfd9;
   --i-beige: #e9d9c5;
+  --i-sage: #c7ceb3;
+  --i-olive: #aeb596;
+  --i-peach: #f6d9b8;
   --i-text: #625344;
 
   position: fixed;
@@ -36,150 +39,139 @@
   cursor: default;
 }
 
-.intro img {
-  -webkit-user-drag: none;
-}
-
-/* ── Plates and camera ────────────────────── */
-
 .intro-world,
-.cam {
+.intro-layer,
+.intro-sky,
+.intro-beams {
   position: absolute;
   inset: 0;
 }
 
-.cam {
-  overflow: hidden;
-  transform: scale(1.06);
-  will-change: transform, opacity, filter;
-}
-
-.cam-table {
-  opacity: 0;
-}
-
-.plate {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* The palace sits behind the dove, gently out of focus. */
-.plate-garden {
-  object-position: 50% 58%;
-  filter: blur(1.4px) saturate(0.94);
-  transform-origin: 50% 60%;
-  animation: intro-drift 24s ease-in-out infinite alternate;
-}
-
-.plate-table {
-  object-position: 50% 60%;
-}
-
-/* Warm sun from the upper right, a soft vignette, and a little haze. */
-.intro-haze {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+/* Morning sky: ivory warming to pale peach, diffuse light from the upper right. */
+.intro-sky {
   background:
-    radial-gradient(ellipse at 85% 6%, rgba(255, 244, 220, 0.75) 0%, rgba(255, 236, 200, 0.35) 22%, rgba(255, 236, 200, 0) 50%),
-    radial-gradient(ellipse at 50% 55%, rgba(255, 249, 240, 0) 55%, rgba(98, 83, 68, 0.16) 100%);
-  mix-blend-mode: soft-light;
+    radial-gradient(ellipse 70% 45% at 88% 4%, rgba(255, 252, 247, 0.95), rgba(246, 217, 184, 0.35) 55%, rgba(246, 217, 184, 0) 80%),
+    linear-gradient(180deg, #fbf5ec 0%, var(--i-ivory) 34%, #fcefdf 60%, #f9e5cf 100%);
 }
 
-.intro-haze::after {
-  content: "";
+.intro-cloud {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 249, 240, 0.18), rgba(255, 249, 240, 0) 40%, rgba(255, 249, 240, 0.12));
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 252, 247, 0.9), rgba(255, 252, 247, 0) 70%);
+  filter: blur(6px);
+  animation: intro-cloud 40s ease-in-out infinite alternate;
 }
 
-/* Foreground branch: sharp, the bird's perch. */
+.intro-cloud.c1 { left: -10%; top: 10%; width: 70%; height: 9%; }
+.intro-cloud.c2 { left: 40%; top: 20%; width: 60%; height: 7%; animation-duration: 52s; opacity: 0.8; }
+.intro-cloud.c3 { left: 10%; top: 31%; width: 50%; height: 6%; animation-duration: 46s; opacity: 0.6; }
+
+/* A few broad, delicate rays rather than hard stripes. */
+.intro-beams {
+  background:
+    linear-gradient(118deg, rgba(255, 246, 228, 0) 30%, rgba(255, 246, 228, 0.55) 38%, rgba(255, 246, 228, 0) 46%),
+    linear-gradient(124deg, rgba(255, 246, 228, 0) 48%, rgba(255, 246, 228, 0.4) 56%, rgba(255, 246, 228, 0) 64%),
+    linear-gradient(112deg, rgba(255, 246, 228, 0) 62%, rgba(255, 246, 228, 0.35) 69%, rgba(255, 246, 228, 0) 76%);
+  -webkit-mask-image: radial-gradient(ellipse at 90% 0%, #000 0, rgba(0, 0, 0, 0.6) 40%, transparent 80%);
+  mask-image: radial-gradient(ellipse at 90% 0%, #000 0, rgba(0, 0, 0, 0.6) 40%, transparent 80%);
+  filter: blur(4px);
+  animation: intro-breathe 8s ease-in-out infinite alternate;
+}
+
+.intro-far,
+.intro-palace,
+.intro-mid,
 .intro-near {
-  position: absolute;
-  left: -14%;
-  width: 128%;
-  top: 40%;
-  transform-origin: 30% 50%;
-  will-change: transform, filter;
-}
-
-.branch {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 10px 14px rgba(98, 83, 68, 0.22));
-}
-
-/* ── The dove and the letter it carries ───── */
-
-.carrier {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: min(112vw, 540px);
-  aspect-ratio: 640 / 582;
-  pointer-events: none;
   will-change: transform;
 }
 
-.dove {
-  position: absolute;
-  inset: 0;
-  filter: drop-shadow(0 6px 10px rgba(98, 83, 68, 0.16));
+/* Background: pale hills and distant rooftops, softest of all. */
+.intro-far {
+  top: auto;
+  left: -12vw;
+  right: -20vw;
+  bottom: 38%;
+  height: 20%;
+  filter: blur(1.2px);
+  opacity: 0.9;
 }
 
-.dove-pose {
+.hills-svg,
+.palace-svg,
+.garden-svg,
+.terrace-svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  transform-origin: 60% 85%;
 }
 
-.pose-perched {
-  opacity: 1;
+/* The palace: detailed but lighter than the bird, slightly hazed by distance. */
+.intro-palace {
+  top: auto;
+  left: -16vw;
+  right: -16vw;
+  bottom: 31%;
+  height: 31%;
+  filter: blur(0.2px);
 }
 
-.dove.is-perched .pose-perched {
-  animation: intro-breath 3.6s ease-in-out infinite;
-}
-
-.scroll-sm {
+.intro-haze {
   position: absolute;
-  left: 60%;
-  top: 86%;
-  width: 30%;
-  margin-left: -15%;
-  display: grid;
-  justify-items: center;
-  transform-origin: 50% 0;
-  filter: drop-shadow(0 6px 8px rgba(98, 83, 68, 0.22));
+  left: 0;
+  right: 0;
+  bottom: 22%;
+  height: 22%;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 249, 240, 0) 0%, rgba(255, 249, 240, 0.55) 55%, rgba(255, 249, 240, 0) 100%);
 }
 
-.scroll-cord {
-  display: block;
-  width: 1.5px;
-  height: 0.9rem;
-  background: linear-gradient(#e9c9bf, #f3dfd9);
-  transition: opacity 0.3s;
+/* Middle ground: garden trees, wall and shrubs. */
+.intro-mid {
+  top: auto;
+  left: -25vw;
+  right: -40vw;
+  bottom: 0;
+  height: 36%;
+  filter: blur(0.4px);
 }
 
-.scroll-img {
-  display: block;
+/* Shared box for the branch and the perched dove, so they always line up.
+   On phones it is wider than the screen so the dove reads large; the branch
+   simply runs off the edges. */
+.perch-box {
+  position: absolute;
+  left: 50%;
+  top: 31%;
+  width: min(150vw, 640px, 78vh);
+  aspect-ratio: 560 / 420;
+  transform: translate(-58%, -50%);
+}
+
+.branch-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 6px 8px rgba(98, 83, 68, 0.12));
 }
 
-.scroll-sm.is-dropped .scroll-cord {
-  opacity: 0;
+/* The terrace the letter lands on. */
+.intro-surface {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36%;
+  overflow: hidden;
+  transform: translateY(100%);
+  box-shadow: 0 -18px 40px -20px rgba(185, 154, 91, 0.35);
 }
 
-/* Petals drifting through the light, some close to the lens. */
-.intro-petals {
+/* Petals: a few, slow, along the edges. */
+.intro-petals,
+.intro-dust {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -187,21 +179,172 @@
 
 .intro-petals i {
   position: absolute;
-  top: -6%;
+  top: -5%;
   width: var(--size);
-  height: calc(var(--size) * 0.72);
+  height: calc(var(--size) * 0.7);
   border-radius: 62% 38% 60% 40% / 70% 50% 50% 30%;
-  background: radial-gradient(ellipse at 30% 30%, #fffdf9, #f1e4d6 70%);
-  filter: blur(var(--blur));
-  opacity: 0.85;
+  background: linear-gradient(135deg, var(--i-pearl), #efe2d2);
+  box-shadow: inset -1px -1px 2px rgba(185, 154, 91, 0.2);
   animation: intro-petal var(--dur) linear var(--delay) infinite;
 }
 
 .intro-petals i.is-blush {
-  background: radial-gradient(ellipse at 30% 30%, #fbefeb, #eecbc1 75%);
+  background: linear-gradient(135deg, #fbefeb, #eccabf);
 }
 
-/* ── Close-up letter ──────────────────────── */
+.intro-dust i {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(255, 246, 222, 0.9);
+  box-shadow: 0 0 4px rgba(214, 183, 121, 0.5);
+  opacity: 0.55;
+  animation: intro-dust var(--d) ease-in-out var(--delay) infinite alternate;
+}
+
+/* ── The dove ─────────────────────────────── */
+
+.intro-carrier-box {
+  pointer-events: none;
+}
+
+.intro-carrier {
+  position: absolute;
+  left: 34%;
+  top: 31%;
+  width: 44%;
+  aspect-ratio: 220 / 205;
+  will-change: transform;
+}
+
+.dove {
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 220 / 160;
+  transform-origin: 55% 90%;
+  animation: intro-breath 3.2s ease-in-out infinite;
+}
+
+.dove.is-flying {
+  animation: none;
+}
+
+.dove-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dv-head {
+  transform-box: view-box;
+  transform-origin: 150px 76px;
+  animation: intro-look 6s ease-in-out 1.5s infinite;
+}
+
+.is-started .dv-head {
+  animation: none;
+}
+
+.dv-wings {
+  opacity: 0;
+}
+
+.dv-wing {
+  transform-box: view-box;
+}
+
+/* Wings hinge at the shoulder, so they never detach from the body. */
+.dv-wing-near {
+  transform-origin: 112px 80px;
+}
+
+.dv-wing-far {
+  transform-origin: 118px 76px;
+}
+
+.dove.is-flying .dv-wing-near {
+  animation: intro-flap 0.24s ease-in-out infinite alternate;
+}
+
+.dove.is-flying .dv-wing-far {
+  animation: intro-flap-far 0.24s ease-in-out 0.03s infinite alternate;
+}
+
+.dove.is-flying .dv-legs {
+  transform-box: view-box;
+  transform-origin: 117px 110px;
+  transform: rotate(-12deg);
+}
+
+/* ── The letter (same drawing in every scene) ── */
+
+.scroll-sm {
+  position: absolute;
+  left: 30%;
+  top: 59%;
+  width: 46%;
+  display: grid;
+  justify-items: center;
+  transform-origin: 50% 0;
+  filter: drop-shadow(0 4px 5px rgba(98, 83, 68, 0.18));
+}
+
+.scroll-sm.is-dropped {
+  transform-origin: 50% 70%;
+}
+
+.scroll-cord {
+  display: block;
+  width: 1.5px;
+  height: 6%;
+  min-height: 6px;
+  background: linear-gradient(#e9c9bf, #f3dfd9);
+  transition: opacity 0.2s;
+}
+
+.scroll-sm.is-dropped .scroll-cord {
+  opacity: 0;
+}
+
+.letter,
+.cl-rolled {
+  position: relative;
+  aspect-ratio: 120 / 46;
+}
+
+.letter {
+  width: 100%;
+}
+
+.letter-roll {
+  position: absolute;
+  left: 0;
+  top: 17.4%;
+  width: 100%;
+  height: 65.2%;
+}
+
+.letter-bow {
+  position: absolute;
+  inset: 0;
+}
+
+.roll-svg,
+.bow-svg,
+.card-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bow-svg g {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ── Close-up and opening ─────────────────── */
 
 .cl {
   position: absolute;
@@ -216,136 +359,45 @@
 }
 
 .cl-box {
-  --w: min(74vw, 360px, 46vh);
+  --w: min(70vw, 330px, 42vh);
   position: relative;
   width: var(--w);
-  height: calc(var(--w) * 989 / 720);
+  height: calc(var(--w) * 330 / 240);
   will-change: transform;
 }
 
 .cl-card {
   position: absolute;
   inset: 0;
-  clip-path: inset(49% 0 49% 0);
+  clip-path: inset(48% 0 48% 0);
+  filter: drop-shadow(0 18px 24px rgba(98, 83, 68, 0.18));
 }
 
-.cl-paper {
+/* Warm light gathering on the paper before the bloom. */
+.cl-warmth {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* Printed on the paper: ink sits in the grain (multiply). */
-.cl-content {
-  position: absolute;
-  inset: 21% 19% 20%;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: calc(var(--w) * 0.018);
-  text-align: center;
   opacity: 0;
-  mix-blend-mode: multiply;
-}
-
-.cl-eyebrow,
-.cl-event {
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: calc(var(--w) * 0.026);
-  font-weight: 500;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #8f7140;
-}
-
-.cl-monogram {
-  width: 52%;
-  height: auto;
-}
-
-.cl-names {
-  font-family: "Cormorant Garamond", Garamond, serif;
-  font-size: calc(var(--w) * 0.088);
-  white-space: nowrap;
-  font-weight: 500;
-  line-height: 1.05;
-  color: #5a4630;
-}
-
-.cl-names span {
-  font-style: italic;
-  color: #a5874f;
-}
-
-.cl-date {
-  font-family: "Cormorant Garamond", Garamond, serif;
-  font-size: calc(var(--w) * 0.048);
-  color: #5a4630;
-}
-
-/* A slow band of light crossing the embossing. */
-.cl-sheen {
-  position: absolute;
-  inset: 0;
-  transform: translateX(-120%);
-  background: linear-gradient(105deg, rgba(255, 246, 222, 0) 35%, rgba(255, 246, 222, 0.5) 50%, rgba(255, 246, 222, 0) 65%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 244, 218, 0.95) 0%, rgba(246, 217, 184, 0.5) 30%, rgba(246, 217, 184, 0) 62%);
   mix-blend-mode: screen;
 }
 
-/* The rolled letter: the whole photo, and its parts for the opening. */
 .cl-rolled {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(var(--w) / 0.9);
+  width: calc(var(--w) * 1.08);
   transform: translate(-50%, -50%);
-}
-
-.cl-whole {
-  position: relative;
-  z-index: 4;
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 10px 14px rgba(98, 83, 68, 0.25));
-}
-
-.cl-roll,
-.cl-bow {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 100%;
-  height: auto;
-}
-
-.cl-roll {
-  transform: translateY(-50%);
-  filter: drop-shadow(0 8px 10px rgba(98, 83, 68, 0.22));
-}
-
-.cl-roll-top {
-  z-index: 2;
+  filter: drop-shadow(0 8px 10px rgba(98, 83, 68, 0.2));
 }
 
 .cl-roll-bottom {
-  z-index: 1;
-  transform: translateY(-50%) scale(1, -1);
-}
-
-.cl-bow {
-  z-index: 3;
-  top: 0;
+  transform: scale(1, -1);
 }
 
 /* Reduced motion: the card is simply shown open. */
 .cl.is-open .cl-card {
   clip-path: none;
-}
-
-.cl.is-open .cl-content {
-  opacity: 1;
 }
 
 .cl.is-open .cl-rolled {
@@ -354,56 +406,43 @@
 
 /* ── Golden light ─────────────────────────── */
 
-.intro-light {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
 .intro-glow {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 95vmin;
+  width: 60vmin;
   aspect-ratio: 1;
   border-radius: 50%;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.5);
-  background: radial-gradient(circle, rgba(255, 252, 244, 1) 0%, rgba(255, 244, 218, 0.82) 22%, rgba(236, 210, 156, 0.4) 46%, rgba(214, 183, 121, 0) 70%);
-  filter: blur(12px);
-  mix-blend-mode: screen;
+  transform: translate(-50%, -50%) scale(0.12);
+  pointer-events: none;
+  background: radial-gradient(circle, #fffefb 0%, rgba(255, 252, 247, 0.96) 22%, rgba(250, 236, 208, 0.8) 40%, rgba(214, 183, 121, 0.32) 58%, rgba(214, 183, 121, 0) 72%);
 }
 
-/* Soft volumetric rays, blurred so they read as light in the air. */
 .intro-rays {
   position: absolute;
-  inset: -20%;
-  opacity: 0;
-  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 238, 200, 0.42) 0deg 2.5deg, rgba(255, 238, 200, 0) 2.5deg 11deg);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 8%, rgba(0, 0, 0, 0.35) 30%, transparent 55%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 8%, rgba(0, 0, 0, 0.35) 30%, transparent 55%);
-  filter: blur(7px);
-  mix-blend-mode: screen;
+  inset: -15%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 240, 210, 0.45) 0 2deg, rgba(255, 240, 210, 0) 2deg 14deg);
+  -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 60%);
+  mask-image: radial-gradient(circle, #000 12%, transparent 60%);
+  filter: blur(3px);
+  opacity: 0.6;
 }
 
-.intro-light.is-on .intro-rays {
-  animation: intro-spin 40s linear infinite;
-}
-
-.intro-motes i {
+.intro-sparks i {
   position: absolute;
-  left: 50%;
-  top: 52%;
+  left: calc(50% + var(--x) * 0.4);
+  top: 54%;
   width: var(--s);
   height: var(--s);
   border-radius: 50%;
-  background: rgba(255, 236, 190, 0.95);
-  box-shadow: 0 0 6px 1px rgba(214, 183, 121, 0.6);
+  background: radial-gradient(circle, #fff6df, rgba(214, 183, 121, 0.85) 55%, rgba(214, 183, 121, 0) 75%);
   opacity: 0;
 }
 
-.intro-light.is-on .intro-motes i {
-  animation: intro-mote var(--d) ease-in-out var(--delay) infinite;
+.intro-glow.is-on .intro-sparks i {
+  animation: intro-spark 0.6s ease-out var(--delay) forwards;
 }
 
 .intro-whiteout {
@@ -411,7 +450,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, #fffefb, var(--i-pearl) 55%, #fbf2e3);
+  background: radial-gradient(ellipse at center, #fffefb, var(--i-pearl) 55%, #fbf1e1);
 }
 
 /* ── Controls ─────────────────────────────── */
@@ -436,7 +475,7 @@
 }
 
 .intro-start:focus-visible .intro-hint {
-  outline: 1.5px solid var(--i-pearl);
+  outline: 1.5px solid var(--i-antique);
   outline-offset: 6px;
   border-radius: 2px;
 }
@@ -444,10 +483,10 @@
 .intro-hint {
   font-family: "Cormorant Garamond", Garamond, serif;
   font-style: italic;
-  font-size: clamp(1.15rem, 4.8vw, 1.4rem);
-  letter-spacing: 0.05em;
-  color: var(--i-pearl);
-  text-shadow: 0 1px 2px rgba(98, 83, 68, 0.55), 0 0 18px rgba(98, 83, 68, 0.35);
+  font-size: clamp(1.1rem, 4.6vw, 1.35rem);
+  letter-spacing: 0.04em;
+  color: #7d6a50;
+  text-shadow: 0 0 10px rgba(255, 252, 247, 0.95), 0 0 2px rgba(255, 252, 247, 0.9);
   animation: intro-hint 2.8s ease-in-out infinite;
 }
 
@@ -464,22 +503,22 @@
   gap: 0.4rem;
   min-height: 40px;
   padding: 0 0.95rem;
-  border: 1px solid rgba(255, 252, 247, 0.65);
+  border: 1px solid rgba(185, 154, 91, 0.55);
   border-radius: 999px;
-  background: rgba(98, 83, 68, 0.22);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 252, 247, 0.78);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   font-family: "Inter", system-ui, sans-serif;
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--i-pearl);
+  color: var(--i-text);
   cursor: pointer;
 }
 
 .intro-chip:focus-visible {
-  outline: 2px solid var(--i-pearl);
+  outline: 2px solid var(--i-antique);
   outline-offset: 3px;
 }
 
@@ -494,6 +533,7 @@
 .intro-sound .icon {
   width: 16px;
   height: 16px;
+  color: var(--i-antique);
 }
 
 .intro-sound[aria-pressed="false"] {
@@ -501,47 +541,79 @@
 }
 
 .intro-sound[aria-pressed="false"] .icon {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .is-started .intro-sound {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s;
+  transition: opacity 0.3s;
 }
 
-/* ── Wider screens: more of the garden around the dove. ── */
+/* ── Wider screens: more of the scene around the dove. ── */
 
 @media (min-aspect-ratio: 4/5) {
-  .intro-near {
-    left: -6%;
-    width: 78%;
-    top: 46%;
+  /* The dove on its branch sits in the left third; the palace stands clear. */
+  .perch-box {
+    left: 30%;
+    top: 44%;
+    width: min(58vw, 780px, 100vh);
+    transform: translate(-50%, -50%);
   }
 
-  .carrier {
-    width: min(44vw, 600px, 78vh);
+  .intro-palace {
+    left: 26vw;
+    right: 6vw;
+    bottom: 30%;
+    height: 44%;
   }
 
-  .plate-garden {
-    object-position: 50% 62%;
+  .intro-far {
+    bottom: 34%;
+    height: 26%;
   }
 }
 
 /* ── Keyframes ────────────────────────────── */
 
-@keyframes intro-drift {
-  to { transform: scale(1.04) translateX(-1%); }
+@keyframes intro-breath {
+  50% { transform: translateY(-1.2%) scaleY(1.012); }
 }
 
-@keyframes intro-breath {
-  50% { transform: translateY(-0.5%) scaleY(1.006); }
+@keyframes intro-look {
+  0%, 70%, 100% { transform: rotate(0); }
+  76% { transform: rotate(-9deg); }
+  86% { transform: rotate(6deg); }
+}
+
+@keyframes intro-flap {
+  from { transform: rotate(-20deg) scaleY(1.05); }
+  to { transform: rotate(40deg) scaleY(0.5); }
+}
+
+@keyframes intro-flap-far {
+  from { transform: rotate(-26deg) scaleY(1); }
+  to { transform: rotate(30deg) scaleY(0.45); }
 }
 
 @keyframes intro-petal {
   0% { transform: translate(0, 0) rotate(0); opacity: 0; }
   10% { opacity: 0.85; }
-  100% { transform: translate(var(--drift), 112vh) rotate(420deg); opacity: 0.25; }
+  100% { transform: translate(var(--drift), 110vh) rotate(420deg); opacity: 0.2; }
+}
+
+@keyframes intro-dust {
+  from { transform: translate(0, 0); }
+  to { transform: translate(10px, -14px); }
+}
+
+@keyframes intro-cloud {
+  to { transform: translateX(6%); }
+}
+
+@keyframes intro-breathe {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
 }
 
 @keyframes intro-hint {
@@ -549,14 +621,10 @@
   50% { opacity: 1; }
 }
 
-@keyframes intro-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes intro-mote {
-  0% { transform: translate(var(--x), var(--y)); opacity: 0; }
-  30% { opacity: 0.8; }
-  100% { transform: translate(calc(var(--x) * 1.15), calc(var(--y) - 22vh)); opacity: 0; }
+@keyframes intro-spark {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(0, -16vmin) scale(1); opacity: 0; }
 }
 
 /* Reduced motion: a still scene; the tap shows the open card, then the site. */
@@ -567,7 +635,8 @@
     animation: none !important;
   }
 
-  .intro-petals {
+  .intro-petals,
+  .intro-dust {
     display: none;
   }
 

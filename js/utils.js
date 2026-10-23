@@ -1,3 +1,5 @@
+import { LETTERING } from "./lettering.js";
+
 // Small shared helpers. Content comes from config.js, so everything
 // inserted into HTML is escaped first.
 
@@ -9,8 +11,10 @@ export const has = (value) => (Array.isArray(value) ? value.length > 0 : value !
 export const icon = (name, cls = "icon") =>
   `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="#${name}"></use></svg>`;
 
+// Ornaments carry data-draw: their gold linework is drawn on when they
+// scroll into view (the symbol paths use pathLength="1").
 export const ornament = (name, cls) =>
-  `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="#${name}"></use></svg>`;
+  `<svg class="${cls}" aria-hidden="true" focusable="false" data-draw><use href="#${name}"></use></svg>`;
 
 export const divider = (cls = "divider") => ornament("divider", cls);
 
@@ -78,17 +82,29 @@ export async function copyText(text) {
 }
 
 // Gently fades elements in as they scroll into view.
+// Reveals content as it scrolls into view, once. Items in the same section
+// arrive a beat apart (a gentle stagger); ornaments and script headings are
+// drawn on. With reduced motion or no observer support, everything shows.
 export function observeReveals(root = document) {
-  const items = root.querySelectorAll("[data-animate]:not(.is-visible)");
+  const items = [...root.querySelectorAll("[data-animate]:not(.is-visible), [data-draw]:not(.is-drawn)")];
+  const show = (el) => el.classList.add(el.hasAttribute("data-draw") ? "is-drawn" : "is-visible");
   if (!("IntersectionObserver" in window) || prefersReducedMotion()) {
-    items.forEach((el) => el.classList.add("is-visible"));
+    items.forEach(show);
     return;
   }
+  const groups = new Map();
+  items.forEach((el) => {
+    if (!el.hasAttribute("data-animate")) return;
+    const key = el.closest("section, header, footer") ?? document.body;
+    const i = groups.get(key) ?? 0;
+    el.style.setProperty("--stagger", `${Math.min(i, 5) * 90}ms`);
+    groups.set(key, i + 1);
+  });
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
+          show(entry.target);
           io.unobserve(entry.target);
         }
       });
@@ -98,11 +114,31 @@ export function observeReveals(root = document) {
   items.forEach((el) => io.observe(el));
 }
 
+// A short line whose words arrive one after another. The words stay real
+// text in reading order, so it reads and selects normally.
+export function words(text) {
+  return `<span class="words">${String(text)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w, i) => `<span class="w" style="--i:${i}">${esc(w)}</span>`)
+    .join(" ")}</span>`;
+}
+
+// A heading set in Pinyon Script and drawn on letter by letter. The real
+// text stays in the heading for screen readers, search and copying.
+export function scriptText(text, cls = "script") {
+  const art = LETTERING[text];
+  if (!art) return esc(text);
+  return `<span class="visually-hidden">${esc(text)}</span><svg class="${cls}" viewBox="${art.viewBox}" aria-hidden="true" focusable="false" data-draw>${art.paths
+    .map((d, i) => `<path d="${d}" pathLength="1" style="--i:${i}"/>`)
+    .join("")}</svg>`;
+}
+
 export function sectionHeading({ id, eyebrow, title }) {
   return `
     <header class="section-head" data-animate>
       ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ""}
-      <h2 class="section-title" id="${id}">${esc(title)}</h2>
+      <h2 class="section-title${LETTERING[title] ? " is-script" : ""}" id="${id}">${scriptText(title)}</h2>
       ${divider()}
     </header>`;
 }

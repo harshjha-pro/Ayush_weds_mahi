@@ -1,4 +1,4 @@
-import { esc, icon, ornament, divider, monogramPicture, copyText, toast, toDate, formatShortDate } from "../utils.js";
+import { esc, icon, ornament, divider, monogramPicture, copyText, toast, toDate, formatShortDate, words, scriptText } from "../utils.js";
 
 // The link that gets shared. Until a public address is set in config.js,
 // the address the guest is viewing is used (without any #section part).
@@ -11,9 +11,9 @@ export function ClosingSection(el, config) {
   el.innerHTML = `
     <div class="closing-inner" data-animate>
       ${ornament("sprig", "closing-sprig closing-sprig-left")}${ornament("sprig", "closing-sprig closing-sprig-right")}
-      <h2 class="closing-line" id="closing-title">${esc(closing.line)}</h2>
+      <h2 class="closing-line" id="closing-title">${words(closing.line)}</h2>
       ${divider()}
-      <p class="closing-thanks">${esc(closing.thankYou)}</p>
+      <p class="closing-thanks">${scriptText(closing.thankYou, "script script-sm")}</p>
       ${monogramPicture(config, { cls: "monogram closing-monogram", loading: "lazy" })}
       ${first ? `<p class="closing-date">${esc(formatShortDate(first, event.timeZone))}</p>` : ""}
       ${ShareInvitation(config)}

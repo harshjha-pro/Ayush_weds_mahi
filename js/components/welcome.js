@@ -1,4 +1,4 @@
-import { esc, icon, ornament, divider, monogramPicture, toDate, formatWeekday, formatDate, familiesBlock } from "../utils.js";
+import { esc, icon, ornament, divider, monogramPicture, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
 
 export function WelcomeSection(el, config) {
   const { couple, invitation, event } = config;
@@ -19,7 +19,7 @@ export function WelcomeSection(el, config) {
           <span class="amp" aria-hidden="true">&amp;</span><span class="visually-hidden">and</span>
           <span class="name">${esc(couple.partnerTwo.full)}</span>
         </h1>
-        <p class="hero-welcome" data-animate>${esc(invitation.welcomeLine)}</p>
+        <p class="hero-welcome" data-animate>${words(invitation.welcomeLine)}</p>
         ${familiesBlock(invitation, "families hero-families", "data-animate")}
         ${
           dateLine

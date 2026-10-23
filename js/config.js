@@ -57,6 +57,10 @@ export const config = {
     addressLines: ["VJWH+HGX, Keer Khera", "Chittorgarh, Rajasthan 312001"],
     city: "Chittorgarh",
     mapsUrl: "https://share.google/7hF6ujWya8rbWrLhs",
+    // Map pin for the embedded map. Decoded from the plus code in the address
+    // (VJWH+HGX near Chittorgarh = 7JPPVJWH+HGX, accurate to about 3 m).
+    // Set to null to hide the embedded map; directions use mapsUrl either way.
+    coordinates: { lat: 24.896488, lng: 74.628859 },
     parking: null,
     entrance: null,
     accommodation: null,
