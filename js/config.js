@@ -44,7 +44,7 @@ export const config = {
       { name: "Lunch", start: "2026-11-15T14:00:00+05:30" },
     ],
     // Only used for the calendar entry, never shown on the page.
-    // ⟶ TO CONFIRM: the end time was not provided; 3:00 PM is an assumption.
+    // Confirmed as 3:00 PM.
     calendarEnd: "2026-11-15T15:00:00+05:30",
     dressCode: null, // e.g. "Indian festive"
     notes: null, // e.g. "Parking is available at the venue."
@@ -61,8 +61,9 @@ export const config = {
   },
 
   story: {
-    // ⟶ TO ADD: a short narrative (2–4 short paragraphs work best).
-    paragraphs: [],
+    // A short neutral intro for now. Replace with your own story when ready
+    // (2–4 short paragraphs work best).
+    paragraphs: ["Two hearts, one beautiful beginning.", "A few moments from our journey so far."],
     // Optional longer part, shown behind a "Read more" toggle.
     moreParagraphs: [],
     // Photos live in assets/photos/ (a 1600px version for the full-screen
@@ -100,7 +101,7 @@ export const config = {
     hint: "A little something for you",
     // The photo revealed inside the envelope (kept out of the gallery on purpose).
     photo: { src: "assets/photos/surprise.jpg", alt: "Mahi and Ayush together at sunset", focus: "62% 40%" },
-    // ⟶ TO ADD: the secret message. Until then this gentle draft is shown.
+    // Approved. Replace this text to change the secret message.
     message: "Thank you for being a part of our story. Your love and blessings mean the world to us.",
     signature: "Mahi & Ayush",
   },
