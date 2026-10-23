@@ -72,7 +72,7 @@ Any static host works. Two free options:
 If you move it to another host:
 
 1. Set `share.siteUrl` in `js/config.js` to the new public link, so WhatsApp shares and calendar entries carry it.
-2. In `index.html`, update the `og:url` and `og:image` addresses so WhatsApp shows the monogram in link previews.
+2. In `index.html`, update the `og:url` and `og:image` addresses so WhatsApp shows the preview card (`assets/images/share-card.jpg`).
 
 ## Project layout
 
