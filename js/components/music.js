@@ -1,8 +1,14 @@
 import { esc, has, icon } from "../utils.js";
 
-// Only appears when a music file is set in config.js. Never autoplays.
+// Only appears when a music file is set in config.js. It never starts on its
+// own: only this button, or the guest's tap on the opening intro while its
+// sound switch is on, starts playback.
+export function hasMusic(config) {
+  return has(config.music?.src);
+}
+
 export function MusicControl(config) {
-  if (!has(config.music?.src)) return;
+  if (!hasMusic(config)) return;
 
   const audio = new Audio();
   audio.preload = "none"; // nothing downloads until the guest presses play
@@ -26,19 +32,24 @@ export function MusicControl(config) {
     btn.innerHTML = label(playing);
   };
 
-  btn.addEventListener("click", async () => {
-    if (audio.paused) {
-      try {
-        await audio.play();
-        set(true);
-      } catch {
-        set(false);
-      }
-    } else {
+  const play = async () => {
+    try {
+      await audio.play();
+      set(true);
+    } catch {
+      set(false);
+    }
+  };
+
+  btn.addEventListener("click", () => {
+    if (audio.paused) play();
+    else {
       audio.pause();
       set(false);
     }
   });
+  // Sent by the intro from inside the guest's tap, so browsers allow playback.
+  document.addEventListener("invitation:play-music", () => audio.paused && play());
   audio.addEventListener("pause", () => set(false));
   // If the file is missing, remove the control instead of leaving a dead button.
   audio.addEventListener("error", () => btn.remove());

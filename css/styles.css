@@ -482,204 +482,6 @@ address {
   }
 }
 
-/* ── Opening envelope ─────────────────────── */
-
-.reveal {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-items: center;
-  padding: var(--gutter);
-  overflow-y: auto;
-  background-color: var(--ivory);
-  background-image: var(--grain), radial-gradient(ellipse at 50% 40%, var(--white) 0%, var(--ivory) 55%, var(--paper) 100%);
-  transition: opacity 0.7s var(--ease);
-}
-
-.reveal.is-leaving {
-  opacity: 0;
-}
-
-.reveal-stage {
-  display: grid;
-  justify-items: center;
-  gap: clamp(2rem, 6vh, 3rem);
-  width: 100%;
-  text-align: center;
-}
-
-.envelope {
-  position: relative;
-  width: min(82vw, 380px);
-  aspect-ratio: 1.45;
-  perspective: 1200px;
-  margin-top: 12vh; /* room for the card to rise */
-  animation: float-in 1s var(--ease) both;
-}
-
-.envelope-back,
-.envelope-pocket,
-.envelope-flap {
-  position: absolute;
-  inset: 0;
-}
-
-.envelope-back {
-  background: var(--envelope);
-  border: 1px solid var(--gold-soft);
-  border-radius: 4px;
-  box-shadow: 0 30px 60px -36px rgba(58, 47, 36, 0.45);
-}
-
-.envelope-card {
-  position: absolute;
-  left: 7%;
-  right: 7%;
-  top: 6%;
-  bottom: 6%;
-  display: grid;
-  place-items: center;
-  background: var(--white);
-  border: 1px solid var(--gold-soft);
-  outline: 1px solid var(--gold-faint);
-  outline-offset: -6px;
-  transition: transform 0.8s var(--ease);
-}
-
-.envelope-card img {
-  width: 42%;
-  height: auto;
-}
-
-.envelope-pocket {
-  filter: drop-shadow(0 -1px 0 var(--gold-soft));
-}
-
-.envelope-pocket::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #f7f1e6, var(--envelope));
-  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
-  border-radius: 4px;
-}
-
-.envelope-flap {
-  z-index: 3;
-  transform-origin: 50% 0;
-  filter: drop-shadow(0 1px 0 var(--gold-soft)) drop-shadow(0 8px 10px rgba(58, 47, 36, 0.08));
-}
-
-.envelope-flap::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #f3ebdd, #ebe0cc);
-  clip-path: polygon(0 0, 100% 0, 50% 60%);
-}
-
-.envelope-seal {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  top: 60%;
-  display: grid;
-  place-items: center;
-  width: clamp(58px, 17vw, 74px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle at 35% 30%, #d9bd85, var(--gold) 45%, #a7854a 100%);
-  box-shadow: 0 0 0 3px rgba(195, 160, 100, 0.25), 0 6px 14px -6px rgba(122, 92, 40, 0.8), inset 0 0 0 2px rgba(255, 253, 248, 0.35);
-  font-family: var(--serif);
-  font-size: clamp(1.1rem, 4.4vw, 1.4rem);
-  font-weight: 600;
-  color: var(--ivory);
-  letter-spacing: 0.02em;
-}
-
-.envelope-seal::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 253, 248, 0.55);
-  border-radius: 50%;
-}
-
-.reveal-text {
-  display: grid;
-  justify-items: center;
-  gap: 0.9rem;
-  animation: float-in 1s 0.15s var(--ease) both;
-}
-
-.reveal-title {
-  font-family: var(--serif);
-  font-size: clamp(2.4rem, 10vw, 3.6rem);
-  font-weight: 500;
-  line-height: 1.05;
-}
-
-.reveal-open {
-  margin-top: 0.6rem;
-}
-
-.reveal-skip {
-  min-height: 44px;
-  padding: 0 1rem;
-  background: none;
-  border: 0;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-  text-decoration: underline;
-  text-decoration-color: var(--gold-soft);
-  text-underline-offset: 4px;
-  cursor: pointer;
-}
-
-/* Opening sequence: seal lifts → flap opens → card rises → layer fades. */
-.is-opening .envelope-seal {
-  animation: seal-away 0.45s var(--ease) forwards;
-}
-
-.is-opening .envelope-flap {
-  animation: flap-open 0.7s 0.3s var(--ease) forwards;
-}
-
-.is-opening .envelope-card {
-  z-index: 2;
-  transform: translateY(-62%);
-  transition-delay: 0.75s;
-}
-
-.is-opening .reveal-text {
-  opacity: 0;
-  transition: opacity 0.4s;
-}
-
-@keyframes seal-away {
-  to {
-    opacity: 0;
-    transform: translate(-50%, -80%) scale(0.85);
-  }
-}
-
-@keyframes flap-open {
-  0% { transform: rotateX(0); z-index: 3; }
-  49% { z-index: 3; }
-  50% { z-index: 1; }
-  100% { transform: rotateX(180deg); z-index: 1; }
-}
-
-@keyframes float-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-}
-
 /* ── 1 · Welcome ──────────────────────────── */
 
 .hero {
@@ -846,8 +648,7 @@ address {
   margin-top: 0.5rem;
 }
 
-.hero-names:focus,
-.reveal:focus {
+.hero-names:focus {
   outline: none;
 }
 
@@ -1771,6 +1572,21 @@ address {
   from {
     opacity: 0;
   }
+}
+
+/* Shared by the surprise envelope. */
+@keyframes seal-away {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(0.85);
+  }
+}
+
+@keyframes flap-open {
+  0% { transform: rotateX(0); z-index: 3; }
+  49% { z-index: 3; }
+  50% { z-index: 1; }
+  100% { transform: rotateX(180deg); z-index: 1; }
 }
 
 /* ── 7 · Closing ──────────────────────────── */

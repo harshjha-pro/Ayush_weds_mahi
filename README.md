@@ -78,13 +78,15 @@ If you move it to another host:
 
 ```
 index.html              Page shell, SVG ornaments and icons
-css/styles.css          Design tokens and all styles
+css/styles.css          Design tokens and site styles
+css/intro.css           Opening dove intro styles
 js/config.js            ← all invitation content
 js/main.js              Renders the sections in order
 js/utils.js             Shared helpers (date formatting, copy, toast)
 js/components/          One file per part of the page:
   navigation.js         Top bar, mobile menu, venue shortcut
-  welcome.js            Welcome section + opening envelope
+  intro.js              Opening intro: dove, flight, letter, golden light
+  welcome.js            Welcome section
   story.js              Our Story, photo gallery, lightbox
   details.js            The Celebration (event details)
   calendar.js           Google Calendar link + .ics download

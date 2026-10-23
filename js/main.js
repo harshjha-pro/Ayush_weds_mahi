@@ -2,7 +2,8 @@
 import { config } from "./config.js";
 import { observeReveals, prefersReducedMotion } from "./utils.js";
 import { Navigation } from "./components/navigation.js";
-import { WelcomeSection, InvitationReveal } from "./components/welcome.js";
+import { WelcomeSection } from "./components/welcome.js";
+import { WeddingIntro } from "./components/intro.js";
 import { CoupleStorySection } from "./components/story.js";
 import { EventDetailsSection } from "./components/details.js";
 import { CountdownTimer } from "./components/countdown.js";
@@ -24,7 +25,7 @@ const sections = [
   [VenueSection, "venue"],
   [SurpriseMessage, "surprise"],
   [ClosingSection, "closing"],
-  [InvitationReveal, "reveal"],
+  [WeddingIntro, "intro"],
 ];
 
 for (const [render, id] of sections) {

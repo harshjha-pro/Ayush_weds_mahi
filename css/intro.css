@@ -1,0 +1,669 @@
+/* ─────────────────────────────────────────────
+   Opening intro: dove, flight, letter, golden light.
+   Isolated from the site's styles; everything is scoped to .intro.
+   Portrait (9:16) first, then wider screens.
+   ───────────────────────────────────────────── */
+
+.intro {
+  --i-ivory: #fff9f0;
+  --i-pearl: #fffcf7;
+  --i-champagne: #d6b779;
+  --i-antique: #b99a5b;
+  --i-blush: #f3dfd9;
+  --i-beige: #e9d9c5;
+  --i-text: #625344;
+
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--i-ivory);
+  color: var(--i-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.intro.is-started {
+  cursor: default;
+}
+
+.intro:focus {
+  outline: none;
+}
+
+.intro-world,
+.intro-layer,
+.intro-sky,
+.intro-beams {
+  position: absolute;
+  inset: 0;
+}
+
+/* Warm morning sky with the sun high on the right. */
+.intro-sky {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 252, 247, 1) 0, rgba(255, 246, 228, 0.95) 9%, rgba(246, 226, 190, 0.55) 22%, rgba(255, 249, 240, 0) 46%),
+    radial-gradient(ellipse at 20% 85%, rgba(243, 223, 217, 0.55), rgba(243, 223, 217, 0) 55%),
+    linear-gradient(180deg, #fbf3e6 0%, var(--i-ivory) 45%, #f6ecdf 100%);
+}
+
+/* Sunlight through leaves: soft diagonal beams that breathe slowly. */
+.intro-beams {
+  background: repeating-linear-gradient(115deg, rgba(255, 244, 220, 0) 0 46px, rgba(255, 240, 210, 0.32) 46px 70px, rgba(255, 244, 220, 0) 70px 130px);
+  -webkit-mask-image: radial-gradient(ellipse at 82% 10%, #000 0, rgba(0, 0, 0, 0.5) 35%, transparent 70%);
+  mask-image: radial-gradient(ellipse at 82% 10%, #000 0, rgba(0, 0, 0, 0.5) 35%, transparent 70%);
+  animation: intro-breathe 7s ease-in-out infinite alternate;
+}
+
+.intro-far,
+.intro-mid,
+.intro-near {
+  will-change: transform;
+}
+
+/* Distant palace, hazy with depth. Wider than the screen so panning never shows its edges. */
+.intro-far {
+  top: auto;
+  left: -20vw;
+  right: -30vw;
+  bottom: 24%;
+  height: 30%;
+  opacity: 0.75;
+  filter: blur(1.2px);
+}
+
+.palace-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.intro-mid {
+  top: auto;
+  left: -25vw;
+  right: -40vw;
+  bottom: 0;
+  height: 34%;
+  opacity: 0.8;
+  filter: blur(0.6px);
+}
+
+.garden-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-bokeh i {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--c), 0.45), rgba(var(--c), 0) 70%);
+  animation: intro-float 9s ease-in-out infinite alternate;
+}
+
+/* Shared box for the branch and the perched dove, so they always line up. */
+/* On phones the box is wider than the screen so the dove is large;
+   the branch simply runs off the edges. */
+.perch-box {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(150vw, 640px, 78vh);
+  aspect-ratio: 560 / 420;
+  transform: translate(-58%, -50%);
+}
+
+.branch-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* The ivory surface the letter lands on: draped silk with a gold edge. */
+.intro-surface {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 32%;
+  transform: translateY(100%);
+  border-radius: 50% 50% 0 0 / 22% 22% 0 0;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 60%),
+    repeating-linear-gradient(100deg, rgba(233, 217, 197, 0) 0 60px, rgba(233, 217, 197, 0.35) 60px 64px, rgba(233, 217, 197, 0) 64px 140px),
+    linear-gradient(180deg, var(--i-pearl), #f2e7d8);
+  box-shadow: 0 -1px 0 var(--i-champagne), 0 -18px 40px -20px rgba(185, 154, 91, 0.45);
+}
+
+.intro-surface-petals i,
+.intro-petals i {
+  position: absolute;
+  width: var(--size, 11px);
+  height: calc(var(--size, 11px) * 0.7);
+  border-radius: 60% 40% 60% 40% / 70% 50% 50% 30%;
+  background: linear-gradient(135deg, var(--i-pearl), var(--i-beige));
+  box-shadow: inset 0 0 0 0.5px rgba(185, 154, 91, 0.25);
+}
+
+.intro-surface-petals i.is-blush,
+.intro-petals i.is-blush {
+  background: linear-gradient(135deg, #f8e9e4, var(--i-blush));
+}
+
+.intro-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.intro-petals i {
+  top: -5%;
+  animation: intro-petal var(--dur) linear var(--delay) infinite;
+}
+
+/* ── The dove ─────────────────────────────── */
+
+.intro-carrier-box {
+  pointer-events: none;
+}
+
+.intro-carrier {
+  position: absolute;
+  left: 34%;
+  top: 31%;
+  width: 44%;
+  aspect-ratio: 220 / 205;
+  will-change: transform;
+}
+
+.dove {
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 220 / 160;
+  transform-origin: 55% 90%;
+  animation: intro-breath 3.2s ease-in-out infinite;
+}
+
+.dove.is-flying {
+  animation: none;
+}
+
+.dove-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dv-head {
+  transform-box: view-box;
+  transform-origin: 150px 76px;
+  animation: intro-look 6s ease-in-out 1.5s infinite;
+}
+
+.is-started .dv-head {
+  animation: none;
+}
+
+.dv-wings {
+  opacity: 0;
+}
+
+.dv-wing {
+  transform-box: view-box;
+}
+
+.dv-wing-near {
+  transform-origin: 112px 80px;
+}
+
+.dv-wing-far {
+  transform-origin: 118px 76px;
+}
+
+.dove.is-flying .dv-wing-near {
+  animation: intro-flap 0.34s ease-in-out infinite alternate;
+}
+
+.dove.is-flying .dv-wing-far {
+  animation: intro-flap-far 0.34s ease-in-out 0.04s infinite alternate;
+}
+
+.dove.is-flying .dv-legs {
+  transform-box: view-box;
+  transform-origin: 117px 110px;
+  transform: rotate(-12deg);
+}
+
+/* The rolled letter hangs from the dove's feet. */
+.scroll-sm {
+  position: absolute;
+  left: 30%;
+  top: 59%;
+  width: 46%;
+  aspect-ratio: 120 / 46;
+  transform-origin: 50% 0;
+}
+
+.scroll-sm.is-dropped {
+  transform-origin: 50% 50%;
+}
+
+.scroll-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ── Close-up letter ──────────────────────── */
+
+.cl {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  pointer-events: none;
+}
+
+.cl.is-shown {
+  display: grid;
+}
+
+.cl-box {
+  --w: min(80vw, 380px, 52vh);
+  position: relative;
+  width: var(--w);
+  height: calc(var(--w) * 1.5);
+  max-height: 78vh;
+  will-change: transform;
+}
+
+.cl-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12% 10%;
+  clip-path: inset(50% 0 50% 0);
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, var(--i-pearl), var(--i-ivory) 60%, #f6ecdd);
+  box-shadow: inset 0 0 0 1px var(--i-champagne), inset 0 0 0 7px var(--i-pearl), inset 0 0 0 8px rgba(214, 183, 121, 0.55), 0 30px 60px -30px rgba(185, 154, 91, 0.6);
+}
+
+.cl-corner {
+  position: absolute;
+  width: 18%;
+  aspect-ratio: 1;
+  color: var(--i-champagne);
+}
+
+.cl-corner.tl { top: 3%; left: 4%; }
+.cl-corner.tr { top: 3%; right: 4%; transform: scaleX(-1); }
+.cl-corner.bl { bottom: 3%; left: 4%; transform: scaleY(-1); }
+.cl-corner.br { bottom: 3%; right: 4%; transform: scale(-1); }
+
+.cl-content {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  opacity: 0;
+}
+
+.cl-eyebrow,
+.cl-event {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: clamp(0.58rem, 2.4vw, 0.7rem);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--i-antique);
+}
+
+.cl-monogram {
+  width: 62%;
+  height: auto;
+}
+
+.cl-names {
+  font-family: "Cormorant Garamond", Garamond, serif;
+  font-size: clamp(1.8rem, 8.5vw, 2.6rem);
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--i-text);
+}
+
+.cl-names span {
+  font-style: italic;
+  color: var(--i-champagne);
+}
+
+.cl-divider {
+  width: 60%;
+  height: 16px;
+  color: var(--i-champagne);
+}
+
+.cl-date {
+  font-family: "Cormorant Garamond", Garamond, serif;
+  font-size: clamp(1rem, 4.4vw, 1.25rem);
+  color: var(--i-text);
+}
+
+/* Two paper rolls that sit together as one rolled letter, then part. */
+.cl-roll {
+  position: absolute;
+  left: -3%;
+  right: -3%;
+  top: 50%;
+  height: calc(var(--w) * 0.11);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--i-antique) 0 1.6%, transparent 1.6% 98.4%, var(--i-antique) 98.4%),
+    linear-gradient(180deg, #fffdf9 0%, var(--i-ivory) 35%, #ead9c0 80%, #dcc6a5 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 14px -8px rgba(98, 83, 68, 0.45);
+  will-change: transform;
+}
+
+.cl-roll-top {
+  margin-top: calc(var(--w) * -0.1);
+}
+
+.cl-roll-bottom {
+  margin-top: calc(var(--w) * -0.01);
+}
+
+.cl-ribbon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--w) * 0.09);
+  height: calc(var(--w) * 0.22);
+  transform: translate(-50%, -50%);
+}
+
+.cl-ribbon-band {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #ecd0c7, var(--i-blush) 40%, #f9ece8 55%, var(--i-blush));
+  box-shadow: 0 0 0 0.5px #e2bdb1;
+}
+
+.cl-bow {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: calc(var(--w) * 0.34);
+  transform: translate(-50%, -50%);
+}
+
+.cl-bow svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.cl-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: calc(var(--w) * 0.15);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 30%, #f0dcae, var(--i-champagne) 45%, var(--i-antique) 100%);
+  box-shadow: 0 0 0 3px rgba(214, 183, 121, 0.25), 0 6px 12px -6px rgba(98, 83, 68, 0.6), inset 0 0 0 2px rgba(255, 252, 247, 0.4);
+  font-family: "Cormorant Garamond", Garamond, serif;
+  font-size: calc(var(--w) * 0.045);
+  font-weight: 600;
+  color: var(--i-pearl);
+}
+
+/* Reduced motion: the card is simply shown open. */
+.cl.is-open .cl-card { clip-path: none; }
+.cl.is-open .cl-content { opacity: 1; }
+.cl.is-open .cl-roll,
+.cl.is-open .cl-ribbon,
+.cl.is-open .cl-seal { display: none; }
+
+/* ── Golden light ─────────────────────────── */
+
+.intro-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.15);
+  pointer-events: none;
+  background: radial-gradient(circle, #fffefb 0%, rgba(255, 252, 247, 0.98) 18%, rgba(250, 236, 205, 0.85) 36%, rgba(214, 183, 121, 0.45) 55%, rgba(214, 183, 121, 0) 70%);
+}
+
+.intro-rays {
+  position: absolute;
+  inset: -10%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 244, 214, 0.5) 0 3deg, rgba(255, 244, 214, 0) 3deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, #000 10%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 10%, transparent 62%);
+  opacity: 0.7;
+}
+
+.intro-glow.is-on .intro-rays {
+  animation: intro-spin 14s linear infinite;
+}
+
+.intro-sparks i {
+  position: absolute;
+  left: calc(50% + var(--x) * 0.5);
+  top: 55%;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff7e2, rgba(214, 183, 121, 0.9) 50%, rgba(214, 183, 121, 0) 72%);
+  opacity: 0;
+}
+
+.intro-glow.is-on .intro-sparks i {
+  animation: intro-spark var(--d) ease-out var(--delay) infinite;
+}
+
+.intro-whiteout {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, #fffefb, var(--i-pearl) 55%, #fbf1df);
+}
+
+/* ── Controls ─────────────────────────────── */
+
+/* The whole screen is the start button; only its hint text is visible. */
+.intro-start {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 1rem calc(max(1.5rem, env(safe-area-inset-bottom)) + 4vh);
+  border: 0;
+  background: none;
+  cursor: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.intro-start:focus-visible {
+  outline: none;
+}
+
+.intro-start:focus-visible .intro-hint {
+  outline: 1.5px solid var(--i-antique);
+  outline-offset: 6px;
+  border-radius: 2px;
+}
+
+.intro-hint {
+  font-family: "Cormorant Garamond", Garamond, serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 4.6vw, 1.35rem);
+  letter-spacing: 0.04em;
+  color: var(--i-antique);
+  text-shadow: 0 1px 8px rgba(255, 252, 247, 0.9);
+  animation: intro-hint 2.8s ease-in-out infinite;
+}
+
+.intro-start:disabled {
+  pointer-events: none;
+}
+
+.intro-chip {
+  position: absolute;
+  z-index: 3;
+  top: max(0.9rem, env(safe-area-inset-top));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0 0.95rem;
+  border: 1px solid rgba(185, 154, 91, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.75);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--i-text);
+  cursor: pointer;
+}
+
+.intro-chip:focus-visible {
+  outline: 2px solid var(--i-antique);
+  outline-offset: 3px;
+}
+
+.intro-skip {
+  right: max(0.9rem, env(safe-area-inset-right));
+}
+
+.intro-sound {
+  left: max(0.9rem, env(safe-area-inset-left));
+}
+
+.intro-sound .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--i-antique);
+}
+
+.intro-sound[aria-pressed="false"] {
+  opacity: 0.7;
+}
+
+.intro-sound[aria-pressed="false"] .icon {
+  opacity: 0.4;
+}
+
+.is-started .intro-sound {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+/* ── Wider screens: more of the scene around the dove. ── */
+
+@media (min-aspect-ratio: 4/5) {
+  .perch-box {
+    width: min(72vw, 820px, 112vh);
+    transform: translate(-50%, -54%);
+    top: 50%;
+  }
+
+  .intro-far {
+    bottom: 26%;
+    height: 42%;
+  }
+}
+
+/* ── Keyframes ────────────────────────────── */
+
+@keyframes intro-breath {
+  50% { transform: translateY(-1.2%) scaleY(1.012); }
+}
+
+@keyframes intro-look {
+  0%, 70%, 100% { transform: rotate(0); }
+  76% { transform: rotate(-9deg); }
+  86% { transform: rotate(6deg); }
+}
+
+@keyframes intro-flap {
+  from { transform: rotate(-20deg) scaleY(1.05); }
+  to { transform: rotate(40deg) scaleY(0.5); }
+}
+
+@keyframes intro-flap-far {
+  from { transform: rotate(-26deg) scaleY(1); }
+  to { transform: rotate(30deg) scaleY(0.45); }
+}
+
+@keyframes intro-petal {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  8% { opacity: 0.9; }
+  100% { transform: translate(var(--drift), 110vh) rotate(540deg); opacity: 0.2; }
+}
+
+@keyframes intro-float {
+  to { transform: translate(14px, -10px) scale(1.08); }
+}
+
+@keyframes intro-breathe {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@keyframes intro-hint {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+@keyframes intro-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes intro-spark {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(0, -38vmin) scale(1); opacity: 0; }
+}
+
+/* Reduced motion: a still scene; the tap shows the open card, then the site. */
+@media (prefers-reduced-motion: reduce) {
+  .intro *,
+  .intro *::before,
+  .intro *::after {
+    animation: none !important;
+  }
+
+  .intro-petals {
+    display: none;
+  }
+
+  .intro-hint {
+    opacity: 1;
+  }
+}
