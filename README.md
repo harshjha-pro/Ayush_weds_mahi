@@ -23,7 +23,7 @@ python3 -m http.server 8000
 | To change… | Edit in `js/config.js` |
 |---|---|
 | Names or monogram | `couple` |
-| Welcome line, host/family names | `invitation.welcomeLine`, `invitation.hosts` |
+| Welcome line, family names | `invitation.welcomeLine`, `invitation.families` |
 | Date and times | `event.arrival`, `event.functions` (keep the `+05:30`) |
 | Calendar end time | `event.calendarEnd` |
 | Dress code or notes | `event.dressCode`, `event.notes` |

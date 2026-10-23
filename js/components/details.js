@@ -1,4 +1,4 @@
-import { esc, has, icon, ornament, sectionHeading, toDate, formatWeekday, formatTime, formatDate } from "../utils.js";
+import { esc, has, icon, ornament, sectionHeading, toDate, formatWeekday, formatTime, formatDate, familiesBlock } from "../utils.js";
 import { CalendarAction, bindCalendar } from "./calendar.js";
 
 const functionIcon = (name) => (/ring|engage|sagai/i.test(name) ? "i-ring" : /lunch|dinner|meal|breakfast/i.test(name) ? "i-dine" : "i-clock");
@@ -20,7 +20,6 @@ export function EventDetailsSection(el, config) {
   ].filter((r) => r && r.time);
 
   const extras = [
-    has(invitation.hosts) && { icon: "i-users", label: "Hosted by", text: invitation.hosts },
     has(event.dressCode) && { icon: "i-info", label: "Dress code", text: event.dressCode },
     has(event.notes) && { icon: "i-info", label: "Please note", text: event.notes },
   ].filter(Boolean);
@@ -64,6 +63,8 @@ export function EventDetailsSection(el, config) {
           <a class="text-link" href="#venue">Directions &amp; venue details</a>
         </div>
       </div>
+
+      ${familiesBlock({ ...invitation, familiesLine: null }, "families details-families")}
 
       ${
         extras.length

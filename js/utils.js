@@ -116,3 +116,24 @@ export function monogramPicture(config, { cls = "monogram", loading = "eager", a
            alt="${esc(alt ?? `${c.monogramLetters} monogram for ${c.partnerOne.first} and ${c.partnerTwo.first}`)}" />
     </picture>`;
 }
+
+// Both families, side by side (stacked on narrow phones).
+export function familiesBlock(invitation, cls = "families", attrs = "") {
+  const fams = (invitation.families ?? []).filter((f) => f?.names?.length);
+  if (!fams.length) return "";
+  return `
+    <div class="${cls}" ${attrs}>
+      ${has(invitation.familiesLine) ? `<p class="families-line">${esc(invitation.familiesLine)}</p>` : ""}
+      <div class="families-grid">
+        ${fams
+          .map(
+            (f) => `
+          <div class="family">
+            <p class="eyebrow">${esc(f.side)}</p>
+            <p class="family-names">${f.names.map(esc).join('<span class="family-amp"> &amp; </span>')}</p>
+          </div>`,
+          )
+          .join('<span class="families-rule" aria-hidden="true"></span>')}
+      </div>
+    </div>`;
+}

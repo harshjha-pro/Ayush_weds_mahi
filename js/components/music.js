@@ -16,7 +16,7 @@ export function MusicControl(config) {
   const label = (playing) =>
     `${icon(playing ? "i-pause" : "i-music")}<span class="visually-hidden">${playing ? "Pause" : "Play"} music${
       has(config.music.title) ? `: ${esc(config.music.title)}` : ""
-    }</span><span class="music-bars" aria-hidden="true"><i></i><i></i><i></i></span>`;
+    }</span><span class="music-label" aria-hidden="true">Music</span><span class="music-bars" aria-hidden="true"><i></i><i></i><i></i></span>`;
   btn.innerHTML = label(false);
   document.body.append(btn);
 

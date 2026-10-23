@@ -10,7 +10,6 @@
  *    and calendar are correct for guests in any time zone.
  *  • After editing, refresh the page. No build step is needed.
  *
- *  Items still waiting for details are marked  ⟶ TO ADD.
  */
 
 export const config = {
@@ -27,9 +26,12 @@ export const config = {
   invitation: {
     eyebrow: "A Beautiful Beginning",
     welcomeLine: "We invite you to celebrate our engagement",
-    // ⟶ TO ADD: hosts / family names, e.g.
-    //   "Together with their families, Mr. & Mrs. … and Mr. & Mrs. …"
-    hosts: null,
+    // Shown on the welcome section and in the event details.
+    familiesLine: "Together with their families",
+    families: [
+      { side: "Bride's Family", names: ["Mr. Mahesh Jagetiya", "Mrs. Meenakshi Jagetiya"] },
+      { side: "Groom's Family", names: ["Mr. Arvind Kumar Porwal", "Mrs. Kala Maheshwari"] },
+    ],
   },
 
   event: {
@@ -61,9 +63,13 @@ export const config = {
   },
 
   story: {
-    // A short neutral intro for now. Replace with your own story when ready
-    // (2–4 short paragraphs work best).
-    paragraphs: ["Two hearts, one beautiful beginning.", "A few moments from our journey so far."],
+    // A general draft that invents no specific memories. Replace it with
+    // your own words whenever you like (2–4 short paragraphs work best).
+    paragraphs: [
+      "Every love story is special, and this one is ours.",
+      "What began as two people finding joy in each other's company has grown into a promise to walk through life side by side, with the love and blessings of our families.",
+      "As we take this first step together, we would be honoured to have you with us for our beautiful beginning.",
+    ],
     // Optional longer part, shown behind a "Read more" toggle.
     moreParagraphs: [],
     // Photos live in assets/photos/ (a 1600px version for the full-screen
@@ -86,8 +92,9 @@ export const config = {
       { src: "assets/photos/12.jpg", thumb: "assets/photos/12-800.jpg", alt: "Mahi and Ayush with their loved ones, holding roses", width: 1600, height: 1200 },
       { src: "assets/photos/13.jpg", thumb: "assets/photos/13-800.jpg", alt: "Mahi and Ayush in a selfie outdoors", width: 1600, height: 1200 },
     ],
-    // ⟶ TO ADD (optional): a favourite quote or line.
-    quote: null, // { text: "…", attribution: "…" }
+    // "Sakhā saptapadī bhava": the line from the Vedic wedding vows that asks
+    // the couple to become friends for life once the seven steps are taken.
+    quote: { text: "Having walked seven steps together, be my friend.", attribution: "Sakhā saptapadī bhava · The Saptapadi" },
   },
 
   countdown: {
@@ -119,8 +126,9 @@ export const config = {
       "You are warmly invited to celebrate the engagement of Mahi & Ayush on Sunday, 15 November 2026 in Chittorgarh.",
   },
 
-  // ⟶ TO ADD (optional): background music you have the right to use.
-  // Put the file in assets/audio/ (MP3 is the most compatible). The player
-  // only appears when a file is set, and it never plays by itself.
-  music: null, // { src: "assets/audio/song.mp3", title: "…" }
+  // Background music. The player never plays by itself. This is an original
+  // tanpura and santoor-style piece in Raag Bhupali made for this site
+  // (tools/music/), so it carries no third-party rights. To use another
+  // track, put an MP3 you have the right to use in assets/audio/ and change src.
+  music: { src: "assets/audio/raag-bhupali.mp3", title: "Raag Bhupali" },
 };
