@@ -126,9 +126,13 @@ export const config = {
       "You are warmly invited to celebrate the engagement of Mahi & Ayush on Sunday, 15 November 2026 in Chittorgarh.",
   },
 
-  // Background music. The player never plays by itself. This is an original
-  // tanpura and santoor-style piece in Raag Bhupali made for this site
-  // (tools/music/), so it carries no third-party rights. To use another
-  // track, put an MP3 you have the right to use in assets/audio/ and change src.
-  music: { src: "assets/audio/raag-bhupali.mp3", title: "Raag Bhupali" },
+  // Background music. The player never plays by itself.
+  // "Tum Tak" is a commercial film song, used here as a short excerpt (0:01–1:50)
+  // at the couple's request. To change it, put an MP3 in assets/audio/ and update
+  // src. assets/audio/raag-bhupali.mp3 is an original, copyright-free alternative.
+  music: {
+    src: "assets/audio/tum-tak-excerpt.mp3",
+    title: "Tum Tak",
+    credit: "Music: “Tum Tak”, A.R. Rahman · Raanjhanaa",
+  },
 };

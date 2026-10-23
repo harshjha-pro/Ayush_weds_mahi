@@ -21,7 +21,10 @@ export function ClosingSection(el, config) {
         <a href="#celebration">Event details</a><span aria-hidden="true">·</span><a href="#venue">Directions</a><span aria-hidden="true">·</span><a href="#home">Back to top</a>
       </nav>
     </div>
-    <footer class="site-footer">${esc(couple.partnerOne.first)} &amp; ${esc(couple.partnerTwo.first)}</footer>`;
+    <footer class="site-footer">
+      <p>${esc(couple.partnerOne.first)} &amp; ${esc(couple.partnerTwo.first)}</p>
+      ${config.music?.credit ? `<p class="music-credit">${esc(config.music.credit)}</p>` : ""}
+    </footer>`;
 
   bindShare(el, config);
 }

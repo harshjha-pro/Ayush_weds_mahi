@@ -1869,6 +1869,15 @@ address {
   transform: scaleX(-1) rotate(-14deg);
 }
 
+.music-credit {
+  margin-top: 0.6rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--ink-soft);
+}
+
 .site-footer {
   margin-top: clamp(3rem, 8vw, 5rem);
   padding-top: 1.5rem;
