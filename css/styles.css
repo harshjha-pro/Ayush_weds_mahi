@@ -954,6 +954,7 @@ address {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 30%; /* keeps faces in frame when cropping */
   background: var(--paper);
   transition: transform 0.8s var(--ease);
 }
@@ -973,6 +974,12 @@ address {
   aspect-ratio: 4 / 5;
 }
 
+/* A photo left alone on the last row stretches across it. */
+.gallery[data-tail-phone="1"] .gallery-item:last-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 4 / 3;
+}
+
 .gallery[data-count="1"] {
   grid-template-columns: minmax(0, 28rem);
   justify-content: center;
@@ -986,6 +993,21 @@ address {
   .gallery .gallery-item:first-child {
     grid-column: span 2;
     grid-row: span 2;
+    aspect-ratio: auto;
+  }
+
+  .gallery[data-tail-phone="1"] .gallery-item:last-child {
+    grid-column: auto;
+    aspect-ratio: 4 / 5;
+  }
+
+  .gallery[data-tail-wide="1"] .gallery-item:last-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 21 / 9;
+  }
+
+  .gallery[data-tail-wide="2"] .gallery-item:last-child {
+    grid-column: span 2;
     aspect-ratio: auto;
   }
 

@@ -5,7 +5,9 @@ export function SurpriseMessage(el, config, { reducedMotion }) {
   const photo = has(surprise.photo?.src) ? surprise.photo : null;
 
   const picture = photo
-    ? `<img class="surprise-photo" src="${esc(photo.src)}" alt="${esc(photo.alt ?? "")}" loading="lazy" decoding="async" />`
+    ? `<img class="surprise-photo" src="${esc(photo.src)}" alt="${esc(photo.alt ?? "")}" loading="lazy" decoding="async"${
+        photo.focus ? ` style="object-position:${esc(photo.focus)}"` : ""
+      } />`
     : `<div class="surprise-photo surprise-photo-empty">${monogramPicture(config, { loading: "lazy", alt: "" })}</div>`;
 
   el.innerHTML = `

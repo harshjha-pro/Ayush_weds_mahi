@@ -65,10 +65,26 @@ export const config = {
     paragraphs: [],
     // Optional longer part, shown behind a "Read more" toggle.
     moreParagraphs: [],
-    // ⟶ TO ADD: 6–7 photos. Put the files in assets/photos/ and list them:
-    //   { src: "assets/photos/01.jpg", alt: "Mahi and Ayush at …", width: 1200, height: 1600 }
+    // Photos live in assets/photos/ (a 1600px version for the full-screen
+    // viewer and an 800px "thumb" for the grid). The first one is shown larger.
+    //   { src, thumb, alt, width, height, focus }
     // width/height are the real pixel size; they keep the layout steady while loading.
-    photos: [],
+    // focus (optional) moves the crop, e.g. "50% 20%" to keep heads in frame.
+    photos: [
+      { src: "assets/photos/01.jpg", thumb: "assets/photos/01-800.jpg", alt: "Mahi and Ayush smiling together at a café", width: 1280, height: 960 },
+      { src: "assets/photos/02.jpg", thumb: "assets/photos/02-800.jpg", alt: "Mahi and Ayush in a selfie at night", width: 1200, height: 1600 },
+      { src: "assets/photos/03.jpg", thumb: "assets/photos/03-800.jpg", alt: "Mahi and Ayush on an evening out", width: 1200, height: 1600 },
+      { src: "assets/photos/04.jpg", thumb: "assets/photos/04-800.jpg", alt: "Mahi and Ayush smiling together at a café", width: 1200, height: 1600 },
+      { src: "assets/photos/05.jpg", thumb: "assets/photos/05-800.jpg", alt: "Mahi striking a playful pose beside Ayush", width: 1200, height: 1600 },
+      { src: "assets/photos/06.jpg", thumb: "assets/photos/06-800.jpg", alt: "Mahi and Ayush with their loved ones, holding a bouquet", width: 1200, height: 1600 },
+      { src: "assets/photos/07.jpg", thumb: "assets/photos/07-800.jpg", alt: "Mahi smiling with a coffee cup", width: 1200, height: 1600 },
+      { src: "assets/photos/08.jpg", thumb: "assets/photos/08-800.jpg", alt: "Mahi and Ayush sitting together", width: 1599, height: 899 },
+      { src: "assets/photos/09.jpg", thumb: "assets/photos/09-800.jpg", alt: "Mahi and Ayush at a table outdoors in the evening", width: 900, height: 1600 },
+      { src: "assets/photos/10.jpg", thumb: "assets/photos/10-800.jpg", alt: "Mahi and Ayush with their loved ones", width: 1600, height: 1200 },
+      { src: "assets/photos/11.jpg", thumb: "assets/photos/11-800.jpg", alt: "Mahi and Ayush with their loved ones at home", width: 1600, height: 1200 },
+      { src: "assets/photos/12.jpg", thumb: "assets/photos/12-800.jpg", alt: "Mahi and Ayush with their loved ones, holding roses", width: 1600, height: 1200 },
+      { src: "assets/photos/13.jpg", thumb: "assets/photos/13-800.jpg", alt: "Mahi and Ayush in a selfie outdoors", width: 1600, height: 1200 },
+    ],
     // ⟶ TO ADD (optional): a favourite quote or line.
     quote: null, // { text: "…", attribution: "…" }
   },
@@ -82,8 +98,8 @@ export const config = {
 
   surprise: {
     hint: "A little something for you",
-    // ⟶ TO ADD: the photo revealed inside the envelope.
-    photo: null, // { src: "assets/photos/surprise.jpg", alt: "…" }
+    // The photo revealed inside the envelope (kept out of the gallery on purpose).
+    photo: { src: "assets/photos/surprise.jpg", alt: "Mahi and Ayush together at sunset", focus: "62% 40%" },
     // ⟶ TO ADD: the secret message. Until then this gentle draft is shown.
     message: "Thank you for being a part of our story. Your love and blessings mean the world to us.",
     signature: "Mahi & Ayush",

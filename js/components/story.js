@@ -27,7 +27,7 @@ export function CoupleStorySection(el, config) {
         <blockquote><p>${esc(story.quote.text)}</p></blockquote>
         ${has(story.quote.attribution) ? `<figcaption>${esc(story.quote.attribution)}</figcaption>` : ""}
       </figure>` : ""}
-    ${photos.length ? `<div class="gallery gallery-${Math.min(photos.length, 7)}" data-count="${photos.length}"></div>` : storyArches()}`;
+    ${photos.length ? `<div class="gallery" data-count="${photos.length}"></div>` : storyArches()}`;
 
   if (photos.length) PhotoGallery(el.querySelector(".gallery"), photos);
 }
@@ -48,22 +48,41 @@ export function PhotoGallery(el, photos) {
     .map(
       (p, i) => `
       <button class="gallery-item" type="button" data-index="${i}" data-animate aria-label="Open photo ${i + 1} of ${photos.length}${p.alt ? `: ${esc(p.alt)}` : ""}">
-        <img src="${esc(p.src)}" alt="${esc(p.alt ?? "")}" loading="lazy" decoding="async"
-             ${p.width && p.height ? `width="${p.width}" height="${p.height}"` : ""} />
+        <img src="${esc(p.thumb || p.src)}" alt="${esc(p.alt ?? "")}" loading="${i < 3 ? "eager" : "lazy"}" decoding="async"
+             ${p.width && p.height ? `width="${p.width}" height="${p.height}"` : ""}
+             ${p.focus ? `style="object-position:${esc(p.focus)}"` : ""} />
       </button>`,
     )
     .join("");
 
   // A failed image hides its tile rather than showing a broken icon.
   el.querySelectorAll("img").forEach((img) =>
-    img.addEventListener("error", () => img.closest(".gallery-item")?.remove(), { once: true }),
+    img.addEventListener(
+      "error",
+      () => {
+        img.closest(".gallery-item")?.remove();
+        markLastRow(el);
+      },
+      { once: true },
+    ),
   );
+  markLastRow(el);
 
   const lightbox = Lightbox(photos);
   el.addEventListener("click", (e) => {
     const item = e.target.closest(".gallery-item");
     if (item) lightbox.open(Number(item.dataset.index), item);
   });
+}
+
+// The first photo leads (full width on phones, 2×2 on wider screens).
+// Tell the CSS how many tiles end up alone on the last row, so the final
+// photo can stretch instead of leaving a gap.
+function markLastRow(el) {
+  const n = el.querySelectorAll(".gallery-item").length;
+  el.dataset.count = n;
+  el.dataset.tailPhone = n > 2 ? (n - 1) % 2 : 0;
+  el.dataset.tailWide = n > 3 ? (n - 3) % 3 : 0;
 }
 
 function Lightbox(photos) {
