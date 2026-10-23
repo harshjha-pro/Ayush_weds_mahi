@@ -95,9 +95,9 @@ export const config = {
   },
 
   share: {
-    // ⟶ TO ADD after publishing: the public website address.
-    // While empty, the address the guest is currently viewing is shared.
-    siteUrl: null,
+    // The public website address, used in WhatsApp messages and calendar entries.
+    // If set to null, the address the guest is currently viewing is shared.
+    siteUrl: "https://mahi-ayush.vercel.app/",
     message:
       "You are warmly invited to celebrate the engagement of Mahi & Ayush on Sunday, 15 November 2026 in Chittorgarh.",
   },

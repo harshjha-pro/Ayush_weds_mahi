@@ -58,17 +58,21 @@ Set `surprise.photo` to `{ src: "assets/photos/surprise.jpg", alt: "…" }` and 
 
 Put an MP3 you have the right to use in `assets/audio/` and set `music: { src: "assets/audio/song.mp3", title: "Song name" }`. A play/pause button then appears in the bottom-left corner. It never plays by itself.
 
-## Publish it (get a public link)
+## Live site
+
+**https://mahi-ayush.vercel.app/**, hosted on Vercel (project `mahi-ayush`). Every push to the `claude/luxury-engagement-invitation-w2e6ig` branch redeploys it automatically within a minute.
+
+## Publishing elsewhere
 
 Any static host works. Two free options:
 
 - **GitHub Pages:** on GitHub open the repository, go to **Settings → Pages**, choose "Deploy from a branch", pick the branch and the `/ (root)` folder, then save. The link appears at the top of that page after a minute or two.
 - **Netlify or Vercel:** import the repository, leave the build command empty and set the output directory to the project root.
 
-After publishing:
+If you move it to another host:
 
-1. Set `share.siteUrl` in `js/config.js` to the public link, so WhatsApp shares and calendar entries carry it.
-2. In `index.html`, make the `og:image` URL absolute (for example `https://your-site/assets/images/monogram-480.png`) so WhatsApp shows the monogram in link previews.
+1. Set `share.siteUrl` in `js/config.js` to the new public link, so WhatsApp shares and calendar entries carry it.
+2. In `index.html`, update the `og:url` and `og:image` addresses so WhatsApp shows the monogram in link previews.
 
 ## Project layout
 
