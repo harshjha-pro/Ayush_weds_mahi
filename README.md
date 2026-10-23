@@ -117,3 +117,7 @@ The intro is a storybook illustration drawn entirely in SVG: `js/components/intr
 ## Venue map
 
 The venue section embeds an OpenStreetMap map (no API key needed) with a pin at `venue.coordinates` in `js/config.js`. Those coordinates were decoded from the plus code in the address (VJWH+HGX). The map only loads as the section comes near. "Get Directions" uses `venue.mapsUrl`, and "Open larger map" opens OpenStreetMap.
+
+## Animated monogram
+
+The large monograms (welcome section and closing) use the couple's animation `assets/video/monogram.mp4` (H.264, 10 s, muted). Each plays once when it comes into view, after the intro, and stops on the finished monogram. Its light backdrop is blended into the page so only the gold shows. Visitors who prefer reduced motion, or whose browser cannot play it, see the still monogram (`assets/images/monogram-480.*`) instead. To swap the video, change `couple.monogramVideo` in `js/config.js`, or set it to `null` to use the still image everywhere.

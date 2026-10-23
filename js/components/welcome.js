@@ -1,4 +1,4 @@
-import { esc, icon, ornament, divider, monogramPicture, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
+import { esc, icon, ornament, divider, monogramMedia, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
 
 export function WelcomeSection(el, config) {
   const { couple, invitation, event } = config;
@@ -13,7 +13,7 @@ export function WelcomeSection(el, config) {
 
       <div class="hero-inner">
         <p class="eyebrow hero-eyebrow" data-animate>${esc(invitation.eyebrow)}</p>
-        <div class="hero-monogram" data-animate>${monogramPicture(config)}</div>
+        <div class="hero-monogram" data-animate>${monogramMedia(config, { preload: "auto" })}</div>
         <h1 class="hero-names" id="hero-title" tabindex="-1" data-animate>
           <span class="name">${esc(couple.partnerOne.full)}</span>
           <span class="amp" aria-hidden="true">&amp;</span><span class="visually-hidden">and</span>

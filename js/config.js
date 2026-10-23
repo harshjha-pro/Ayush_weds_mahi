@@ -21,6 +21,9 @@ export const config = {
     monogramImage: "assets/images/monogram-480.webp",
     monogramImageFallback: "assets/images/monogram-480.png",
     monogramSmall: "assets/images/monogram-160.webp",
+    // The animated monogram used for the large monograms (welcome and
+    // closing). Set to null to use the still image everywhere.
+    monogramVideo: "assets/video/monogram.mp4",
   },
 
   invitation: {

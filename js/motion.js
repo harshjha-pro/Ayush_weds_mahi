@@ -9,7 +9,6 @@ const LAYERS = [
   [".closing-sprig", 0.06],
   [".venue-sprig", 0.05],
   [".arch-sprig", -0.04],
-  [".hero-monogram", -0.03],
 ];
 
 export function startParallax() {
@@ -37,4 +36,34 @@ export function startParallax() {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
   update();
+}
+
+// Plays each monogram video once, when it is well into view, and leaves it on
+// the finished monogram. If the video cannot load or the browser blocks
+// playback (for example low-power mode), the still monogram shows instead.
+export function startMonogramVideos() {
+  document.querySelectorAll("[data-mono-video]").forEach((box) => {
+    const video = box.querySelector("video");
+    const fallback = () => {
+      box.classList.add("is-fallback");
+      video.removeAttribute("src");
+      video.querySelectorAll("source").forEach((s) => s.remove());
+    };
+    const source = video.querySelector("source");
+    // The format may be unsupported, or loading may already have failed
+    // while the intro was showing (before these listeners existed).
+    const unplayable = !source || !video.canPlayType(source.type) || video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE;
+    if (unplayable || !("IntersectionObserver" in window)) return fallback();
+    source.addEventListener("error", fallback, { once: true });
+    video.addEventListener("error", fallback, { once: true });
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        video.play().catch(fallback);
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(box);
+  });
 }

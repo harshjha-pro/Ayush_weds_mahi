@@ -589,6 +589,54 @@ address {
   height: auto;
 }
 
+/* The animated monogram. The video's backdrop is lifted to the page's ivory
+   and its square crop fades out at the corners, so it sits on the paper. */
+.mono-video {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+}
+
+.hero-monogram .mono-video {
+  width: clamp(205px, 56vw, 340px);
+}
+
+.closing-monogram.mono-video {
+  width: clamp(185px, 50vw, 260px);
+}
+
+/* Multiply blends the video's light backdrop into whatever is behind it,
+   and the corners fade out, so only the gold linework shows. */
+.mono-video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  filter: brightness(1.12);
+  mix-blend-mode: multiply;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 70%, transparent 100%);
+}
+
+.mono-video > .monogram {
+  display: none;
+}
+
+.mono-video.is-fallback .mono-video-el {
+  display: none;
+}
+
+.mono-video.is-fallback > .monogram {
+  display: block;
+}
+
+.mono-video.is-fallback > .monogram img {
+  width: 82%;
+  height: auto;
+  margin: 0 auto;
+}
+
 .hero-names {
   display: grid;
   gap: 0.1em;

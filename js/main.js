@@ -11,7 +11,7 @@ import { VenueSection } from "./components/venue.js";
 import { SurpriseMessage } from "./components/surprise.js";
 import { ClosingSection } from "./components/closing.js";
 import { MusicControl } from "./components/music.js";
-import { startParallax } from "./motion.js";
+import { startParallax, startMonogramVideos } from "./motion.js";
 
 const $ = (id) => document.getElementById(id);
 const options = { reducedMotion: prefersReducedMotion() };
@@ -44,6 +44,7 @@ MusicControl(config);
 const startMotion = () => {
   observeReveals();
   startParallax();
+  startMonogramVideos();
 };
 if ($("intro") && !$("intro").hidden) document.addEventListener("invitation:opened", startMotion, { once: true });
 else startMotion();

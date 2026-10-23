@@ -143,6 +143,25 @@ export function sectionHeading({ id, eyebrow, title }) {
     </header>`;
 }
 
+// The large monogram as the couple's animated video: it draws itself once
+// when it comes into view (see startMonogramVideos in motion.js). The still
+// image sits inside as the fallback, and replaces the video for visitors who
+// prefer reduced motion or if the video cannot play.
+export function monogramMedia(config, { cls = "monogram", preload = "metadata", loading = "eager" } = {}) {
+  const c = config.couple;
+  const still = monogramPicture(config, { cls: "monogram", loading });
+  if (!c.monogramVideo || prefersReducedMotion()) return monogramPicture(config, { cls, loading });
+  // The exact codec lets browsers that cannot play it skip the download.
+  const type = /\.webm$/i.test(c.monogramVideo) ? "video/webm" : 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
+  return `
+    <div class="${cls} mono-video" data-mono-video role="img" aria-label="${esc(`${c.monogramLetters} monogram for ${c.partnerOne.first} and ${c.partnerTwo.first}`)}">
+      <video class="mono-video-el" muted playsinline disablepictureinpicture preload="${preload}" aria-hidden="true">
+        <source src="${esc(c.monogramVideo)}" type="${esc(type)}" />
+      </video>
+      ${still}
+    </div>`;
+}
+
 export function monogramPicture(config, { cls = "monogram", loading = "eager", alt } = {}) {
   const c = config.couple;
   return `
