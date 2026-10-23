@@ -24,6 +24,14 @@ export const config = {
     // The animated monogram used for the large monograms (welcome and
     // closing). Set to null to use the still image everywhere.
     monogramVideo: "assets/video/monogram.mp4",
+    // The illustrated film in the welcome section (muted, loops while in
+    // view). Set to null to hide it.
+    heroVideo: {
+      src: "assets/video/hero.mp4",
+      poster: "assets/images/hero-poster.webp",
+      posterFallback: "assets/images/hero-poster.jpg",
+      alt: "Illustrated animation: Mahi, in an ivory sari, rests her hand with mehndi and her engagement ring on Ayush's shoulder",
+    },
   },
 
   invitation: {

@@ -67,3 +67,28 @@ export function startMonogramVideos() {
     io.observe(box);
   });
 }
+
+// Plays the welcome film while it is on screen and pauses it when scrolled
+// away, so it never runs unseen. If it cannot play, the poster stays.
+export function startHeroFilm() {
+  const box = document.querySelector("[data-hero-film]");
+  const video = box?.querySelector("video");
+  if (!video) return;
+  const source = video.querySelector("source");
+  const fallback = () => {
+    box.classList.remove("is-playing");
+    video.remove();
+  };
+  if (!source || !video.canPlayType(source.type) || video.error || !("IntersectionObserver" in window)) return fallback();
+  source.addEventListener("error", fallback, { once: true });
+  video.addEventListener("error", fallback, { once: true });
+  // Fade the film in over the poster only once frames are actually moving.
+  video.addEventListener("playing", () => box.classList.add("is-playing"), { once: true });
+  new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) video.play().catch(fallback);
+      else video.pause();
+    },
+    { threshold: 0.25 },
+  ).observe(box);
+}

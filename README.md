@@ -99,6 +99,7 @@ assets/images/          Monogram (original + transparent web versions)
 assets/intro/           Photographic layers for the opening intro (WebP)
 assets/photos/          Your photos go here
 assets/audio/           Background music
+assets/video/           Animated monogram and the welcome film
 tools/intro/            Script that prepares the intro photos (cut-outs, seal, sizes)
 ```
 
@@ -121,3 +122,7 @@ The venue section embeds an OpenStreetMap map (no API key needed) with a pin at 
 ## Animated monogram
 
 The large monograms (welcome section and closing) use the couple's animation `assets/video/monogram.mp4` (H.264, 10 s, muted). Each plays once when it comes into view, after the intro, and stops on the finished monogram. Its light backdrop is blended into the page so only the gold shows. Visitors who prefer reduced motion, or whose browser cannot play it, see the still monogram (`assets/images/monogram-480.*`) instead. To swap the video, change `couple.monogramVideo` in `js/config.js`, or set it to `null` to use the still image everywhere.
+
+## Welcome film
+
+The welcome section shows the couple's illustrated film (`assets/video/hero.mp4`, 10 s, H.264) in a gold arch below the welcome line. Its soundtrack was removed, so it is always silent. It loops only while it is on screen, after the intro, and pauses when scrolled away. Before it plays, for visitors who prefer reduced motion, and in browsers that cannot play it, the first frame (`assets/images/hero-poster.*`) shows instead. To change or remove it, edit `couple.heroVideo` in `js/config.js` (set it to `null` to hide it).

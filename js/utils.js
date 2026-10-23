@@ -162,6 +162,28 @@ export function monogramMedia(config, { cls = "monogram", preload = "metadata", 
     </div>`;
 }
 
+// The couple's illustrated film in the welcome section, in an arched gold
+// frame. It is muted (its soundtrack was removed) and loops only while in
+// view (see startHeroFilm in motion.js). The poster is the still shown
+// before it plays, for reduced motion, and if the video cannot play.
+export function heroFilm(video) {
+  if (!video?.src) return "";
+  const poster = `
+      <picture class="hero-film-poster">
+        <source srcset="${esc(video.poster)}" type="image/webp" />
+        <img src="${esc(video.posterFallback)}" width="540" height="960" loading="eager" decoding="async" alt="" />
+      </picture>`;
+  const film = prefersReducedMotion()
+    ? ""
+    : `<video class="hero-film-video" muted loop playsinline disablepictureinpicture preload="metadata" aria-hidden="true">
+        <source src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
+      </video>`;
+  return `
+    <figure class="hero-film" data-hero-film data-animate role="img" aria-label="${esc(video.alt)}">
+      ${poster}${film}
+    </figure>`;
+}
+
 export function monogramPicture(config, { cls = "monogram", loading = "eager", alt } = {}) {
   const c = config.couple;
   return `
