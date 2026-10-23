@@ -68,11 +68,14 @@ export function startMonogramVideos() {
   });
 }
 
-// Plays the welcome film while it is on screen and pauses it when scrolled
-// away, so it never runs unseen. If it cannot play, the poster stays.
-export function startHeroFilm() {
-  const box = document.querySelector("[data-hero-film]");
-  const video = box?.querySelector("video");
+// Plays each film while it is on screen and pauses it when scrolled away,
+// so it never runs unseen. If one cannot play, its poster stays.
+export function startFilms() {
+  document.querySelectorAll("[data-film]").forEach(startFilm);
+}
+
+function startFilm(box) {
+  const video = box.querySelector("video");
   if (!video) return;
   const source = video.querySelector("source");
   const fallback = () => {

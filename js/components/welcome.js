@@ -1,4 +1,4 @@
-import { esc, icon, ornament, divider, monogramMedia, heroFilm, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
+import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
 
 export function WelcomeSection(el, config) {
   const { couple, invitation, event } = config;
@@ -20,7 +20,7 @@ export function WelcomeSection(el, config) {
           <span class="name">${esc(couple.partnerTwo.full)}</span>
         </h1>
         <p class="hero-welcome" data-animate>${words(invitation.welcomeLine)}</p>
-        ${heroFilm(couple.heroVideo)}
+        ${film(couple.heroVideo, "hero-film")}
         ${familiesBlock(invitation, "families hero-families", "data-animate")}
         ${
           dateLine

@@ -50,6 +50,8 @@ The `<noscript>` block and the link-preview `<meta>` tags in `index.html` repeat
    ```
    The first photo is shown larger. `alt` describes the photo for screen readers.
 
+   While `story.video` is set, the photo slideshow film is shown instead of this grid (see "Films" below). Set `story.video` to `null` to bring the grid back.
+
 ### The surprise photo and message
 
 Set `surprise.photo` to `{ src: "assets/photos/surprise.jpg", alt: "…" }` and replace `surprise.message`. Until a photo is set, the envelope reveals the monogram.
@@ -99,7 +101,7 @@ assets/images/          Monogram (original + transparent web versions)
 assets/intro/           Photographic layers for the opening intro (WebP)
 assets/photos/          Your photos go here
 assets/audio/           Background music
-assets/video/           Animated monogram and the welcome film
+assets/video/           Animated monogram, welcome film, story slideshow
 tools/intro/            Script that prepares the intro photos (cut-outs, seal, sizes)
 ```
 
@@ -123,6 +125,8 @@ The venue section embeds an OpenStreetMap map (no API key needed) with a pin at 
 
 The large monograms (welcome section and closing) use the couple's animation `assets/video/monogram.mp4` (H.264, 10 s, muted). Each plays once when it comes into view, after the intro, and stops on the finished monogram. Its light backdrop is blended into the page so only the gold shows. Visitors who prefer reduced motion, or whose browser cannot play it, see the still monogram (`assets/images/monogram-480.*`) instead. To swap the video, change `couple.monogramVideo` in `js/config.js`, or set it to `null` to use the still image everywhere.
 
-## Welcome film
+## Films
 
-The welcome section shows the couple's illustrated film (`assets/video/hero.mp4`, 10 s, H.264) in a gold arch below the welcome line. Its soundtrack was removed, so it is always silent. It loops only while it is on screen, after the intro, and pauses when scrolled away. Before it plays, for visitors who prefer reduced motion, and in browsers that cannot play it, the first frame (`assets/images/hero-poster.*`) shows instead. To change or remove it, edit `couple.heroVideo` in `js/config.js` (set it to `null` to hide it).
+**Welcome film.** The welcome section shows the couple's illustrated film (`assets/video/hero.mp4`, 10 s, H.264) in a gold arch below the welcome line. Its soundtrack was removed, so it is always silent. It loops only while it is on screen, after the intro, and pauses when scrolled away. Before it plays, for visitors who prefer reduced motion, and in browsers that cannot play it, the first frame (`assets/images/hero-poster.*`) shows instead. To change or remove it, edit `couple.heroVideo` in `js/config.js` (set it to `null` to hide it).
+
+**Story slideshow.** Our Story shows the couple's photo slideshow (`assets/video/story.mp4`) in place of the photo grid. The original was 4.8 s long with a new photo every 0.2 s, so it was slowed six times, to about 1.3 s per photo (29 s in all), and its soundtrack removed. It plays the same way as the welcome film, with `assets/images/story-poster.*` as its still. Edit `story.video` in `js/config.js` to change it, or set it to `null` to show the photo grid again. To re-slow a new slideshow: `ffmpeg -i in.mp4 -an -vf "setpts=6*PTS,fps=30,scale=720:1280" -c:v libx264 -crf 25 -pix_fmt yuv420p -movflags +faststart assets/video/story.mp4` (raise or lower the 6).

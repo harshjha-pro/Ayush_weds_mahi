@@ -1,4 +1,4 @@
-import { esc, has, icon, ornament, sectionHeading } from "../utils.js";
+import { esc, has, icon, ornament, sectionHeading, film } from "../utils.js";
 
 export function CoupleStorySection(el, config) {
   const { story, couple } = config;
@@ -27,9 +27,9 @@ export function CoupleStorySection(el, config) {
         <blockquote><p>${esc(story.quote.text)}</p></blockquote>
         ${has(story.quote.attribution) ? `<figcaption>${esc(story.quote.attribution)}</figcaption>` : ""}
       </figure>` : ""}
-    ${photos.length ? `<div class="gallery" data-count="${photos.length}"></div>` : storyArches()}`;
+    ${has(story.video?.src) ? film(story.video, "story-film") : photos.length ? `<div class="gallery" data-count="${photos.length}"></div>` : storyArches()}`;
 
-  if (photos.length) PhotoGallery(el.querySelector(".gallery"), photos);
+  if (!has(story.video?.src) && photos.length) PhotoGallery(el.querySelector(".gallery"), photos);
 }
 
 // Shown until photographs are added: three illustrated arches, so the

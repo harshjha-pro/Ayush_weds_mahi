@@ -92,6 +92,15 @@ export const config = {
     //   { src, thumb, alt, width, height, focus }
     // width/height are the real pixel size; they keep the layout steady while loading.
     // focus (optional) moves the crop, e.g. "50% 20%" to keep heads in frame.
+    // The couple's photo slideshow, shown in place of the photo grid
+    // (slowed to about 1.3 s per photo, muted). Set to null to show the
+    // photos below as a grid again.
+    video: {
+      src: "assets/video/story.mp4",
+      poster: "assets/images/story-poster.webp",
+      posterFallback: "assets/images/story-poster.jpg",
+      alt: "Slideshow of photos of Mahi and Ayush together",
+    },
     photos: [
       { src: "assets/photos/01.jpg", thumb: "assets/photos/01-800.jpg", alt: "Mahi and Ayush smiling together at a café", width: 1280, height: 960 },
       { src: "assets/photos/02.jpg", thumb: "assets/photos/02-800.jpg", alt: "Mahi and Ayush in a selfie at night", width: 1200, height: 1600 },
