@@ -44,7 +44,15 @@ export function startParallax() {
 export function startMonogramVideos() {
   document.querySelectorAll("[data-mono-video]").forEach((box) => {
     const video = box.querySelector("video");
+    // Films in the same section wait for this (see startFilm).
+    const done = () => {
+      if (box.dataset.done) return;
+      box.dataset.done = "1";
+      box.dispatchEvent(new Event("mono:done"));
+    };
+    video.addEventListener("ended", done, { once: true });
     const fallback = () => {
+      done();
       box.classList.add("is-fallback");
       video.removeAttribute("src");
       video.querySelectorAll("source").forEach((s) => s.remove());
@@ -68,8 +76,11 @@ export function startMonogramVideos() {
   });
 }
 
-// Plays each film while it is on screen and pauses it when scrolled away,
-// so it never runs unseen. If one cannot play, its poster stays.
+// Plays each film while it is well on screen and pauses it when scrolled
+// away, so it never runs unseen. A film that shares its section with an
+// animated monogram waits for the monogram to finish first, so the two never
+// play at once; if the monogram is off screen, the film does not wait for
+// it. If a film cannot play, its poster stays.
 export function startFilms() {
   document.querySelectorAll("[data-film]").forEach(startFilm);
 }
@@ -87,11 +98,30 @@ function startFilm(box) {
   video.addEventListener("error", fallback, { once: true });
   // Fade the film in over the poster only once frames are actually moving.
   video.addEventListener("playing", () => box.classList.add("is-playing"), { once: true });
+
+  const mono = box.closest("section")?.querySelector("[data-mono-video]");
+  let filmInView = false;
+  let monoInView = false;
+  const update = () => {
+    if (!video.isConnected) return;
+    const monoBusy = mono && !mono.dataset.done && monoInView;
+    if (filmInView && !monoBusy) video.play().catch(fallback);
+    else video.pause();
+  };
+  // The monogram is watched first, so its state is known before the film's
+  // first visibility check.
+  if (mono) {
+    mono.addEventListener("mono:done", update, { once: true });
+    new IntersectionObserver(([entry]) => {
+      monoInView = entry.isIntersecting;
+      update();
+    }).observe(mono);
+  }
   new IntersectionObserver(
     ([entry]) => {
-      if (entry.isIntersecting) video.play().catch(fallback);
-      else video.pause();
+      filmInView = entry.isIntersecting;
+      update();
     },
-    { threshold: 0.25 },
+    { threshold: 0.5 },
   ).observe(box);
 }
