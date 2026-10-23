@@ -96,6 +96,14 @@ js/components/          One file per part of the page:
   closing.js            Closing section + sharing
   music.js              Optional music button
 assets/images/          Monogram (original + transparent web versions)
+assets/intro/           Photographic layers for the opening intro (WebP)
 assets/photos/          Your photos go here
-assets/audio/           Optional music file goes here
+assets/audio/           Background music
+tools/intro/            Script that prepares the intro photos (cut-outs, seal, sizes)
 ```
+
+## The opening intro
+
+The intro (`js/components/intro.js`, `css/intro.css`) is built from photographic stills in `assets/intro/`. They were AI-generated in Figma for this site (file "Mahi & Ayush – Intro Assets") and prepared with `tools/intro/prepare_assets.py`, which cuts them out of their green backdrops, lines the dove poses up, engraves "M&A" on the wax seal and sizes them for mobile.
+
+The motion is made from these stills: camera pans, push-ins and focus changes on the background photos, a wingbeat that blends two photographed wing poses, and the letter split into layers (bow, rolls, card) so it can open. It is not filmed video or 3D. To swap in real footage or photos later, keep the same file names and sizes, or update the paths at the top of `intro.js`.
