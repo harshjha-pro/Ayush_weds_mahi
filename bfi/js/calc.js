@@ -9,6 +9,14 @@ export const S = () => db.settings;
 
 // ── formatting ───────────────────────────
 export const money = (n) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
+// Compact rupees: ₹18.4L, ₹2.1Cr, ₹48.5K.
+export function short(n) {
+  n = Math.round(Number(n) || 0);
+  if (Math.abs(n) >= 1e7) return `₹${(n / 1e7).toFixed(1).replace(/\.0$/, "")}Cr`;
+  if (Math.abs(n) >= 1e5) return `₹${(n / 1e5).toFixed(1).replace(/\.0$/, "")}L`;
+  if (Math.abs(n) >= 1e3) return `₹${(n / 1e3).toFixed(1).replace(/\.0$/, "")}K`;
+  return `₹${n}`;
+}
 export const pct = (n) => (Number.isFinite(n) ? `${Math.round(n)}%` : "—");
 export function date(iso, opts = { day: "numeric", month: "short", year: "numeric" }) {
   if (!iso) return "—";
@@ -117,13 +125,13 @@ export function checklist(p) {
   const i = p.intake || {};
   const has = (k) => p.assets.some((a) => a.purpose === k);
   return [
-    { key: "names", label: "Bride & groom names", done: !!(i.brideName && i.groomName) },
-    { key: "family", label: "Parents / family names", done: !!(i.brideParents || i.groomParents) || has("family") },
-    { key: "events", label: "Event list with dates & times", done: (i.events || []).length > 0 },
-    { key: "venue", label: "Venue details", done: (i.events || []).some((e) => e.venue) || has("venue") },
-    { key: "rsvp", label: "RSVP details", done: !!(i.rsvpBy || i.rsvpPhone) },
-    { key: "photo", label: "Couple photo", done: has("couple") },
-    { key: "style", label: "Inspiration / style references", done: has("inspiration") },
+    { key: "couple", label: "Couple photos", done: has("couple"), tab: "uploads" },
+    { key: "venue", label: "Venue photos / details", done: has("venue") || (i.events || []).some((e) => e.venue), tab: "uploads" },
+    { key: "inspiration", label: "Inspiration links", done: has("inspiration"), tab: "uploads" },
+    { key: "timeline", label: "Timeline / schedule", done: (i.events || []).length > 0, tab: "details" },
+    { key: "family", label: "Family names", done: !!(i.brideParents || i.groomParents) || has("family"), tab: "details" },
+    { key: "rsvp", label: "RSVP details", done: !!(i.rsvpBy || i.rsvpPhone), tab: "details" },
+    { key: "logo", label: "Logo / branding", done: has("logo") || !!i.noLogo, tab: "uploads" },
   ];
 }
 export const checklistDone = (p) => checklist(p).filter((c) => c.done).length;
@@ -255,4 +263,26 @@ export function attributeLead(l) {
     l.referrerProjectId = pastClient.id;
     l.source = "Past client";
   }
+}
+
+// Change of a count/sum between the last `days` and the window before it.
+export function delta(items, dateOf, days = 30, valueOf = () => 1) {
+  const now = Date.now(), span = days * DAY;
+  let cur = 0, prev = 0;
+  for (const it of items) {
+    const t = new Date(dateOf(it) || 0).getTime();
+    if (t > now - span) cur += valueOf(it);
+    else if (t > now - 2 * span) prev += valueOf(it);
+  }
+  return { cur, prev, pct: prev ? ((cur - prev) / prev) * 100 : cur ? 100 : NaN };
+}
+
+// Percent through the 8 stages, for client-facing progress bars.
+export const progressPct = (p) => (p.status === "delivered" ? 100 : Math.round((p.stage / 7) * 100));
+
+// Client ↔ team message threads.
+export const THREADS = { design: "Design team", admin: "Studio admin", qa: "QA team" };
+export function unread(p, thread, side) {
+  const seen = p.seen?.[`${side}:${thread}`] || "";
+  return (p.messages || []).filter((m) => m.thread === thread && (side === "client" ? m.from !== "client" : m.from === "client") && m.at > seen).length;
 }

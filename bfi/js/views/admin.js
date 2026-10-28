@@ -4,89 +4,108 @@
 import { db, commit, byId, uid, now, token, userName, putFile } from "../db.js";
 import { STAGES, LEAD_STAGES, LOST_REASONS, SOURCES, ROLES, VENDOR_KINDS } from "../seed.js";
 import { icon } from "../icons.js";
-import { esc, attr, act, sheet, closeSheet, toast, badge, empty, kpi, field, input, textarea, select, checkbox, chips, tabs, stageBar, each, wa, mailto, avatar, bars, spark, download, go, confirmSheet } from "../ui.js";
+import { esc, attr, act, sheet, closeSheet, toast, badge, empty, kpi, field, input, textarea, select, checkbox, chips, tabs, stateTabs, stageBar, wa, avatar, bars, download, go, confirmSheet, rtable, lineChart, srcBadge, templateArt } from "../ui.js";
 import * as C from "../calc.js";
-import { projectView, clientLink, coupleName, hydrateFiles } from "./project.js";
+import { projectView, clientLink, coupleName, hydrateFiles, projectTitle, thumb } from "./project.js";
 
-const ui = { leadStage: "open", leadQ: "", projFilter: "active", projQ: "", projBoard: false, range: "90", from: "", to: "", channel: "" };
+const ui = { leadStage: "all", leadQ: "", leadSource: "", leadDate: "", projFilter: "active", projQ: "", projBoard: false, range: "90", from: "", to: "", channel: "", trendN: 6, tplQ: "", tplTier: "" };
 
 // ── Dashboard ───────────────────────────
-function dashboard() {
+const greet = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; };
+function dashboard(_, user) {
   const active = db.projects.filter((p) => p.status === "active");
   const overdue = active.filter(C.isOverdue);
   const stuck = active.filter((p) => !C.isOverdue(p) && C.slaBreached(p));
   const qa = active.filter((p) => p.stage === 5);
   const approval = active.filter((p) => p.stage === 6);
-  const newLeads = db.leads.filter((l) => l.stage === "new");
+  const leadsD = C.delta(db.leads, (l) => l.createdAt);
+  const convD = C.delta(db.leads.filter((l) => l.stage === "converted"), (l) => l.convertedAt || l.createdAt);
+  const projD = C.delta(db.projects, (p) => p.createdAt);
+  const payments = db.projects.flatMap((p) => p.payments);
   const month = C.today().slice(0, 7);
-  const rev = db.projects.flatMap((p) => p.payments).filter((x) => x.at.slice(0, 7) === month).reduce((s, x) => s + Number(x.amount), 0);
-  const outstanding = active.reduce((s, p) => s + C.balance(p), 0);
-  const owed = db.commissions.filter((c) => c.status === "owed").reduce((s, c) => s + c.amount, 0);
+  const lastMonth = (() => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 7); })();
+  const rev = payments.filter((x) => x.at.slice(0, 7) === month).reduce((s, x) => s + Number(x.amount), 0);
+  const revPrev = payments.filter((x) => x.at.slice(0, 7) === lastMonth).reduce((s, x) => s + Number(x.amount), 0);
   const attention = [
     ...overdue.map((p) => [p, "bad", `Overdue by ${-C.daysUntil(p.dueDate)} day(s)`]),
     ...stuck.map((p) => [p, "warn", `${C.stageAge(p)} days in ${C.stageName(p.stage)}`]),
     ...qa.map((p) => [p, "info", "Waiting for QA"]),
     ...approval.map((p) => [p, "gold", C.balance(p) > 0 ? `Awaiting sign-off · ${C.money(C.balance(p))} due` : "Awaiting client sign-off"]),
+    ...db.projects.flatMap((p) => p.notes.filter((n) => n.tag === "Payment claimed" && !n.done).map(() => [p, "violet", "Client reports a payment — verify"])),
   ];
+  const recent = db.projects.filter((p) => p.status !== "cancelled").sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6);
   return {
-    title: "Dashboard", eyebrow: new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }),
+    title: `${greet()}, ${user.name.split(" ")[0] === "Studio" ? "Admin" : user.name.split(" ")[0]}`,
+    subtitle: "Here's what's happening with your business today.",
     html: `
     <div class="stack lg">
       <div class="grid kpi">
-        ${kpi("Active projects", active.length, `${overdue.length} overdue`)}
-        ${kpi("New enquiries", newLeads.length, `<a href="#/leads">Open inbox →</a>`)}
-        ${kpi("Collected this month", C.money(rev))}
-        ${kpi("Outstanding", C.money(outstanding))}
-        ${kpi("Commission owed", C.money(owed), `<a href="#/finance/commissions">Payouts →</a>`)}
-        ${kpi("Delivered", db.projects.filter((p) => p.status === "delivered").length, "all time")}
+        ${kpi("Total leads", db.leads.length, "", leadsD)}
+        ${kpi("Converted", db.leads.filter((l) => l.stage === "converted").length + db.projects.filter((p) => !p.leadId).length, "", convD)}
+        ${kpi("Active projects", active.length, overdue.length ? `<span style="color:var(--bad)">${overdue.length} overdue</span>` : "", projD)}
+        ${kpi("Revenue (MTD)", C.short(rev), "", revPrev >= 1000 ? ((rev - revPrev) / revPrev) * 100 : NaN)}
       </div>
       <div class="two">
         <div class="card">
-          <div class="card-head"><h3>Needs attention</h3><span class="badge ${attention.length ? "warn" : "ok"}">${attention.length}</span></div>
-          ${attention.length ? `<div class="list">${attention.map(([p, tone, why]) => `
-            <a class="item" href="#/project/${p.id}"><span class="dot" style="color:var(--${tone === "gold" ? "gold" : tone === "info" ? "info" : tone})"></span>
-            <div class="grow"><div class="item-t">${esc(coupleName(p))}</div><div class="item-s">${esc(p.code)} · ${esc(why)}</div></div>${icon("chevron")}</a>`).join("")}</div>`
-            : empty("All calm", "Nothing overdue or stuck.")}
+          <div class="card-head"><h3>Revenue trend</h3>
+            <select data-change="trendN" style="width:auto;min-height:34px;padding:4px 10px" aria-label="Range">${[6, 12].map((n) => `<option value="${n}" ${ui.trendN === n ? "selected" : ""}>Last ${n} months</option>`).join("")}</select></div>
+          ${lineChart(C.monthly(ui.trendN), C.short)}
         </div>
-        <div class="stack">
-          <div class="card"><div class="card-head"><h3>Collections</h3><span class="small muted">last 6 months</span></div>${spark(C.monthly(6), C.money)}</div>
-          <div class="card"><div class="card-head"><h3>Lead pipeline</h3><a class="small" href="#/leads">All</a></div>
-            ${bars(Object.fromEntries(LEAD_STAGES.map((s) => [s.name, db.leads.filter((l) => l.stage === s.key).length])))}</div>
+        <div class="card">
+          <div class="card-head"><h3>Needs attention</h3><span class="badge ${attention.length ? "warn" : "ok"}">${attention.length}</span></div>
+          ${attention.length ? `<div class="list">${attention.slice(0, 7).map(([p, tone, why]) => `
+            <a class="item" href="#/project/${p.id}"><span class="dot" style="color:var(--${tone})"></span>
+            <div class="grow"><div class="item-t ellipsis">${esc(projectTitle(p))}</div><div class="item-s">${esc(why)}</div></div>${icon("chevron", "icon sm")}</a>`).join("")}</div>`
+            : empty("All calm", "Nothing overdue or stuck.", "checkCircle")}
         </div>
       </div>
-      <div class="card"><div class="card-head"><h3>Recent activity</h3><a class="small" href="#/compliance/audit">Audit log</a></div>
-        <div class="list">${db.audit.slice(0, 6).map((a) => `<div class="item"><div class="grow"><div class="small"><b>${esc(a.by)}</b> · ${esc(a.action)} <span class="muted">${esc(a.entity)}</span></div><div class="item-s">${esc(a.detail)}</div></div><span class="tiny muted nowrap">${C.ago(a.at)}</span></div>`).join("")}</div>
+      <div class="card pad0">
+        <div class="card-head" style="padding:16px 18px 0"><h3>Recent projects</h3><a class="small" href="#/projects">View all</a></div>
+        ${rtable([{ label: "Project" }, { label: "Stage" }, { label: "Due date" }, { label: "Status", cls: "pill" }],
+          recent.map((p) => { const h = C.health(p); return [`<span class="t">${esc(projectTitle(p))}</span><div class="s">${esc(coupleName(p))}</div>`, esc(C.stageName(p.stage)), C.date(p.dueDate), badge(h.label, h.tone)]; }),
+          { href: (i) => `#/project/${recent[i].id}` })}
+      </div>
+      <div class="two even">
+        <div class="card"><div class="card-head"><h3>Lead pipeline</h3><a class="small" href="#/leads">Open</a></div>
+          ${bars(Object.fromEntries(LEAD_STAGES.map((s) => [s.name, db.leads.filter((l) => l.stage === s.key).length])))}</div>
+        <div class="card"><div class="card-head"><h3>Recent activity</h3><a class="small" href="#/compliance/audit">Audit log</a></div>
+          <div class="list">${db.audit.slice(0, 5).map((a) => `<div class="item"><div class="grow"><div class="small"><b>${esc(a.by)}</b> · ${esc(a.action)} <span class="muted">${esc(a.entity)}</span></div></div><span class="tiny muted nowrap">${C.ago(a.at)}</span></div>`).join("")}</div>
+        </div>
       </div>
     </div>`,
   };
 }
 
-// ── Leads ───────────────────────────────
+// ── Leads & Sales ───────────────────────
 function leads() {
   const q = ui.leadQ.toLowerCase();
-  const list = db.leads.filter((l) => (ui.leadStage === "open" ? !["converted", "lost"].includes(l.stage) : ui.leadStage === "all" || l.stage === ui.leadStage))
+  const days = { "7": 7, "30": 30, "90": 90 }[ui.leadDate];
+  let list = db.leads.filter((l) => ui.leadStage === "all" || l.stage === ui.leadStage)
+    .filter((l) => !ui.leadSource || l.source === ui.leadSource)
+    .filter((l) => !days || Date.now() - new Date(l.createdAt) < days * 864e5)
     .filter((l) => !q || `${l.name} ${l.phone} ${l.city} ${l.source} ${l.refCode}`.toLowerCase().includes(q))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) => (ui.leadDate === "old" ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt)));
   const count = (k) => db.leads.filter((l) => l.stage === k).length;
-  const stageChips = [["open", "Open", db.leads.filter((l) => !["converted", "lost"].includes(l.stage)).length], ...LEAD_STAGES.map((s) => [s.key, s.name, count(s.key)]), ["all", "All", db.leads.length]];
   return {
-    title: "Leads", fab: { act: "leadNew", label: "Add lead" },
-    actions: `<button class="btn sm primary hide-m" data-act="leadNew">${icon("plus", "icon sm")} Add lead</button>`,
+    title: "Leads & Sales", subtitle: "Manage your leads, pipeline and quotes.", fab: { act: "leadNew", label: "Add lead" },
+    actions: `<button class="btn primary" data-act="leadNew">${icon("plus", "icon sm")} Add Lead</button>`,
     html: `
-    <div class="stack">
-      <div class="search">${icon("search", "icon sm")}<input type="search" placeholder="Search name, phone, city, code" value="${attr(ui.leadQ)}" data-input="leadSearch" aria-label="Search leads"></div>
-      ${chips(stageChips, ui.leadStage, "leadChip")}
-      <div class="card" style="padding:4px 14px">${list.length ? `<div class="list">${list.map(leadItem).join("")}</div>` : empty("No leads here", "Add phone or walk-in enquiries with the + button.", "inbox")}</div>
+    <div class="card pad0">
+      ${stateTabs([["all", "All Leads", db.leads.length], ...LEAD_STAGES.map((s) => [s.key, s.name.replace(" enquiry", ""), count(s.key)])], ui.leadStage, "leadChip")}
+      <div class="toolbar">
+        <div class="search">${icon("search", "icon sm")}<input type="search" placeholder="Search leads…" value="${attr(ui.leadQ)}" data-input="leadSearch" aria-label="Search leads"></div>
+        <select data-change="leadSource" aria-label="Source"><option value="">Source</option>${SOURCES.map((s) => `<option ${ui.leadSource === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
+        <select data-change="leadDate" aria-label="Date">${[["", "Date: newest"], ["old", "Oldest first"], ["7", "Last 7 days"], ["30", "Last 30 days"], ["90", "Last 90 days"]].map(([v, l]) => `<option value="${v}" ${ui.leadDate === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+      </div>
+      ${rtable([{ label: "Name" }, { label: "Source" }, { label: "Stage", cls: "pill" }, { label: "Wedding" }, { label: "Date" }, { label: "", cls: "act" }],
+        list.map((l) => [`<span class="t">${esc(l.name)}</span><div class="s">${esc(l.city || "")}${l.refCode ? ` · ${esc(l.refCode)}` : ""}</div>`, srcBadge(l.source), badge(LEAD_STAGES.find((s) => s.key === l.stage)?.name.replace(" enquiry", ""), leadTone[l.stage]), C.date(l.weddingDate), C.date(l.createdAt),
+          `<button class="icon-btn plain" data-act="leadMenu" data-id="${l.id}" aria-label="Actions">${icon("more")}</button>`]),
+        { empty: "No leads match. Add phone or walk-in enquiries with Add Lead.", href: (i) => `#/lead/${list[i].id}` })}
     </div>`,
     after: (root) => { const s = root.querySelector("[data-input=leadSearch]"); if (ui.leadQ && s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } },
   };
 }
-const leadTone = { new: "info", contacted: "gold", quoted: "maroon", converted: "ok", lost: "line" };
-const leadItem = (l) => `
-  <a class="item" href="#/lead/${l.id}">${avatar(l.name)}
-    <div class="grow"><div class="item-t ellipsis">${esc(l.name)}</div><div class="item-s ellipsis">${esc(l.source)}${l.refCode ? ` · ${esc(l.refCode)}` : ""} · ${esc(l.city || "")} · wedding ${C.shortDate(l.weddingDate)}</div></div>
-    <div class="right">${badge(LEAD_STAGES.find((s) => s.key === l.stage)?.name, leadTone[l.stage])}<div class="tiny muted">${C.ago(l.createdAt)}</div></div>
-  </a>`;
+const leadTone = { new: "info", contacted: "violet", quoted: "gold", converted: "ok", lost: "bad" };
 
 function leadForm(l = {}) {
   return `
@@ -106,7 +125,7 @@ function leadDetail([id]) {
   const proj = db.projects.find((p) => p.leadId === l.id);
   const q = l.quote || { tier: l.interest || "premium", addons: [], items: [], discount: 0, rush: false };
   return {
-    title: l.name, eyebrow: `Lead · ${l.source}`, back: "#/leads",
+    title: l.name, subtitle: `${l.source}${l.city ? " · " + l.city : ""} · enquired ${C.date(l.createdAt)}`, back: "#/leads",
     html: `
     <div class="two">
       <div class="stack">
@@ -198,13 +217,17 @@ function projects() {
   const n = (fn) => db.projects.filter(fn).length;
   const chipList = [["active", "Active", n((p) => p.status === "active")], ["overdue", "Overdue", n(C.isOverdue)], ...STAGES.slice(0, 7).map((s, i) => [`s${i}`, s.name, n((p) => p.status === "active" && p.stage === i)]), ["delivered", "Delivered", n((p) => p.status === "delivered")], ["cancelled", "Cancelled", n((p) => p.status === "cancelled")], ["all", "All", db.projects.length]];
   return {
-    title: "Projects",
-    actions: `<button class="icon-btn" data-act="projBoard" aria-label="Toggle board view">${icon(ui.projBoard ? "list" : "layers")}</button>`,
-    html: `
-    <div class="stack">
-      <div class="search">${icon("search", "icon sm")}<input type="search" placeholder="Search couple, code, city, designer" value="${attr(ui.projQ)}" data-input="projSearch" aria-label="Search projects"></div>
-      ${ui.projBoard ? board() : `${chips(chipList, f, "projChip")}
-      <div class="grid">${list.map(projectCard).join("") || `<div class="card">${empty("No projects here", "Convert a lead to start one.", "folder")}</div>`}</div>`}
+    title: "Projects", subtitle: "Every order, stage by stage, with deadline flags.",
+    actions: `<button class="btn" data-act="projBoard">${icon(ui.projBoard ? "list" : "layers", "icon sm")} ${ui.projBoard ? "List" : "Board"}</button>`,
+    html: ui.projBoard ? board() : `
+    <div class="card pad0">
+      <div class="toolbar">
+        <div class="search">${icon("search", "icon sm")}<input type="search" placeholder="Search couple, code, city, designer" value="${attr(ui.projQ)}" data-input="projSearch" aria-label="Search projects"></div>
+      </div>
+      <div style="padding:12px 14px 0">${chips(chipList, f, "projChip")}</div>
+      ${rtable([{ label: "Project" }, { label: "Stage" }, { label: "Designer" }, { label: "Due date" }, { label: "Revisions" }, { label: "Status", cls: "pill" }],
+        list.map((p) => { const h = C.health(p); return [`<div class="row nowrap">${thumb(p)}<div><span class="t">${esc(projectTitle(p))}</span><div class="s">${esc(p.code)} · ${esc(C.S().tiers[p.tier]?.name)}</div></div></div>`, esc(C.stageName(p.stage)), esc(userName(p.designerId)), C.date(p.dueDate), esc(C.limitLabel(p)), badge(h.label, h.tone)]; }),
+        { empty: "No projects here. Convert a lead to start one.", href: (i) => `#/project/${list[i].id}` })}
     </div>`,
     after: (root) => { const s = root.querySelector("[data-input=projSearch]"); if (ui.projQ && s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } },
   };
@@ -213,10 +236,9 @@ export const projectCard = (p, base = "#/project") => {
   const h = C.health(p);
   return `
   <a class="card" href="${base}/${p.id}" style="text-decoration:none;color:inherit;display:grid;gap:10px">
-    <div class="row between nowrap"><div class="grow"><div class="eyebrow">${esc(p.code)} · ${esc(C.S().tiers[p.tier]?.name)}</div><h4 class="ellipsis">${esc(coupleName(p))}</h4></div>${badge(h.label, h.tone)}</div>
+    <div class="row nowrap">${thumb(p)}<div class="grow"><b class="ellipsis" style="display:block">${esc(projectTitle(p))}</b><div class="small muted">${esc(coupleName(p))} · ${esc(p.code)}</div></div>${badge(h.label, h.tone)}</div>
     ${stageBar(p.stage, p.status === "cancelled")}
     <div class="row between small"><span class="muted">${esc(C.stageName(p.stage))}</span><span class="muted">Due ${C.shortDate(p.dueDate)}</span></div>
-    <div class="row between small"><span>${icon("user", "icon sm")} ${esc(userName(p.designerId))}</span><span>${esc(C.limitLabel(p))}</span></div>
   </a>`;
 };
 function board() {
@@ -224,7 +246,7 @@ function board() {
     const list = db.projects.filter((p) => p.status !== "cancelled" && p.stage === i && (i < 7 || C.daysUntil(p.deliveredAt?.slice(0, 10)) > -30));
     return `<div class="pipe"><h4>${esc(s.name)}<span>${list.length}</span></h4>${list.map((p) => {
       const h = C.health(p);
-      return `<a class="card" href="#/project/${p.id}" style="display:block;text-decoration:none;color:inherit"><b class="small">${esc(coupleName(p))}</b><div class="row between tiny" style="margin-top:4px"><span class="muted">${esc(p.code)} · ${esc(userName(p.designerId))}</span>${badge(h.label, h.tone)}</div></a>`;
+      return `<a class="card" href="#/project/${p.id}" style="display:block;text-decoration:none;color:inherit"><b class="small">${esc(projectTitle(p))}</b><div class="row between tiny" style="margin-top:4px"><span class="muted">${esc(userName(p.designerId))}</span>${badge(h.label, h.tone)}</div></a>`;
     }).join("")}</div>`;
   }).join("")}</div>`;
 }
@@ -238,17 +260,19 @@ function people([tab = "team"]) {
   };
   const list = groups[tab] || groups.team;
   return {
-    title: "People", fab: { act: "personNew", label: "Add person" },
-    actions: `<button class="btn sm primary hide-m" data-act="personNew">${icon("plus", "icon sm")} Add</button>`,
-    html: `
-    ${tabs([["team", "Team"], ["partners", "Affiliates & vendors"], ["freelancers", "Freelancers"]], tab, "#/people")}
-    <div class="card" style="padding:4px 14px"><div class="list">${list.map((u) => {
-      const sub = u.role === "affiliate" ? `${u.partnerType === "trade" ? "One-time trade" : "Ongoing affiliate"} · ${esc(u.partnerKind || "")} · ${esc(u.refCode || "")}`
-        : u.role === "freelancer" ? `Access until ${esc(u.accessUntil || "—")} · ${(u.projectIds || []).length} project(s)` : esc(ROLES[u.role].name);
-      const expired = u.accessUntil && new Date(u.accessUntil) < new Date();
-      return `<a class="item" href="#/person/${u.id}">${avatar(u.name)}<div class="grow"><div class="item-t ellipsis">${esc(u.name)}</div><div class="item-s ellipsis">${sub}</div></div>
-        ${u.active === false ? badge("Inactive", "line") : expired ? badge("Expired", "bad") : ""}${icon("chevron")}</a>`;
-    }).join("") || empty("Nobody here yet")}</div></div>`,
+    title: "People", subtitle: "Team roles, affiliate & vendor partners, and time-boxed freelancers.", fab: { act: "personNew", label: "Add person" },
+    actions: `<button class="btn primary" data-act="personNew">${icon("plus", "icon sm")} Add person</button>`,
+    html: `<div class="card pad0">
+    ${tabs([["team", "Team", groups.team.length], ["partners", "Affiliates & vendors", groups.partners.length], ["freelancers", "Freelancers", groups.freelancers.length]], tab, "#/people")}
+    ${rtable([{ label: "Name" }, { label: tab === "partners" ? "Type" : "Role" }, { label: tab === "partners" ? "Code" : tab === "freelancers" ? "Access until" : "Email" }, { label: "Status", cls: "pill" }],
+      list.map((u) => {
+        const expired = u.accessUntil && new Date(u.accessUntil) < new Date();
+        return [`<div class="row nowrap">${avatar(u.name)}<span class="t">${esc(u.name)}</span></div>`,
+          u.role === "affiliate" ? `${u.partnerType === "trade" ? "One-time trade" : "Ongoing affiliate"} · ${esc(u.partnerKind || "")}` : esc(ROLES[u.role].name),
+          u.role === "affiliate" ? `<code>${esc(u.refCode || "")}</code>` : u.role === "freelancer" ? C.date(u.accessUntil) : esc(u.email || ""),
+          u.active === false ? badge("Inactive", "line") : expired ? badge("Expired", "bad") : badge("Active", "ok")];
+      }), { href: (i) => `#/person/${list[i].id}` })}
+    </div>`,
   };
 }
 
@@ -298,7 +322,7 @@ function person([id]) {
     extra = `<div class="card"><h3>Active projects (${ps.length})</h3><div class="list">${ps.map((p) => `<a class="item" href="#/project/${p.id}"><div class="grow"><div class="item-t">${esc(coupleName(p))}</div><div class="item-s">${esc(C.stageName(p.stage))} · due ${C.shortDate(p.dueDate)}</div></div>${badge(C.health(p).label, C.health(p).tone)}</a>`).join("") || `<p class="muted small">None.</p>`}</div></div>`;
   }
   return {
-    title: u.name, eyebrow: ROLES[u.role].name, back: `#/people/${u.role === "affiliate" ? "partners" : u.role === "freelancer" ? "freelancers" : "team"}`,
+    title: u.name, subtitle: ROLES[u.role].name, back: `#/people/${u.role === "affiliate" ? "partners" : u.role === "freelancer" ? "freelancers" : "team"}`,
     html: `<div class="two"><div class="stack">${extra || `<div class="card small muted">Full access per role: ${esc(ROLES[u.role].desc)}.</div>`}</div>
       <div class="stack"><div class="card">${personForm(u)}</div>
         ${u.id !== "u_admin" ? `<button class="btn ${u.active === false ? "" : "danger"}" data-act="personToggle" data-id="${u.id}">${u.active === false ? "Reactivate" : "Deactivate access"}</button>` : ""}</div></div>`,
@@ -306,30 +330,44 @@ function person([id]) {
 }
 
 // ── Finance ─────────────────────────────
-function finance([tab = "margins"]) {
-  const T = [["margins", "Margins"], ["payments", "Payments"], ["commissions", "Commissions"], ["invoices", "Invoices"], ["refunds", "Refunds"]];
+function finance([tab = "overview"]) {
+  const T = [["overview", "Overview"], ["orders", "Orders"], ["commissions", "Commissions"], ["invoices", "Invoices"], ["refunds", "Refunds"]];
   const body = {
-    margins: () => {
+    overview: () => {
       const rows = db.projects.filter((p) => p.status !== "cancelled").map((p) => [p, C.margin(p)]);
+      const rev = rows.reduce((s, [, m]) => s + m.revenue, 0);
+      const cost = rows.reduce((s, [, m]) => s + m.cost, 0);
+      const owed = db.commissions.filter((c) => c.status === "owed").reduce((s, c) => s + c.amount, 0) + db.projects.filter((p) => p.status === "active" && p.affiliateId).reduce((s, p) => s + C.projectedCommission(p), 0);
+      const revD = C.delta(db.projects.flatMap((p) => p.payments), (x) => x.at, 30, (x) => Number(x.amount));
       const byTier = {};
       rows.forEach(([p, m]) => { (byTier[p.tier] = byTier[p.tier] || []).push(m); });
-      return `
+      return `<div class="stack lg">
+      <div class="grid kpi">
+        ${kpi("Total revenue", C.short(rev), "collected, net of refunds")}
+        ${kpi("Total costs", C.short(cost), "incl. commission & fees")}
+        ${kpi("Margin", rev ? C.pct(((rev - cost) / rev) * 100) : "—", C.money(rev - cost))}
+        ${kpi("Commission owed", C.short(owed), "incl. in-progress orders")}
+      </div>
+      <div class="card pad0">
+        <div class="card-head" style="padding:16px 18px 0"><h3>Order-wise margin</h3><span class="small muted">contribution after all costs</span></div>
+        ${rtable([{ label: "Order ID" }, { label: "Project" }, { label: "Revenue", cls: "num" }, { label: "Cost", cls: "num" }, { label: "Margin", cls: "pill" }],
+          rows.map(([p, m]) => [`<span class="t">#${esc(p.code)}</span>`, esc(projectTitle(p)), C.money(m.revenue), C.money(m.cost), `<b style="color:var(--${m.contribution >= 0 ? "ok" : "bad"})">${C.pct(m.pct)}</b>`]),
+          { href: (i) => `#/project/${rows[i][0].id}/money` })}
+      </div>
       <div class="grid kpi">${Object.entries(C.S().tiers).map(([k, t]) => {
         const ms = byTier[k] || [];
-        const rev = ms.reduce((s, m) => s + m.revenue, 0), con = ms.reduce((s, m) => s + m.contribution, 0);
-        return kpi(`${t.name} · ${ms.length} order(s)`, rev ? C.pct(con / rev * 100) : "—", `contribution ${C.money(con)}`);
+        const r = ms.reduce((s, m) => s + m.revenue, 0), c = ms.reduce((s, m) => s + m.contribution, 0);
+        return kpi(`${t.name} · ${ms.length} order(s)`, r ? C.pct((c / r) * 100) : "—", `contribution ${C.money(c)}`);
       }).join("")}</div>
-      <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Project</th><th>Tier</th><th class="num">Revenue</th><th class="num">Costs</th><th class="num">Commission</th><th class="num">Contribution</th><th class="num">%</th></tr></thead>
-      <tbody>${rows.map(([p, m]) => `<tr><td><a href="#/project/${p.id}/money">${esc(p.code)}</a><div class="tiny muted">${esc(coupleName(p))}</div></td><td>${esc(C.S().tiers[p.tier].name)}</td><td class="num">${C.money(m.revenue)}</td><td class="num">${C.money(m.cost - m.commission)}</td><td class="num">${C.money(m.commission)}</td><td class="num"><b style="color:${m.contribution >= 0 ? "var(--ok)" : "var(--bad)"}">${C.money(m.contribution)}</b></td><td class="num">${C.pct(m.pct)}</td></tr>`).join("")}</tbody></table></div>
-      <p class="tiny muted">Costs = design hours × ₹${C.S().hourlyCost}/h + hosting + ${C.S().gatewayFee}% payment fees + revision rounds × ₹${C.S().revisionCost} + other. Change rates in Settings → Studio.</p>`;
+      <p class="tiny muted">Costs = design hours × ₹${C.S().hourlyCost}/h + hosting + ${C.S().gatewayFee}% payment fees + revision rounds × ₹${C.S().revisionCost} + commission + other. Change rates in Settings → Prices & policies.</p>
+      </div>`;
     },
-    payments: () => `
-      <div class="table-wrap"><table><thead><tr><th>Project</th><th class="num">Price</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead>
-      <tbody>${db.projects.slice().sort((a, b) => C.balance(b) - C.balance(a)).map((p) => {
+    orders: () => `<div class="card pad0">${rtable([{ label: "Order" }, { label: "Price", cls: "num" }, { label: "Paid", cls: "num" }, { label: "Balance", cls: "num" }, { label: "Status", cls: "pill" }, { label: "", cls: "act" }],
+      db.projects.slice().sort((a, b) => C.balance(b) - C.balance(a)).map((p) => {
         const s = C.payStatus(p);
-        return `<tr><td><a href="#/project/${p.id}/money">${esc(p.code)}</a><div class="tiny muted">${esc(coupleName(p))}</div></td><td class="num">${C.money(p.price)}</td><td class="num">${C.money(C.paid(p))}</td><td class="num">${C.money(C.balance(p))}</td><td>${badge(s.label, s.tone)}</td>
-        <td>${C.balance(p) > 0 ? `<a class="btn sm" target="_blank" rel="noopener" href="${attr(wa(p.phone, `Namaste ${p.clientName} 🙏 Your balance for ${p.code} is ${C.money(C.balance(p))}. Pay securely from your invitation page: ${clientLink(p)}`))}">${icon("message", "icon sm")} Remind</a>` : ""}</td></tr>`;
-      }).join("")}</tbody></table></div>`,
+        return [`<span class="t">#${esc(p.code)}</span><div class="s">${esc(projectTitle(p))}</div>`, C.money(p.price), C.money(C.paid(p)), C.money(C.balance(p)), badge(s.label, s.tone),
+          C.balance(p) > 0 ? `<a class="btn sm" target="_blank" rel="noopener" href="${attr(wa(p.phone, `Namaste ${p.clientName} 🙏 Your balance for ${p.code} is ${C.money(C.balance(p))}. Pay securely from your invitation page: ${clientLink(p)}`))}">${icon("message", "icon sm")} Remind</a>` : ""];
+      }))}</div>`,
     commissions: () => {
       const partners = db.users.filter((u) => u.role === "affiliate");
       return `<div class="stack">${partners.map((u) => {
@@ -337,25 +375,25 @@ function finance([tab = "margins"]) {
         const owed = cs.filter((c) => c.status === "owed");
         const pending = db.projects.filter((p) => p.affiliateId === u.id && p.status === "active").reduce((s, p) => s + C.projectedCommission(p), 0);
         return `<div class="card">
-          <div class="card-head"><div><h4>${esc(u.name)}</h4><div class="small muted">${u.partnerType === "trade" ? "Trade partner — no cash commission" : `Code ${esc(u.refCode)} · ${esc(u.payout?.upi || u.payout?.bank || "no payout details")}`}</div></div>
-            <div class="right"><div class="kpi-v" style="font-size:22px">${C.money(owed.reduce((s, c) => s + c.amount, 0))}</div><div class="tiny muted">owed · ${C.money(pending)} in pipeline</div></div></div>
-          ${cs.length ? `<div class="list">${cs.map((c) => { const p = byId("projects", c.projectId); return `<div class="item small"><div class="grow">${esc(p?.code)} · ${esc(p && coupleName(p))} · ${c.rate}%</div><b class="num">${C.money(c.amount)}</b>${badge(c.status === "paid" ? "Paid" : "Owed", c.status === "paid" ? "ok" : "warn")}</div>`; }).join("")}</div>` : `<p class="small muted">No completed, paid orders yet.</p>`}
+          <div class="card-head"><div class="row nowrap">${avatar(u.name)}<div><h4>${esc(u.name)}</h4><div class="small muted">${u.partnerType === "trade" ? "Trade partner — no cash commission" : `Code ${esc(u.refCode)} · ${esc(u.payout?.upi || u.payout?.bank || "no payout details")}`}</div></div></div>
+            <div class="right"><div class="kpi-v" style="font-size:20px;margin:0">${C.money(owed.reduce((s, c) => s + c.amount, 0))}</div><div class="tiny muted">owed · ${C.money(pending)} in pipeline</div></div></div>
+          ${cs.length ? rtable([{ label: "Order" }, { label: "Rate" }, { label: "Amount", cls: "num" }, { label: "Status", cls: "pill" }], cs.map((c) => { const p = byId("projects", c.projectId); return [esc(p ? `${p.code} · ${projectTitle(p)}` : ""), `${c.rate}%`, C.money(c.amount), badge(c.status === "paid" ? "Paid" : "Owed", c.status === "paid" ? "ok" : "warn")]; })) : `<p class="small muted" style="margin:0">No completed, paid orders yet.</p>`}
           ${owed.length ? `<button class="btn primary sm" style="margin-top:10px" data-act="payoutNew" data-id="${u.id}">${icon("send", "icon sm")} Pay out ${C.money(owed.reduce((s, c) => s + c.amount, 0))}</button>` : ""}
         </div>`;
       }).join("")}
-      <div class="card"><h3>Payout history</h3><div class="list">${db.payouts.slice().reverse().map((po) => `<div class="item"><div class="grow"><div class="item-t">${esc(userName(po.partnerId))}</div><div class="item-s">${C.date(po.at)} · ${esc(po.ref)} · ${po.entries.length} order(s)</div></div><b>${C.money(po.amount)}</b></div>`).join("") || `<p class="small muted">No payouts yet.</p>`}</div></div></div>`;
+      <div class="card pad0"><div class="card-head" style="padding:16px 18px 0"><h3>Payout history</h3></div>${rtable([{ label: "Partner" }, { label: "Date" }, { label: "Reference" }, { label: "Amount", cls: "num" }], db.payouts.slice().reverse().map((po) => [esc(userName(po.partnerId)), C.date(po.at), esc(po.ref), `<b>${C.money(po.amount)}</b>`]), { empty: "No payouts yet." })}</div></div>`;
     },
     invoices: () => {
       const inv = db.projects.flatMap((p) => p.invoices.map((i) => ({ ...i, p }))).sort((a, b) => b.at.localeCompare(a.at));
-      return `<div class="card" style="padding:4px 14px"><div class="list">${inv.map((i) => `<a class="item" href="#/invoice/${i.p.id}/${encodeURIComponent(i.no)}">${icon("file")}<div class="grow"><div class="item-t">${esc(i.no)}</div><div class="item-s">${esc(coupleName(i.p))} · ${C.date(i.at)}</div></div><b>${C.money(i.amount)}</b></a>`).join("") || empty("No invoices yet", "Generate one from a project's Payments tab.", "file")}</div></div>`;
+      return `<div class="card pad0">${rtable([{ label: "Invoice" }, { label: "Project" }, { label: "Date" }, { label: "Amount", cls: "num" }], inv.map((i) => [`<span class="t">${esc(i.no)}</span>`, esc(projectTitle(i.p)), C.date(i.at), C.money(i.amount)]), { empty: "No invoices yet. Generate one from a project's Payments tab.", href: (k) => `#/invoice/${inv[k].p.id}/${encodeURIComponent(inv[k].no)}` })}</div>`;
     },
     refunds: () => {
       const rf = db.projects.flatMap((p) => p.refunds.map((r) => ({ ...r, p })));
       return `<div class="stack"><div class="callout">${icon("info")}<div><b>Policy:</b> ${esc(C.S().policy.text)}</div></div>
-        <div class="card" style="padding:4px 14px"><div class="list">${rf.map((r) => `<a class="item" href="#/project/${r.p.id}">${icon("refresh")}<div class="grow"><div class="item-t">${esc(r.p.code)} · ${esc(coupleName(r.p))}</div><div class="item-s">${C.date(r.at)} · ${esc(r.reason)}</div></div><b>${C.money(r.amount)}</b></a>`).join("") || empty("No refunds", "Cancel a project from its Overview to process one against the policy.")}</div></div></div>`;
+        <div class="card pad0">${rtable([{ label: "Project" }, { label: "Date" }, { label: "Reason" }, { label: "Amount", cls: "num" }], rf.map((r) => [esc(`${r.p.code} · ${projectTitle(r.p)}`), C.date(r.at), esc(r.reason), C.money(r.amount)]), { empty: "No refunds. Cancel a project from its Overview to process one against the policy.", href: (k) => `#/project/${rf[k].p.id}` })}</div></div>`;
     },
   }[tab]?.() || "";
-  return { title: "Finance", html: tabs(T, tab, "#/finance") + body };
+  return { title: "Finance", subtitle: "Track revenue, expenses and commissions.", html: tabs(T, tab, "#/finance") + body };
 }
 
 function invoice([pid, no]) {
@@ -384,32 +422,33 @@ function invoice([pid, no]) {
   };
 }
 
-// ── Content ─────────────────────────────
-function content([tab = "templates"]) {
-  const T = [["templates", "Templates"], ["library", "Asset library"], ["testimonials", "Testimonials"]];
-  const body = { templates: templatesTab, library: () => libraryTab(), testimonials: () => testimonialsTab() }[tab]?.() || "";
-  return { title: "Content & assets", html: tabs(T, tab, "#/content") + body, after: hydrateFiles };
+// ── Content & Assets ────────────────────
+function content([tab = "overview"]) {
+  const T = [["overview", "Templates"], ["library", "Asset Library"], ["testimonials", "Testimonials"]];
+  const body = { overview: templatesTab, library: () => libraryTab(), testimonials: () => testimonialsTab() }[tab]?.() || "";
+  return { title: "Content & Assets", subtitle: "Manage templates, assets and testimonials.", actions: tab === "overview" ? `<button class="btn primary" data-act="tplNew">${icon("plus", "icon sm")} Add template</button>` : "", html: tabs(T, tab, "#/content") + body, after: hydrateFiles };
 }
+const tierTone = { basic: "info", premium: "line", luxury: "gold" };
 function templatesTab() {
+  const q = ui.tplQ.toLowerCase();
+  const list = db.templates.filter((t) => (!ui.tplTier || t.tiers.includes(ui.tplTier)) && (!q || `${t.name} ${t.tags.join(" ")}`.toLowerCase().includes(q)));
   return `
-  <div class="stack">
-    <form class="card form" data-form="tplSave">
-      <h3>Add template</h3>
-      <div class="cols">${field("Name", input("name", "", "text", "required"))}${field("Tags", input("tags", "", "text", 'placeholder="haveli, gold, minimal"'))}</div>
-      ${field("Preview link", input("previewUrl", "", "url"))}
-      <div class="row">${Object.entries(C.S().tiers).map(([k, t]) => checkbox("tiers[]", true, esc(t.name), k)).join("")}</div>
-      <button class="btn primary">Add template</button>
-    </form>
-    <div class="grid">${db.templates.map((t) => `
-      <div class="card stack" style="${t.status === "retired" ? "opacity:.6" : ""}">
-        <div class="row between"><h4>${esc(t.name)}</h4>${badge(t.status === "active" ? "Active" : "Retired", t.status === "active" ? "ok" : "line")}</div>
-        <div class="row">${t.tiers.map((k) => badge(C.S().tiers[k]?.name, "gold")).join("")}</div>
-        <div class="small muted">${t.tags.map((x) => "#" + esc(x)).join(" ")} · used in ${db.projects.filter((p) => p.templateId === t.id).length} project(s)</div>
-        <div class="row">${t.previewUrl ? `<a class="btn sm" target="_blank" rel="noopener" href="${attr(t.previewUrl)}">${icon("eye", "icon sm")} Preview</a>` : ""}
-          <button class="btn sm" data-act="tplToggle" data-id="${t.id}">${t.status === "active" ? "Retire" : "Restore"}</button></div>
-      </div>`).join("")}</div>
+  <div class="card stack">
+    <div class="row">
+      <div class="search grow">${icon("search", "icon sm")}<input type="search" placeholder="Search templates…" value="${attr(ui.tplQ)}" data-input="tplSearch" aria-label="Search templates"></div>
+      <select data-change="tplTier" style="width:auto" aria-label="Tier"><option value="">All tiers</option>${Object.entries(C.S().tiers).map(([k, t]) => `<option value="${k}" ${ui.tplTier === k ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
+    </div>
+    <div class="tpl-grid">${list.map((t) => `
+      <div class="tpl" style="${t.status === "retired" ? "opacity:.55" : ""}">
+        <div class="art">${templateArt(t)}</div>
+        <div class="meta">
+          <div class="row between nowrap"><b class="ellipsis">${esc(t.name)}</b><button class="icon-btn plain" data-act="tplMenu" data-id="${t.id}" aria-label="Template actions">${icon("more")}</button></div>
+          <div class="row" style="gap:4px">${badge(C.S().tiers[t.tier || t.tiers[0]]?.name.split(" ")[0], tierTone[t.tier || t.tiers[0]])}${t.status === "retired" ? badge("Retired", "line") : ""}<span class="tiny muted">${db.projects.filter((p) => p.templateId === t.id).length} used</span></div>
+        </div>
+      </div>`).join("") || `<p class="muted">No templates match.</p>`}</div>
   </div>`;
 }
+
 export function libraryTab({ canApprove = true } = {}) {
   return `
   <div class="stack">
@@ -466,12 +505,12 @@ function compliance([tab = "consent"]) {
         <div class="cols">${field("Party", select("partyId", [["", "— studio-wide —"], ...db.users.filter((u) => u.role !== "admin").map((u) => [u.id, u.name])]))}${field("Signed on", input("signedAt", C.today(), "date"))}</div>
         ${field("File", `<input type="file" name="files" accept="application/pdf,image/*">`)}
         <button class="btn primary">Save</button></form>
-      <div class="card" style="padding:4px 14px"><div class="list">${db.documents.map((d) => `<div class="item">${icon("file")}<div class="grow"><div class="item-t">${esc(d.title)}</div><div class="item-s">${esc(d.kind)} · ${d.partyId ? esc(userName(d.partyId)) : "Studio-wide"} · signed ${C.date(d.signedAt)}</div></div>
+      <div class="card" style="padding:4px 16px"><div class="list">${db.documents.map((d) => `<div class="item">${icon("file")}<div class="grow"><div class="item-t">${esc(d.title)}</div><div class="item-s">${esc(d.kind)} · ${d.partyId ? esc(userName(d.partyId)) : "Studio-wide"} · signed ${C.date(d.signedAt)}</div></div>
         ${d.fileId ? `<a class="btn sm" data-file="${d.fileId}" data-kind="pdf">${icon("eye", "icon sm")}</a>` : badge("No file", "line")}</div>`).join("")}</div></div></div>`,
     audit: () => `<div class="stack"><div class="row"><button class="btn sm" data-act="auditCsv">${icon("download", "icon sm")} Export CSV</button><span class="small muted">${db.audit.length} entries</span></div>
-      <div class="card" style="padding:4px 14px"><div class="list">${db.audit.slice(0, 300).map((a) => `<div class="item"><div class="grow"><div class="small"><b>${esc(a.by)}</b> · ${esc(a.action)} · <span class="muted">${esc(a.entity)}</span></div>${a.detail ? `<div class="item-s">${esc(a.detail)}</div>` : ""}</div><span class="tiny muted nowrap">${new Date(a.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("")}</div></div></div>`,
+      <div class="card" style="padding:4px 16px"><div class="list">${db.audit.slice(0, 300).map((a) => `<div class="item"><div class="grow"><div class="small"><b>${esc(a.by)}</b> · ${esc(a.action)} · <span class="muted">${esc(a.entity)}</span></div>${a.detail ? `<div class="item-s">${esc(a.detail)}</div>` : ""}</div><span class="tiny muted nowrap">${new Date(a.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("")}</div></div></div>`,
   }[tab]?.() || "";
-  return { title: "Compliance", html: tabs(T, tab, "#/compliance") + body, after: hydrateFiles };
+  return { title: "Compliance", subtitle: "Consent records, signed documents and the audit trail.", html: tabs(T, tab, "#/compliance") + body, after: hydrateFiles };
 }
 
 // ── Metrics ─────────────────────────────
@@ -486,7 +525,7 @@ function metricsView() {
   const n = (v, d = 0) => (Number.isFinite(v) ? v.toFixed(d) : "—");
   const sec = (title, items) => `<div class="card"><h3 style="margin-bottom:10px">${title}</h3><div class="grid kpi">${items.map(([l, v, s]) => `<div><div class="kpi-l">${l}</div><div class="kpi-v" style="font-size:24px">${v}</div>${s ? `<div class="kpi-s">${s}</div>` : ""}</div>`).join("")}</div></div>`;
   return {
-    title: "Metrics", actions: `<button class="btn sm" data-act="metricsCsv">${icon("download", "icon sm")} <span class="hide-m">Export</span></button>`,
+    title: "Metrics", subtitle: "Section 12 metrics — filter by date range and channel, export for 90-day reviews.", actions: `<button class="btn sm" data-act="metricsCsv">${icon("download", "icon sm")} <span class="hide-m">Export</span></button>`,
     html: `
     <div class="stack">
       ${chips([["30", "30 days"], ["90", "90 days"], ["180", "6 months"], ["all", "All time"], ["custom", "Custom"]], ui.range, "rangeChip")}
@@ -545,16 +584,16 @@ function comms([tab = "broadcast"]) {
         <div class="cols">${field("Name", input("name", "", "text", "required"))}${field("Audience", select("audience", [["clients", "Clients"], ["designers", "Designers"], ["affiliates", "Affiliates"]]))}</div>
         ${field("Message", textarea("body", "", "required"), "use {{name}}, {{link}}, {{code}}, {{round}}")}<button class="btn primary">Save</button></form>
       ${db.msgTemplates.map((t) => `<div class="card"><div class="row between"><h4>${esc(t.name)}</h4><span class="row">${badge(t.audience, "gold")}<button class="btn sm ghost danger" data-act="tmDel" data-id="${t.id}">${icon("trash", "icon sm")}</button></span></div><p class="small" style="margin-top:6px">${esc(t.body)}</p></div>`).join("")}</div>`,
-    history: () => `<div class="card" style="padding:4px 14px"><div class="list">${db.broadcasts.slice().reverse().map((b) => `<div class="item">${icon(b.channel === "email" ? "mail" : "message")}<div class="grow"><div class="item-t">${esc(b.audienceLabel)}</div><div class="item-s ellipsis">${esc(b.body)}</div></div><span class="tiny muted">${b.count} · ${C.ago(b.at)}</span></div>`).join("") || empty("No broadcasts yet", "", "send")}</div></div>`,
+    history: () => `<div class="card" style="padding:4px 16px"><div class="list">${db.broadcasts.slice().reverse().map((b) => `<div class="item">${icon(b.channel === "email" ? "mail" : "message")}<div class="grow"><div class="item-t">${esc(b.audienceLabel)}</div><div class="item-s ellipsis">${esc(b.body)}</div></div><span class="tiny muted">${b.count} · ${C.ago(b.at)}</span></div>`).join("") || empty("No broadcasts yet", "", "send")}</div></div>`,
   }[tab]?.() || "";
-  return { title: "Comms", html: tabs(T, tab, "#/comms") + body };
+  return { title: "Communications", subtitle: "Broadcast to clients, designers or partners, and manage message templates.", html: tabs(T, tab, "#/comms") + body };
 }
 
 // ── Studio settings ─────────────────────
 function studio() {
   const s = C.S();
   return {
-    title: "Studio settings", back: "#/settings",
+    title: "Prices & policies", subtitle: "Tiers, add-ons, commission, costs, SLAs and refund policy.", back: "#/settings",
     html: `
     <form class="form" data-form="studioSave" style="max-width:820px">
       <div class="card form"><h3>Contact & payments</h3>
@@ -578,12 +617,12 @@ function studio() {
 // ── routes ──────────────────────────────
 export const routes = {
   dashboard, leads, lead: leadDetail, projects, people, person, finance, invoice, content, compliance, metrics: metricsView, comms, studio,
-  project: ([id, tab = "overview"], user) => { const p = byId("projects", id); return p ? projectView(p, user, tab, "#/project") : null; },
+  project: ([id, tab = "overview", ...rest], user) => { const p = byId("projects", id); return p ? projectView(p, user, tab, "#/project", rest) : null; },
 };
 
 // ── actions ─────────────────────────────
 act({
-  leadChip: (el) => { ui.leadStage = el.dataset.v; go("/leads"); routesRefresh(); },
+  leadChip: (el) => { ui.leadStage = el.dataset.v; routesRefresh(); },
   leadSearch: (el) => { ui.leadQ = el.value; routesRefresh(); },
   leadNew: () => sheet("New lead", leadForm()),
   leadEdit: (el) => sheet("Edit lead", leadForm(byId("leads", el.dataset.id))),
@@ -597,7 +636,7 @@ act({
     commit(f.dataset.id ? "Edited lead" : "Added lead", l.name, l.affiliateId ? `attributed to ${userName(l.affiliateId)}` : l.source);
     go(`/lead/${l.id}`);
   },
-  leadStage: (el) => { const l = byId("leads", el.dataset.id); l.stage = el.dataset.v; commit("Lead stage", l.name, el.dataset.v); },
+  leadStage: (el) => { closeSheet(); const l = byId("leads", el.dataset.id); l.stage = el.dataset.v; commit("Lead stage", l.name, el.dataset.v); },
   leadLost: (el) => sheet("Mark as lost", `<form class="form" data-form="leadLostGo" data-id="${el.dataset.id}">
       <p class="small muted">Logging why helps fix the sales process later.</p>
       ${field("Reason", select("reason", LOST_REASONS))}${field("Details", input("note"))}<button class="btn danger">Mark lost</button></form>`),
@@ -670,8 +709,34 @@ act({
     closeSheet();
     commit("Payout", userName(f.dataset.id), `${C.money(po.amount)} · ${d.ref}`);
   },
-  tplSave: (d) => { db.templates.push({ id: uid("t"), name: d.name, tags: d.tags.split(",").map((x) => x.trim()).filter(Boolean), tiers: d.tiers || [], previewUrl: d.previewUrl, status: "active" }); commit("Added template", d.name); },
-  tplToggle: (el) => { const t = byId("templates", el.dataset.id); t.status = t.status === "active" ? "retired" : "active"; commit(t.status === "active" ? "Restored template" : "Retired template", t.name); },
+  trendN: (el) => { ui.trendN = Number(el.value); routesRefresh(); },
+  leadSource: (el) => { ui.leadSource = el.value; routesRefresh(); },
+  leadDate: (el) => { ui.leadDate = el.value; routesRefresh(); },
+  leadMenu: (el) => {
+    const l = byId("leads", el.dataset.id);
+    sheet(l.name, `<div class="menu-list">
+      <a href="#/lead/${l.id}" data-act="navTo" data-to="#/lead/${l.id}">${icon("eye")}<span class="grow">Open & build quote</span></a>
+      ${l.phone ? `<a href="${attr(wa(l.phone, `Namaste ${l.name} 🙏 Thank you for your enquiry with BFI — Marwari Invitations.`))}" target="_blank" rel="noopener">${icon("message")}<span class="grow">WhatsApp</span></a><a href="tel:+${attr(l.phone)}">${icon("phone")}<span class="grow">Call</span></a>` : ""}
+      ${!["converted", "lost"].includes(l.stage) ? `<button data-act="leadStage" data-id="${l.id}" data-v="contacted">${icon("check")}<span class="grow">Mark contacted</span></button><button data-act="leadLost" data-id="${l.id}">${icon("x")}<span class="grow">Mark lost…</span></button>` : ""}
+    </div>`);
+  },
+  tplSearch: (el) => { ui.tplQ = el.value; routesRefresh(); },
+  tplTier: (el) => { ui.tplTier = el.value; routesRefresh(); },
+  tplNew: () => sheet("Add template", `<form class="form" data-form="tplSave">
+      <div class="cols">${field("Name", input("name", "", "text", "required"))}${field("Main tier", select("tier", Object.entries(C.S().tiers).map(([k, t]) => [k, t.name]), "premium"))}</div>
+      ${field("Tags", input("tags", "", "text", 'placeholder="haveli, gold, minimal"'))}
+      ${field("Cover style", select("art", [["royal-heritage", "Maroon & gold"], ["mandap-magic", "Ivory floral"], ["golden-elegance", "Red ornate"], ["desert-dreams", "Sand minimal"], ["marwari-classic", "Classic red"], ["royal-palace", "Black & gold"]]))}
+      ${field("Preview link", input("previewUrl", "", "url"))}
+      <div><div class="label">Available in</div><div class="row">${Object.entries(C.S().tiers).map(([k, t]) => checkbox("tiers[]", true, esc(t.name), k)).join("")}</div></div>
+      <button class="btn primary">Add template</button></form>`),
+  tplMenu: (el) => {
+    const t = byId("templates", el.dataset.id);
+    sheet(t.name, `<div class="stack"><div class="tpl" style="max-width:240px;margin:0 auto"><div class="art">${templateArt(t)}</div></div>
+      <div class="menu-list">${t.previewUrl ? `<a href="${attr(t.previewUrl)}" target="_blank" rel="noopener">${icon("eye")}<span class="grow">Open preview</span></a>` : ""}
+      <button data-act="tplToggle" data-id="${t.id}">${icon(t.status === "active" ? "x" : "refresh")}<span class="grow">${t.status === "active" ? "Retire template" : "Restore template"}</span></button></div></div>`);
+  },
+  tplSave: (d) => { db.templates.push({ id: uid("t"), name: d.name, art: d.art, tier: d.tier, tags: d.tags.split(",").map((x) => x.trim()).filter(Boolean), tiers: d.tiers?.length ? d.tiers : [d.tier], previewUrl: d.previewUrl, status: "active" }); closeSheet(); commit("Added template", d.name); },
+  tplToggle: (el) => { closeSheet(); const t = byId("templates", el.dataset.id); t.status = t.status === "active" ? "retired" : "active"; commit(t.status === "active" ? "Restored template" : "Retired template", t.name); },
   libAdd: async (d) => {
     const f = d.files?.[0];
     if (d.source === "customer" && !d.projectId) { toast("Pick the project this customer content came from"); return; }

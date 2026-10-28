@@ -6,14 +6,15 @@ site in the repository root.
 
 ## Who uses it
 
-| Role | Opens | Sees |
-|---|---|---|
-| Admin | Sign in → Admin | Leads & quotes, projects (SLA flags, assignment, exceptions, cancellations), people, finance (margins, payments, commissions & payouts, invoices, refunds), content (templates, asset library, testimonials), growth, Section 12 metrics with CSV export, comms (WhatsApp/email broadcasts, templates), compliance (consent, documents, audit log), studio settings |
-| Marketing & outreach | Sign in → Marketing | Vendor CRM with follow-ups, referral codes & links, consent-gated campaign calendar, testimonial requests, asset requests, sources & CAC, SEO tracker, ad A/B notes |
-| Designer / QA / freelancer | Sign in | Only their assigned projects: brief, client references, preview push, revision checklist, internal notes, handover checklist, QA verdict, brand kit. Freelancer access expires on its end date |
-| Affiliate / vendor | Sign in → Partner | Code + shareable link + pitch, referred leads (status only), intro form, marketing kit, commission ledger, payouts, payout details |
-| Client | Private link `#/c/<token>` (no login) | Status in plain words + what's needed next, guided details form, uploads, preview + consolidated revision requests with a counter, UPI payment, final sign-off, live link + QR, review & consent toggles, referral code |
-| Anyone | `#/enquire/<CODE>` | Public enquiry form; the code attributes the lead automatically |
+| Role | Pages |
+|---|---|
+| Admin | Dashboard (KPIs with change vs. the previous 30 days, revenue trend, recent projects, needs-attention list) · Leads & Sales (stage tabs, source/date filters, quote builder, convert, lost reasons) · Projects (list/board, SLA flags, assignment, exceptions, cancel & refund) · People (team, affiliates & vendors, time-boxed freelancers) · Finance (overview & order-wise margin, orders, commissions & payouts, invoices, refunds) · Content & Assets (template catalogue, asset library, testimonials) · Marketing · Compliance (consent, documents, audit log) · Metrics (Section 12, CSV export) · Communications (WhatsApp/email broadcasts, templates) · Settings |
+| Marketing & outreach | Dashboard · Outreach CRM (All / Invited / In Discussion / Agreed / Rejected) · Campaign calendar · Lead Source & CAC (donut + cost per acquisition) · Testimonial requests (Pending / Received / Declined) · SEO tracker · Paid ads (gated until 10 organic orders) · Referral codes · Asset library |
+| Designer / freelancer | My Projects · Asset Intake checklist · Design Workspace (preview, versions, revision log) · Workload & Deadlines · Brand Workspace (fonts, colours, templates, assets) · Handover checklist → QA. Freelancers only see the projects shared with them, until their access end date |
+| QA reviewer | QA queue · QA review (pass / send back with defects) · Workload · Brand |
+| Affiliate / vendor | Referral code & link · Leads & Projects · Commission tracker · Trade status · Submit a referral · Marketing kit · payout details in Settings |
+| Client | Private link `#/c/<token>`, no login: Dashboard · My Project (overview, details form, uploads, preview & consolidated changes, payment by UPI, invitation + QR, review & consent) · Messages (design team, studio, QA) · Settings |
+| Anyone | `#/enquire/<CODE>`: public enquiry form; the code attributes the lead automatically |
 
 ## Data
 
@@ -36,3 +37,5 @@ python3 -m http.server 8000
 
 No build step. Plain HTML, CSS and ES modules. `sw.js` caches the app for
 offline use. When you change files, bump `VERSION` in `sw.js`.
+
+Template covers are drawn in code (`templateArt` in `js/ui.js`), so no image files are needed.

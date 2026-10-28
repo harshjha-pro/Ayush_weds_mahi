@@ -22,15 +22,15 @@ export const LEAD_STAGES = [
 
 export const LOST_REASONS = ["Price too high", "Chose printed cards", "Went with a competitor", "No response", "Wedding cancelled / postponed", "Timeline too short", "Wanted DIY / free tool", "Other"];
 export const SOURCES = ["Instagram", "Pinterest", "Google / SEO", "WhatsApp group", "Vendor referral", "Past client", "Walk-in / phone", "Other"];
-export const PURPOSES = { couple: "Couple photo", family: "Family names", venue: "Venue details", inspiration: "Inspiration style", other: "Other" };
+export const PURPOSES = { couple: "Couple photos", family: "Family photos / names", venue: "Venue photos / details", inspiration: "Inspiration links", logo: "Logo / monogram", other: "Other" };
 export const VENDOR_KINDS = ["Wedding planner", "Photographer", "Videographer", "Makeup artist", "Venue / banquet", "Content creator"];
 export const OUTREACH_STAGES = [
   { key: "identified", name: "Identified" },
-  { key: "pitched", name: "Pitched" },
-  { key: "talking", name: "In talks" },
-  { key: "trade", name: "Trade active" },
-  { key: "affiliate", name: "Affiliate" },
-  { key: "declined", name: "Declined" },
+  { key: "pitched", name: "Invited" },
+  { key: "talking", name: "In discussion" },
+  { key: "trade", name: "Agreed · trade" },
+  { key: "affiliate", name: "Agreed · affiliate" },
+  { key: "declined", name: "Rejected" },
 ];
 export const ROLES = {
   admin: { name: "Admin", desc: "Leads, projects, team, finance, compliance" },
@@ -102,12 +102,12 @@ export function seed({ empty = false } = {}) {
   ];
 
   base.templates = [
-    { id: "t1", name: "Jharokha Gold", tiers: ["basic", "premium", "luxury"], tags: ["haveli", "gold", "classic"], status: "active", previewUrl: "" },
-    { id: "t2", name: "Haveli Rang", tiers: ["premium", "luxury"], tags: ["colourful", "fresco"], status: "active", previewUrl: "" },
-    { id: "t3", name: "Mehendi Mor", tiers: ["basic", "premium"], tags: ["peacock", "mehendi"], status: "active", previewUrl: "" },
-    { id: "t4", name: "Bani Thani", tiers: ["premium", "luxury"], tags: ["miniature art", "royal"], status: "active", previewUrl: "" },
-    { id: "t5", name: "Gangaur Blush", tiers: ["basic"], tags: ["pastel", "minimal"], status: "active", previewUrl: "" },
-    { id: "t6", name: "Shekhawati Fresco", tiers: ["luxury"], tags: ["storytelling", "fresco"], status: "retired", previewUrl: "" },
+    { id: "t1", name: "Royal Heritage", art: "royal-heritage", tier: "premium", tiers: ["premium", "luxury"], tags: ["haveli", "maroon", "classic"], status: "active", previewUrl: "" },
+    { id: "t2", name: "Mandap Magic", art: "mandap-magic", tier: "premium", tiers: ["basic", "premium"], tags: ["ivory", "floral"], status: "active", previewUrl: "" },
+    { id: "t3", name: "Golden Elegance", art: "golden-elegance", tier: "luxury", tiers: ["luxury"], tags: ["ornate", "gold"], status: "active", previewUrl: "" },
+    { id: "t4", name: "Desert Dreams", art: "desert-dreams", tier: "basic", tiers: ["basic", "premium"], tags: ["sand", "minimal"], status: "active", previewUrl: "" },
+    { id: "t5", name: "Marwari Classic", art: "marwari-classic", tier: "premium", tiers: ["basic", "premium", "luxury"], tags: ["red", "traditional"], status: "active", previewUrl: "" },
+    { id: "t6", name: "Royal Palace", art: "royal-palace", tier: "luxury", tiers: ["luxury"], tags: ["black", "palace", "storytelling"], status: "active", previewUrl: "" },
   ];
 
   const L = (id, o) => ({ id, phone: "", email: "", notes: [], createdAt: at(-20), weddingDate: day(60), city: "Jaipur", refCode: "", affiliateId: null, ...o });
@@ -118,13 +118,16 @@ export function seed({ empty = false } = {}) {
     L("l4", { name: "Ankit Somani", phone: "919811100004", source: "WhatsApp group", stage: "lost", lostReason: "Chose printed cards", createdAt: at(-30), city: "Surat" }),
     L("l5", { name: "Megha Rathi", phone: "919811100005", source: "Pinterest", stage: "lost", lostReason: "Price too high", createdAt: at(-25), city: "Delhi" }),
     L("l6", { name: "Kavya & Aditya", phone: "919811100006", source: "Vendor referral", refCode: "LENSVOWS", affiliateId: "u_aff2", stage: "new", createdAt: at(-2), weddingDate: day(90), city: "Udaipur", interest: "luxury" }),
+    L("l8", { name: "Neha Soni", phone: "919811100008", source: "Past client", refCode: "ADITI001", stage: "new", createdAt: at(-5), weddingDate: day(110), city: "Jaipur", interest: "premium" }),
+    L("l9", { name: "Kunal Jain", phone: "919811100009", source: "Instagram", stage: "lost", lostReason: "No response", createdAt: at(-14), city: "Pune" }),
+    L("l10", { name: "Amit Agarwal", phone: "919811100010", source: "Google / SEO", stage: "converted", convertedAt: at(-5), createdAt: at(-8), city: "Mumbai" }),
     L("l7", { name: "Simran Bajaj", phone: "919811100007", source: "Vendor referral", refCode: "TANVI", affiliateId: "u_aff3", stage: "contacted", createdAt: at(-3), weddingDate: day(35), city: "Jodhpur", interest: "basic" }),
   ];
 
   const P = (o) => ({
     addons: [], items: [], discount: 0, rush: false, extraRevisions: 0, overrideNote: "", templateId: "t1",
     designerId: null, qaId: null, affiliateId: null, status: "active", city: "Jaipur",
-    intake: { events: [] }, assets: [], previews: [], revisions: [], notes: [], payments: [], invoices: [], refunds: [],
+    intake: { events: [] }, assets: [], previews: [], revisions: [], notes: [], messages: [], payments: [], invoices: [], refunds: [],
     handover: {}, qa: { status: "pending", notes: "", defects: 0 }, approval: null, delivery: null, review: null,
     consent: { photos: false, names: false, testimonial: false, showcase: false, at: null, method: "" },
     costs: { hours: 0, hosting: 0, other: 0 }, complaints: 0, testimonialRequest: null, ...o,
@@ -156,6 +159,12 @@ export function seed({ empty = false } = {}) {
       payments: [{ id: "pay3", at: at(-19), amount: 17249, method: "Bank transfer", ref: "NEFT-118" }],
       invoices: [{ no: "BFI/2026/002", at: at(-19), amount: 34497 }],
       notes: [{ id: "n1", at: at(-3), byId: "u_des2", text: "Client wants gold foil effect on the cover — doable with CSS, no extra scope." }],
+      messages: [
+        { id: "m1", thread: "design", from: "u_des2", text: "Hi! We've updated the design with your feedback. Please take a look.", at: at(-2, 10) },
+        { id: "m2", thread: "design", from: "client", text: "Looks great! Just one small change in the date font.", at: at(-2, 12) },
+        { id: "m3", thread: "design", from: "u_des2", text: "Noted! Updating now.", at: at(-2, 13) },
+        { id: "m4", thread: "admin", from: "u_admin", text: "Namaste Nidhi ji, your balance invoice is in the Payment section whenever you're ready.", at: at(-5, 16) },
+      ],
       costs: { hours: 14, hosting: 300, other: 0 },
     }),
     P({
@@ -212,15 +221,19 @@ export function seed({ empty = false } = {}) {
   ];
 
   base.campaigns = [
-    { id: "cp1", title: "Reel: Kothari invitation reveal", channel: "Instagram", date: day(3), projectId: "p_1001", assetId: "a1", status: "scheduled", notes: "" },
-    { id: "cp2", title: "Pinterest board: Haveli Rang", channel: "Pinterest", date: day(6), projectId: null, assetId: "a2", status: "draft", notes: "" },
+    { id: "cp1", title: "Reel: Kothari invitation reveal", kind: "social", channel: "Instagram", date: day(3), projectId: "p_1001", assetId: "a1", status: "scheduled", notes: "" },
+    { id: "cp2", title: "Pinterest board: Royal Heritage", kind: "social", channel: "Pinterest", date: day(6), projectId: null, assetId: "a2", status: "in progress", notes: "" },
+    { id: "cp3", title: "Vendor outreach — planners", kind: "vendor", channel: "Email", date: day(1), projectId: null, assetId: "a3", status: "scheduled", notes: "" },
+    { id: "cp4", title: "Blog: real Marwari weddings", kind: "content", channel: "Website", date: day(9), projectId: null, assetId: null, status: "draft", notes: "" },
+    { id: "cp5", title: "Newsletter: wedding season", kind: "email", channel: "Email", date: day(12), projectId: null, assetId: null, status: "scheduled", notes: "" },
   ];
   base.seo = [
-    { id: "s1", title: "Marwari wedding invitation wording", url: "/marwari-wedding-invitation-wording", keyword: "marwari wedding invitation wording", status: "live", visits: 420, leads: 6, updatedAt: at(-10) },
-    { id: "s2", title: "Digital vs printed Marwari cards", url: "/digital-vs-printed", keyword: "digital marwari wedding card", status: "live", visits: 180, leads: 2, updatedAt: at(-20) },
-    { id: "s3", title: "Marwari wedding invitation templates", url: "/templates", keyword: "marwari wedding invitation template", status: "draft", visits: 0, leads: 0, updatedAt: at(-2) },
+    { id: "s1", title: "Marwari wedding invitation", url: "/marwari-wedding-invitation", keyword: "marwari wedding invitation", target: 10, position: 6, status: "live", visits: 420, leads: 6, updatedAt: at(-10) },
+    { id: "s2", title: "Rajasthani wedding invite", url: "/rajasthani-wedding-invite", keyword: "rajasthani wedding invite", target: 10, position: 12, status: "live", visits: 180, leads: 2, updatedAt: at(-20) },
+    { id: "s3", title: "Digital Marwari invite", url: "/digital-marwari-invite", keyword: "digital marwari invite", target: 20, position: 18, status: "live", visits: 90, leads: 1, updatedAt: at(-6) },
+    { id: "s4", title: "Wedding invitation quotes", url: "/wedding-invitation-quotes", keyword: "marwari wedding invitation quotes", target: 20, position: 22, status: "draft", visits: 40, leads: 0, updatedAt: at(-2) },
   ];
-  base.ads = [{ id: "ad1", title: "Not started — paid spend follows proof", channel: "Meta", variantA: "", variantB: "", result: "", status: "planned", at: at(-5) }];
+  base.ads = [];
   base.spend = [
     { id: "sp1", month: day(-40).slice(0, 7), channel: "Instagram", amount: 2000, note: "Boosted Reel" },
     { id: "sp2", month: day(-10).slice(0, 7), channel: "Vendor referral", amount: 0, note: "Trade discounts counted in margin" },

@@ -4,7 +4,7 @@
 
 import { seed } from "./seed.js";
 
-const KEY = "bfi.data.v1";
+const KEY = "bfi.data.v2";
 const SESSION = "bfi.session.v1";
 const listeners = new Set();
 
@@ -25,6 +25,7 @@ function migrate(data) {
   const base = seed({ empty: true });
   for (const k of Object.keys(base)) if (data[k] === undefined) data[k] = base[k];
   data.settings = { ...base.settings, ...data.settings };
+  for (const p of data.projects) { p.messages = p.messages || []; p.assets = p.assets || []; }
   return data;
 }
 
