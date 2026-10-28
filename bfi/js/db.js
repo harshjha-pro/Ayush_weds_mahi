@@ -4,7 +4,7 @@
 
 import { seed } from "./seed.js";
 
-const KEY = "bfi.data.v2";
+const KEY = "bfi.data.v3";
 const SESSION = "bfi.session.v1";
 const listeners = new Set();
 

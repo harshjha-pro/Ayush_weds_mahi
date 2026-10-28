@@ -193,8 +193,29 @@ export function seed({ empty = false } = {}) {
       handover: { content: true, links: true, rsvp: true, mobile: true, privacy: true, spelling: true },
       costs: { hours: 8, hosting: 300, other: 0 },
     }),
+    P({
+      id: "p_1006", code: "BFI-1006", token: "r8d3kv6wpz2hqn9ytc4xmb", clientName: "Pooja Maheshwari", brideName: "Pooja", groomName: "Arjun",
+      phone: "919822200006", email: "pooja@example.com", weddingDate: day(21), city: "Jaipur", tier: "premium", price: 13498, addons: ["std"],
+      templateId: "t5", designerId: "u_des1", qaId: "u_qa", stage: 6, stageSince: at(-1), createdAt: at(-24), dueDate: day(2),
+      intake: { brideName: "Pooja Maheshwari", groomName: "Arjun Daga", brideParents: "Mr. & Mrs. Vinod Maheshwari", groomParents: "Mr. & Mrs. Sanjay Daga", events: [{ name: "Mehendi", date: day(19), time: "16:00", venue: "Maheshwari Bhawan" }, { name: "Phera", date: day(21), time: "20:30", venue: "Fairmont Jaipur" }], rsvpBy: day(10), rsvpPhone: "919822200006", language: "English + Hindi", submittedAt: at(-18) },
+      assets: [{ id: "as61", url: "https://pinterest.com/", name: "pinterest.com — Marwari red & gold board", kind: "link", purpose: "inspiration", note: "Love these colours", at: at(-17), by: "Client" }],
+      previews: [{ id: "pv61", url: "https://mahi-ayush.vercel.app/", note: "Final version", at: at(-4), by: "u_des1", round: 1 }],
+      revisions: [{ id: "r61", round: 1, at: at(-7), summary: "Couple & family names", items: [{ text: "Add Dadi-ji's name to blessings", where: "Couple & family names", done: true }], status: "resolved" }],
+      payments: [{ id: "pay61", at: at(-24), amount: 6749, method: "UPI", ref: "UPI-610" }],
+      designApprovedAt: at(-3), qa: { status: "pass", notes: "All checks passed", defects: 0, at: at(-1), by: "u_qa" },
+      handover: { approved: true, spelling: true, links: true, mobile: true, seo: true, privacy: true, preview: true },
+      messages: [{ id: "m61", thread: "admin", from: "u_admin", text: "Namaste Pooja ji! Your invitation passed our final checks. Please give final approval and clear the balance so we can publish.", at: at(-1, 15) }],
+      costs: { hours: 7, hosting: 300, other: 0 },
+    }),
+    P({
+      id: "p_1007", code: "BFI-1007", token: "t5m9xq2bnc7wkd4hrp8vfz", clientName: "Kavya Bhandari", brideName: "Kavya", groomName: "Aditya",
+      phone: "919822200007", email: "kavya@example.com", weddingDate: day(90), city: "Udaipur", tier: "luxury", price: 29999,
+      templateId: "t6", designerId: "u_des2", qaId: "u_qa", affiliateId: "u_aff2", stage: 1, stageSince: at(0), createdAt: at(0), dueDate: day(21),
+      payments: [{ id: "pay71", at: at(0), amount: 15000, method: "UPI", ref: "UPI-771" }],
+      messages: [{ id: "m71", thread: "admin", from: "u_admin", text: "Welcome to BFI, Kavya & Aditya! 🙏 Your Luxury invitation is confirmed. We'll ask for your details next.", at: at(0, 10) }],
+    }),
   ];
-  base.counters.project = 1005;
+  base.counters.project = 1007;
   base.counters.invoice = 2;
   base.projects[0].price = 13498;
   base.projects[4].price = 12998;

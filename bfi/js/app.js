@@ -165,6 +165,13 @@ function entry() {
           </form>
           <a class="small" href="#/enquire">New here? Make an enquiry →</a>
         </div>
+        <div class="stack sm">
+          <div><h3>Couples (demo)</h3><p class="small muted" style="margin:2px 0 0">Open a client's private portal: no login, just their link</p></div>
+          <div class="role-list">${db.projects.filter((p) => p.status !== "cancelled").sort((a, b) => a.stage - b.stage).map((p) => `
+            <a class="role" href="#/c/${p.token}" style="text-decoration:none;color:inherit">
+              ${avatar(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)}<div class="grow"><b>${esc(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)}</b><span>${esc(C.stageName(p.stage))} · ${esc(C.S().tiers[p.tier]?.name)}</span></div>${icon("chevron")}
+            </a>`).join("")}</div>
+        </div>
         <div class="stack">
           <div><h3>Studio team & partners</h3><p class="small muted" style="margin:2px 0 0">Choose who you are</p></div>
           ${groups.map(([role, us]) => `
