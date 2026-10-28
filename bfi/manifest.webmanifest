@@ -1,0 +1,24 @@
+{
+  "name": "BFI · Marwari Wedding Invitations",
+  "short_name": "BFI",
+  "description": "Marwari wedding invitations: e-invites, video invites, wedding websites and printed cards.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf4e6",
+  "theme_color": "#7a1220",
+  "lang": "en-IN",
+  "categories": ["lifestyle", "shopping", "business"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Invite maker", "url": "./#maker", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Enquire", "url": "./#enquire", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
