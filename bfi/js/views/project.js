@@ -7,9 +7,13 @@ import { icon } from "../icons.js";
 import { esc, attr, act, sheet, closeSheet, toast, badge, empty, field, input, textarea, select, checkbox, tabs, timeline, stageBar, wa, avatar, fileKind, kindIcon, go, progress, templateArt, rtable } from "../ui.js";
 import * as C from "../calc.js";
 
-export const clientLink = (p) => `${location.origin}${location.pathname}#/c/${p.token}`;
+// Private portal link: the family's account, opened on this project.
+export const clientLink = (p) => {
+  const c = db.clients.find((x) => x.id === p.clientId);
+  return `${location.origin}${location.pathname}#/c/${c ? `${c.token}/p/${p.id}` : p.token}`;
+};
 export const coupleName = (p) => (p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName);
-export const projectTitle = (p) => `${(p.clientName.split(" ").pop() || p.clientName)} Wedding`;
+export const projectTitle = (p) => `${(p.clientName.split(" ").pop() || p.clientName)} ${p.occasion ? `· ${p.occasion}` : "Wedding"}`;
 export const thumb = (p) => `<span class="thumb">${templateArt(byId("templates", p.templateId))}</span>`;
 
 export const HANDOVER = [

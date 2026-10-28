@@ -4,11 +4,11 @@
 
 import { seed } from "./seed.js";
 
-const KEY = "bfi.data.v3";
+const KEY = "bfi.data.v4";
 const SESSION = "bfi.session.v1";
 const listeners = new Set();
 
-export let db = load();
+export let db; // loaded at the end of this module, once helpers exist
 
 function load() {
   try {
@@ -26,6 +26,14 @@ function migrate(data) {
   for (const k of Object.keys(base)) if (data[k] === undefined) data[k] = base[k];
   data.settings = { ...base.settings, ...data.settings };
   for (const p of data.projects) { p.messages = p.messages || []; p.assets = p.assets || []; }
+  // Older saves had one link per project: give every project a client account.
+  for (const p of data.projects) {
+    if (p.clientId && data.clients.some((c) => c.id === p.clientId)) continue;
+    const key = (p.phone || p.email || p.id).toLowerCase();
+    let c = data.clients.find((x) => (x.phone || x.email || "").toLowerCase() === key);
+    if (!c) { c = { id: uid("cl"), token: token(), name: p.clientName, phone: p.phone, email: p.email, city: p.city, createdAt: p.createdAt, prefs: p.clientPrefs || { whatsapp: true, email: true } }; data.clients.push(c); }
+    p.clientId = c.id;
+  }
   return data;
 }
 
@@ -123,3 +131,16 @@ async function idbClear() {
   const d = await openIdb();
   d.transaction("files", "readwrite").objectStore("files").clear();
 }
+
+// ── clients ──────────────────────────────
+export const clientOf = (p) => db.clients.find((c) => c.id === p.clientId);
+export const clientProjects = (c) => db.projects.filter((p) => p.clientId === c.id);
+// Find or create the client account for a phone/email.
+export function ensureClient({ name, phone, email, city }) {
+  const ph = (phone || "").replace(/\D/g, "");
+  let c = db.clients.find((x) => (ph && x.phone === ph) || (email && x.email && x.email.toLowerCase() === email.toLowerCase()));
+  if (!c) { c = { id: uid("cl"), token: token(), name, phone: ph, email, city, createdAt: now(), prefs: { whatsapp: true, email: true } }; db.clients.push(c); }
+  return c;
+}
+
+db = load();

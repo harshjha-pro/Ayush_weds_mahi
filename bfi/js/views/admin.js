@@ -1,7 +1,7 @@
 // Admin panel: leads & quotes, projects, people, finance, content,
 // compliance, metrics, comms and studio settings.
 
-import { db, commit, byId, uid, now, token, userName, putFile } from "../db.js";
+import { db, commit, byId, uid, now, token, userName, putFile, ensureClient, clientProjects } from "../db.js";
 import { STAGES, LEAD_STAGES, LOST_REASONS, SOURCES, ROLES, VENDOR_KINDS } from "../seed.js";
 import { icon } from "../icons.js";
 import { esc, attr, act, sheet, closeSheet, toast, badge, empty, kpi, field, input, textarea, select, checkbox, chips, tabs, stateTabs, stageBar, wa, avatar, bars, download, go, confirmSheet, rtable, lineChart, srcBadge, templateArt } from "../ui.js";
@@ -185,11 +185,12 @@ function readQuote(form) {
 
 export function createProjectFromLead(l, q) {
   const s = C.S();
+  const client = (l.clientId && byId("clients", l.clientId)) || ensureClient({ name: l.name, phone: l.phone, email: l.email, city: l.city });
   db.counters.project++;
   const p = {
-    id: uid("p"), code: `BFI-${db.counters.project}`, token: token(), leadId: l.id, clientName: l.name, brideName: "", groomName: "",
+    id: uid("p"), code: `BFI-${db.counters.project}`, token: token(), leadId: l.id, clientId: client.id, occasion: l.occasion || "", clientName: client.name, brideName: "", groomName: "",
     phone: l.phone, email: l.email, weddingDate: l.weddingDate, city: l.city, tier: q.tier, addons: q.addons || [], items: q.items || [],
-    discount: q.discount || 0, rush: !!q.rush, rushFeeAdded: !!q.rush, price: C.quoteTotal(q), templateId: db.templates.find((t) => t.status === "active" && t.tiers.includes(q.tier))?.id || "t1",
+    discount: q.discount || 0, rush: !!q.rush, rushFeeAdded: !!q.rush, price: C.quoteTotal(q), templateId: l.templateId || db.templates.find((t) => t.status === "active" && t.tiers.includes(q.tier))?.id || "t1",
     designerId: null, qaId: db.users.find((u) => u.role === "qa")?.id || null, affiliateId: l.affiliateId || null, stage: 1, stageSince: now(), status: "active",
     createdAt: now(), dueDate: C.addDays(Math.ceil(s.tiers[q.tier].days / (q.rush ? 2 : 1))), extraRevisions: 0, overrideNote: "",
     intake: { events: [] }, assets: [], previews: [], revisions: [], notes: [], payments: [], invoices: [], refunds: [], handover: {},
@@ -258,12 +259,13 @@ function people([tab = "team"]) {
     partners: db.users.filter((u) => u.role === "affiliate"),
     freelancers: db.users.filter((u) => u.role === "freelancer"),
   };
+  if (tab === "clients") return clientsTab(groups);
   const list = groups[tab] || groups.team;
   return {
     title: "People", subtitle: "Team roles, affiliate & vendor partners, and time-boxed freelancers.", fab: { act: "personNew", label: "Add person" },
     actions: `<button class="btn primary" data-act="personNew">${icon("plus", "icon sm")} Add person</button>`,
     html: `<div class="card pad0">
-    ${tabs([["team", "Team", groups.team.length], ["partners", "Affiliates & vendors", groups.partners.length], ["freelancers", "Freelancers", groups.freelancers.length]], tab, "#/people")}
+    ${peopleTabs(groups, tab)}
     ${rtable([{ label: "Name" }, { label: tab === "partners" ? "Type" : "Role" }, { label: tab === "partners" ? "Code" : tab === "freelancers" ? "Access until" : "Email" }, { label: "Status", cls: "pill" }],
       list.map((u) => {
         const expired = u.accessUntil && new Date(u.accessUntil) < new Date();
@@ -272,6 +274,26 @@ function people([tab = "team"]) {
           u.role === "affiliate" ? `<code>${esc(u.refCode || "")}</code>` : u.role === "freelancer" ? C.date(u.accessUntil) : esc(u.email || ""),
           u.active === false ? badge("Inactive", "line") : expired ? badge("Expired", "bad") : badge("Active", "ok")];
       }), { href: (i) => `#/person/${list[i].id}` })}
+    </div>`,
+  };
+}
+
+const peopleTabs = (groups, tab) => tabs([["team", "Team", groups.team.length], ["clients", "Clients", db.clients.length], ["partners", "Affiliates & vendors", groups.partners.length], ["freelancers", "Freelancers", groups.freelancers.length]], tab, "#/people");
+// Client accounts: one family, one private link, any number of projects.
+function clientsTab(groups) {
+  const list = db.clients.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const portal = (c) => `${location.origin}${location.pathname}#/c/${c.token}`;
+  return {
+    title: "People", subtitle: "Team roles, clients, affiliate & vendor partners, and time-boxed freelancers.",
+    html: `<div class="card pad0">${peopleTabs(groups, "clients")}
+      ${rtable([{ label: "Client" }, { label: "Projects" }, { label: "Lifetime value", cls: "num" }, { label: "", cls: "act" }],
+        list.map((c) => {
+          const ps = clientProjects(c);
+          return [`<div class="row nowrap">${avatar(c.name)}<div><span class="t">${esc(c.name)}</span><div class="s">${esc(c.phone || "")} · ${esc(c.city || "")}</div></div></div>`,
+            ps.map((p) => `<a href="#/project/${p.id}">${esc(p.code)}</a> ${badge(p.status === "delivered" ? "Delivered" : C.stageName(p.stage), p.status === "delivered" ? "ok" : "info")}`).join("<br>") || "—",
+            C.money(ps.reduce((s, p) => s + C.paid(p), 0)) + (ps.length > 1 ? ` ${badge("Repeat", "gold")}` : ""),
+            `<button class="btn sm" data-act="copy" data-text="${attr(portal(c))}" data-label="Portal link copied">${icon("copy", "icon sm")} Portal link</button>`];
+        }), { empty: "No clients yet. Converting a lead creates one." })}
     </div>`,
   };
 }

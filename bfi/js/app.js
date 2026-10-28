@@ -12,6 +12,7 @@ import * as designer from "./views/designer.js";
 import * as affiliate from "./views/affiliate.js";
 import * as client from "./views/client.js";
 import * as pub from "./views/public.js";
+import * as site from "./views/site.js";
 
 const app = document.getElementById("app");
 
@@ -59,6 +60,7 @@ function render() {
     return v.frame ? frame(v.frame, v, scroll) : mount(v, scroll);
   }
   if (parts[0] === "enquire") return mount(pub.enquire(parts[1]), scroll);
+  if (parts[0] === "site") return mount(site.publicSite(), scroll);
 
   const user = currentUser();
   if (!user || parts[0] === "signin") return mount(entry(), 0);
@@ -124,11 +126,11 @@ function frame(f, view, scroll) {
           <a class="user-chip" href="${f.who.href}">${avatar(f.who.name)}<span class="hide-m">${esc(f.who.name.split(" ·")[0])}</span></a>
         </header>
         <main class="content">
-          <div class="page-head">
+          ${view.bare ? "" : `<div class="page-head">
             <div class="grow">${view.back ? `<a class="back" href="${attr(view.back)}">${icon("arrowLeft", "icon sm")} Back</a>` : ""}
               ${view.eyebrow ? `<div class="eyebrow">${esc(view.eyebrow)}</div>` : ""}<h1>${esc(view.title)}</h1>${view.subtitle ? `<p>${esc(view.subtitle)}</p>` : ""}</div>
             ${view.actions ? `<div class="row">${view.actions}</div>` : ""}
-          </div>
+          </div>`}
           ${view.html}
         </main>
       </div>
@@ -149,14 +151,15 @@ function entry() {
   const groups = Object.keys(ROLES).map((role) => [role, db.users.filter((u) => u.role === role && u.active !== false)]).filter(([, us]) => us.length);
   let saved = null;
   try { saved = localStorage.getItem("bfi.client"); } catch {}
-  const savedP = saved && db.projects.find((p) => p.token === saved);
+  const savedC = saved && db.clients.find((c) => c.token === saved);
   return {
     title: "Welcome",
     html: `
     <div class="entry">
       <div class="entry-box">
         <div class="crest">${crest()}<h1>BFI</h1><p>Marwari Invitations</p></div>
-        ${savedP ? `<a class="btn primary block" href="#/c/${savedP.token}">${icon("arrowRight", "icon sm")} Continue to ${esc(savedP.clientName)}'s invitation</a>` : ""}
+        ${savedC ? `<a class="btn primary block" href="#/c/${savedC.token}">${icon("arrowRight", "icon sm")} Continue as ${esc(savedC.name)}</a>` : ""}
+        <a class="card row nowrap" href="#/site" style="color:inherit;text-decoration:none"><span class="avatar">${icon("globe", "icon sm")}</span><div class="grow"><b>Visit our website</b><div class="small muted">Services, packages, designs, reviews & FAQ</div></div>${icon("chevron")}</a>
         <div class="card stack">
           <div><h3>Track your invitation</h3><p class="small muted" style="margin:2px 0 0">Couples: paste the private link we sent you.</p></div>
           <form data-form="track" class="row nowrap">
@@ -166,10 +169,10 @@ function entry() {
           <a class="small" href="#/enquire">New here? Make an enquiry →</a>
         </div>
         <div class="stack sm">
-          <div><h3>Couples (demo)</h3><p class="small muted" style="margin:2px 0 0">Open a client's private portal: no login, just their link</p></div>
-          <div class="role-list">${db.projects.filter((p) => p.status !== "cancelled").sort((a, b) => a.stage - b.stage).map((p) => `
-            <a class="role" href="#/c/${p.token}" style="text-decoration:none;color:inherit">
-              ${avatar(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)}<div class="grow"><b>${esc(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)}</b><span>${esc(C.stageName(p.stage))} · ${esc(C.S().tiers[p.tier]?.name)}</span></div>${icon("chevron")}
+          <div><h3>Clients (demo)</h3><p class="small muted" style="margin:2px 0 0">Open a family's private account: no login, just their link</p></div>
+          <div class="role-list">${db.clients.map((c) => [c, db.projects.filter((p) => p.clientId === c.id)]).sort((x, y) => y[1].length - x[1].length).map(([c, ps]) => `
+            <a class="role" href="#/c/${c.token}" style="text-decoration:none;color:inherit">
+              ${avatar(c.name)}<div class="grow"><b>${esc(c.name)}${ps.length > 1 ? ` <span class="badge gold">${ps.length} projects</span>` : ""}</b><span>${ps.map((p) => `${p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName}: ${C.stageName(p.stage)}`).map(esc).join(" · ")}</span></div>${icon("chevron")}
             </a>`).join("")}</div>
         </div>
         <div class="stack">
@@ -202,9 +205,10 @@ act({
     const raw = d.code.trim();
     const tok = (raw.match(/#\/c\/([a-z0-9]+)/i) || [])[1] || raw.toLowerCase().replace(/[^a-z0-9]/g, "");
     // Only the long private token opens a portal; project codes are guessable.
-    const p = db.projects.find((x) => x.token === tok);
-    if (!p) { toast("We couldn't find that link — check the message we sent you"); return; }
-    go(`/c/${p.token}`);
+    const c = db.clients.find((x) => x.token === tok);
+    const p = !c && db.projects.find((x) => x.token === tok);
+    if (!c && !p) { toast("We couldn't find that link — check the message we sent you"); return; }
+    go(`/c/${c ? c.token : p.token}`);
   },
   moreNav: () => {
     sheet("More", `<div class="menu-list">${moreNav.map(([href, l, ic]) => `<a href="${href}" data-act="navTo" data-to="${attr(href)}">${icon(ic)}<span class="grow">${esc(l)}</span>${icon("chevron")}</a>`).join("")}</div>`);

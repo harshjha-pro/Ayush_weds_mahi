@@ -2,7 +2,7 @@
 // Four pages: Dashboard, My Project, Messages, Settings. Shows only this
 // couple's project: never pricing negotiation, internal notes or other clients.
 
-import { db, commit, uid, now, fileUrl } from "../db.js";
+import { db, commit, uid, now, fileUrl, clientOf, clientProjects } from "../db.js";
 import { STAGES } from "../seed.js";
 import { icon, crest } from "../icons.js";
 import { esc, attr, act, toast, badge, empty, field, input, textarea, select, checkbox, timeline, wa, qrSvg, download, sheet, closeSheet, progress, templateArt, toggle, copy, share } from "../ui.js";
@@ -10,31 +10,117 @@ import * as C from "../calc.js";
 import { addAssets, assetTiles, hydrateFiles, uploadForm, coupleName, projectTitle, chatView, markSeen, scrollChat, intakeCard } from "./project.js";
 import { enquireLink } from "./marketing.js";
 import { byId } from "../db.js";
+import { website, onBook } from "./site.js";
 
 const SECTIONS = ["Cover", "Couple & family names", "Events & timings", "Venue & map", "Photos", "RSVP", "Colours & style", "Wording / language", "Other"];
 const EVENT_NAMES = ["Ganesh puja", "Mayra / Bhaat", "Haldi", "Mehendi", "Mahila sangeet", "Sangeet", "Baraat", "Phera", "Reception", "Other"];
 const MILESTONES = [["Design", 0, 3], ["Your review", 4, 4], ["Final checks", 5, 6], ["Delivery", 7, 7]];
 
+// Routes (T = the family's private token):
+//   #/c/T                 Home: the BFI website, with their projects on top
+//   #/c/T/dashboard[/pid] Dashboard for one project
+//   #/c/T/projects        All their projects, plus new requests
+//   #/c/T/p/pid/sub       One project (overview, details, uploads, …)
+//   #/c/T/messages/pid/thread, #/c/T/settings, #/c/T/book
+// Older per-project links (#/c/<project token>/…) still open that project.
+const SUBS = ["overview", "details", "uploads", "preview", "payment", "invite", "review"];
+const PAGES = ["home", "dashboard", "projects", "p", "messages", "settings", "book"];
 export function portal(tok, page, rest = []) {
-  const p = tok && db.projects.find((x) => x.token === tok);
-  if (!p) return { title: "Not found", html: `<div class="entry"><div class="entry-box crest">${crest()}<h1>BFI</h1><h3>Link not recognised</h3><p>Please use the private link the BFI studio sent you on WhatsApp.</p><a class="btn" href="#/">Back</a></div></div>` };
-  try { localStorage.setItem("bfi.client", p.token); } catch {}
-  const base = `#/c/${p.token}`;
-  if (!["home", "project", "messages", "settings"].includes(page)) {
-    // Old deep links (#/c/token/preview) open inside My Project.
-    rest = [page]; page = "project";
+  let client = tok && db.clients.find((c) => c.token === tok);
+  if (!client) {
+    const legacy = tok && db.projects.find((x) => x.token === tok);
+    client = legacy && clientOf(legacy);
+    if (client) {
+      const sub = page === "project" ? rest[0] || "overview" : SUBS.includes(page) ? page : null;
+      location.replace(`#/c/${client.token}/${sub ? `p/${legacy.id}/${sub}` : page === "messages" ? `messages/${legacy.id}/${rest[0] || "design"}` : `dashboard/${legacy.id}`}`);
+      return { title: "", html: "" };
+    }
   }
-  const unreadN = Object.keys(C.THREADS).reduce((s, t) => s + C.unread(p, t, "client"), 0);
-  const nav = [["home", "Dashboard", "home"], ["project", "My Project", "folder"], ["messages", unreadN ? `Messages (${unreadN})` : "Messages", "message"], ["settings", "Settings", "settings"]];
-  const v = { home, project, messages, settings }[page](p, base, rest);
+  if (!client) return { title: "Not found", html: `<div class="entry"><div class="entry-box crest">${crest()}<h1>BFI</h1><h3>Link not recognised</h3><p>Please use the private link the BFI studio sent you on WhatsApp.</p><a class="btn" href="#/site">Visit our website</a></div></div>` };
+  try { localStorage.setItem("bfi.client", client.token); } catch {}
+  if (!PAGES.includes(page)) page = "home";
+  const cbase = `#/c/${client.token}`;
+  const mine = clientProjects(client);
+  const pick = (id) => mine.find((p) => p.id === id) || mine.filter((p) => p.status === "active").sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] || mine[mine.length - 1];
+  const unreadN = mine.reduce((s, p) => s + Object.keys(C.THREADS).reduce((t, th) => t + C.unread(p, th, "client"), 0), 0);
+  onBook((pre) => { bookPrefill = pre; location.hash = `/c/${client.token}/book`; });
+
+  let v;
+  if (page === "home") v = { title: "Home", html: website({ mode: "client", client, base: cbase }), bare: true };
+  else if (page === "projects") v = projectsPage(client, cbase);
+  else if (page === "settings") v = settings(client);
+  else if (page === "book") v = book(client, cbase);
+  else {
+    const p = pick(rest[0]);
+    if (!p) v = { title: "No projects yet", html: `<div class="card">${empty("Nothing here yet", "Start your first invitation from Home.", "folder")}<div style="text-align:center"><a class="btn primary" href="${cbase}/book">Start a new invitation</a></div></div>` };
+    else {
+      const pbase = `${cbase}/p/${p.id}`;
+      if (page === "dashboard") v = home(p, pbase, cbase, mine);
+      else if (page === "messages") v = messages(p, `${cbase}/messages/${p.id}`, rest.slice(1), mine, cbase);
+      else v = project(p, pbase, rest.slice(1), cbase);
+    }
+  }
+  const navKey = page === "p" || page === "book" ? "projects" : page;
+  const nav = [["home", "Home", "home"], ["dashboard", "Dashboard", "grid"], ["projects", "My Projects", "folder"], ["messages", unreadN ? `Messages (${unreadN})` : "Messages", "message"], ["settings", "Settings", "settings"]];
   return {
     ...v,
     frame: {
-      nav: nav.map(([k, l, ic]) => [`${base}/${k}`, l, ic, k === page]),
-      who: { name: coupleName(p), href: `${base}/settings` },
+      nav: nav.map(([k, l, ic]) => [`${cbase}/${k}`, l, ic, k === navKey]),
+      who: { name: client.name, href: `${cbase}/settings` },
       signOutAct: "cForget",
     },
     after: (root) => { hydrateFiles(root); scrollChat(root); v.after?.(root); },
+  };
+}
+let bookPrefill = {};
+
+// Project switcher shown when a family has more than one project.
+function switcher(mine, current, hrefFor) {
+  const list = mine.filter((p) => p.status !== "cancelled");
+  if (list.length < 2) return "";
+  return `<div class="chips" style="margin-bottom:14px">${list.map((p) => `<a class="chip ${p.id === current.id ? "on" : ""}" href="${hrefFor(p)}" style="text-decoration:none">${esc(p.occasion || projectTitle(p))}</a>`).join("")}</div>`;
+}
+
+// My Projects: every project plus pending requests.
+function projectsPage(client, cbase) {
+  const mine = clientProjects(client).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const pending = db.leads.filter((l) => l.clientId === client.id && !["converted", "lost"].includes(l.stage));
+  return {
+    title: "My Projects", subtitle: "All your invitations with BFI in one place.",
+    actions: `<a class="btn primary" href="${cbase}/book">${icon("plus", "icon sm")} New invitation</a>`,
+    html: `<div class="grid">
+      ${pending.map((l) => `<div class="card stack sm" style="border-style:dashed"><div class="row between"><b>${esc(l.occasion || "New invitation")}</b>${badge("Requested", "warn")}</div>
+        <div class="small muted">${C.S().tiers[l.quote?.tier || l.interest]?.name || "Package to be confirmed"} · ${l.weddingDate ? C.date(l.weddingDate) : "date TBC"}</div>
+        <p class="small muted" style="margin:0">Sent ${C.ago(l.createdAt)}. The studio will confirm your design, price and timeline shortly.</p></div>`).join("")}
+      ${mine.map((p) => { const h = p.status === "delivered" ? ["Delivered", "ok"] : p.status === "cancelled" ? ["Cancelled", "line"] : [p.stage === 4 ? "Your review" : C.stageName(p.stage), "info"];
+        return `<a class="card stack sm" href="${cbase}/p/${p.id}" style="color:inherit;text-decoration:none">
+          <div class="row nowrap"><span class="thumb" style="width:64px;height:64px">${templateArt(byId("templates", p.templateId))}</span><div class="grow"><b class="ellipsis" style="display:block">${esc(p.occasion || projectTitle(p))}</b><div class="small muted ellipsis">${esc(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)} · ${esc(C.S().tiers[p.tier].name)}</div><div style="margin-top:4px">${badge(h[0], h[1])}</div></div></div>
+          ${progress(C.progressPct(p), p.status === "delivered" ? "ok" : "")}
+          <div class="row between small"><span class="muted">${p.status === "delivered" ? `Delivered ${C.date(p.deliveredAt)}` : `Delivery ${C.date(p.dueDate)}`}</span><span class="muted">${esc(p.code)}</span></div>
+        </a>`; }).join("")}
+      <a class="card stack sm" href="${cbase}/book" style="color:inherit;text-decoration:none;display:grid;place-items:center;text-align:center;min-height:150px;border-style:dashed">${icon("plus", "icon lg")}<b>Start a new invitation</b><span class="small muted">Engagement, wedding, reception or a family function</span></a>
+    </div>`,
+  };
+}
+
+// Book: a new project request on this family's account.
+const OCCASIONS = ["Wedding invitation", "Engagement / Sagai", "Save-the-date", "Reception", "Brother's / sister's wedding", "Family function (Griha pravesh, anniversary…)", "Other"];
+function book(client, cbase) {
+  const s = C.S();
+  const pre = bookPrefill || {};
+  return {
+    title: "Start a new invitation", subtitle: "Tell us what you're celebrating. The studio will confirm design, price and timeline.", back: `${cbase}/projects`,
+    html: `<form class="card form" data-form="cBook" data-client="${client.id}" style="max-width:760px">
+      <div class="cols">${field("What's the occasion?", select("occasion", OCCASIONS))}${field("Date of the main function", input("weddingDate", "", "date"))}</div>
+      <div class="cols">${field("Names on the invitation", input("names", "", "text", 'placeholder="e.g. Rohan & Simran"'))}${field("City", input("city", client.city || ""))}</div>
+      <div><div class="label" style="margin-bottom:6px">Package</div><div class="grid three">${Object.entries(s.tiers).map(([k, t]) => `
+        <label class="role" style="align-items:flex-start"><input type="radio" name="tier" value="${k}" ${(pre.tier || "premium") === k ? "checked" : ""} style="accent-color:var(--primary);margin-top:3px"><div><b>${esc(t.name)}</b><span>${C.money(t.price)} · ~${t.days} days</span></div></label>`).join("")}</div></div>
+      ${field("Design", select("templateId", [["", "Help me choose"], ...db.templates.filter((t) => t.status === "active").map((t) => [t.id, t.name])], pre.templateId || ""))}
+      <div><div class="label">Add-ons</div>${s.addons.map((a) => checkbox("addons[]", false, `${esc(a.name)} <span class="muted">· ${C.money(a.price)}</span>`, a.id)).join("")}</div>
+      ${field("Anything else", textarea("note", "", 'rows="3" placeholder="Functions, style, colours, timeline…"'))}
+      <div><button class="btn primary">${icon("send", "icon sm")} Send request</button></div>
+      <p class="tiny muted" style="margin:0">No payment now. You'll see the new project in My Projects with its own progress, chat and payments.</p>
+    </form>`,
   };
 }
 
@@ -52,20 +138,20 @@ function stepper(p) {
 }
 
 // ── 1 · Dashboard ───────────────────────
-function home(p, base) {
+function home(p, base, cbase, mine) {
   const st = STAGES[p.stage];
   const pct = C.progressPct(p);
   const cta = {
-    collect: [`${base}/project/details`, "Fill in your details"],
-    review: [`${base}/project/preview`, "Open your preview"],
-    approve: [C.balance(p) > 0 ? `${base}/project/payment` : `${base}/project/preview`, C.balance(p) > 0 ? "Clear balance & approve" : "Give final approval"],
-    delivered: [`${base}/project/invite`, "Get your invitation"],
+    collect: [`${base}/details`, "Fill in your details"],
+    review: [`${base}/preview`, "Open your preview"],
+    approve: [C.balance(p) > 0 ? `${base}/payment` : `${base}/preview`, C.balance(p) > 0 ? "Clear balance & approve" : "Give final approval"],
+    delivered: [`${base}/invite`, "Get your invitation"],
   }[st.key];
   const lastMsg = (p.messages || []).filter((m) => m.from !== "client").at(-1);
   const shareUrl = p.delivery?.liveUrl || p.previews.at(-1)?.url;
   return {
-    title: `Welcome, ${welcomeNames(p)}`, subtitle: "Your invitation journey at a glance.",
-    html: `<div class="two">
+    title: `Welcome, ${welcomeNames(p)}`, subtitle: mine.length > 1 ? `${p.occasion || projectTitle(p)}: your invitation journey at a glance.` : "Your invitation journey at a glance.",
+    html: `${switcher(mine, p, (x) => `${cbase}/dashboard/${x.id}`)}<div class="two">
       <div class="stack">
         ${p.status === "cancelled" ? `<div class="callout bad">${icon("info")}<div>This project was cancelled. Please message the studio with any questions.</div></div>` : `
         <div class="card stack">
@@ -85,12 +171,12 @@ function home(p, base) {
       <div class="stack">
         <div class="card stack"><h3>Quick actions</h3>
           <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
-            ${shareUrl ? `<button class="btn" data-act="share" data-text="${attr(p.delivery ? "You're invited! 🪔" : "Our invitation preview")}" data-url="${attr(shareUrl)}">${icon("share", "icon sm")} Share link</button>` : `<a class="btn" href="${base}/project/uploads">${icon("upload", "icon sm")} Upload</a>`}
-            ${p.delivery ? `<a class="btn" href="${base}/project/invite">${icon("download", "icon sm")} Download</a>` : `<a class="btn" href="${base}/project/details">${icon("edit", "icon sm")} Details</a>`}
-            <a class="btn" href="${base}/project/payment">${icon("rupee", "icon sm")} ${C.balance(p) ? "Pay" : "Receipts"}</a>
-            <a class="btn" href="${base}/messages">${icon("message", "icon sm")} Message</a>
+            ${shareUrl ? `<button class="btn" data-act="share" data-text="${attr(p.delivery ? "You're invited! 🪔" : "Our invitation preview")}" data-url="${attr(shareUrl)}">${icon("share", "icon sm")} Share link</button>` : `<a class="btn" href="${base}/uploads">${icon("upload", "icon sm")} Upload</a>`}
+            ${p.delivery ? `<a class="btn" href="${base}/invite">${icon("download", "icon sm")} Download</a>` : `<a class="btn" href="${base}/details">${icon("edit", "icon sm")} Details</a>`}
+            <a class="btn" href="${base}/payment">${icon("rupee", "icon sm")} ${C.balance(p) ? "Pay" : "Receipts"}</a>
+            <a class="btn" href="${cbase}/messages/${p.id}">${icon("message", "icon sm")} Message</a>
           </div></div>
-        <div class="card stack sm"><div class="row between"><h3>Latest message</h3><a class="small" href="${base}/messages">Open</a></div>
+        <div class="card stack sm"><div class="row between"><h3>Latest message</h3><a class="small" href="${cbase}/messages/${p.id}">Open</a></div>
           ${lastMsg ? `<div class="bubble" style="max-width:100%"><div class="who">${esc(C.THREADS[lastMsg.thread])}</div>${esc(lastMsg.text)}<div class="tm">${C.ago(lastMsg.at)}</div></div>` : `<p class="small muted" style="margin:0">No messages yet.</p>`}</div>
         <div class="card stack sm"><h3>Payment</h3><div class="row between"><span class="muted small">Balance</span><b>${C.balance(p) ? C.money(C.balance(p)) : "Paid in full"}</b></div></div>
         <p class="tiny muted" style="text-align:center">${icon("lock", "icon sm")} This page is private to you. Please don't share the link publicly.</p>
@@ -100,14 +186,14 @@ function home(p, base) {
 }
 
 // ── 2 · My Project (with sub-sections) ──
-function project(p, base, [sub = "overview"]) {
+function project(p, base, [sub = "overview"], cbase) {
   const delivered = p.status === "delivered";
   const T = [["overview", "Overview"], ["details", "Details"], ["uploads", "Uploads", p.assets.length], ["preview", "Preview & changes"], ["payment", "Payment"], ...(delivered || p.delivery ? [["invite", "Invitation"], ["review", "Review"]] : [])];
   if (!T.some((t) => t[0] === sub)) sub = "overview";
   const body = { overview, details, uploads, preview, payment, invite, review }[sub](p, base);
   return {
-    title: "My Project", subtitle: "Details and progress of your invitation.",
-    html: `<nav class="tabs">${T.map(([k, l, n]) => `<a href="${base}/project/${k}" class="${k === sub ? "on" : ""}">${esc(l)}${n ? `<span class="n">(${n})</span>` : ""}</a>`).join("")}</nav>${body}`,
+    title: p.occasion || projectTitle(p), subtitle: "Details and progress of your invitation.", back: `${cbase}/projects`,
+    html: `<nav class="tabs">${T.map(([k, l, n]) => `<a href="${base}/${k}" class="${k === sub ? "on" : ""}">${esc(l)}${n ? `<span class="n">(${n})</span>` : ""}</a>`).join("")}</nav>${body}`,
   };
 }
 
@@ -214,7 +300,7 @@ function signoff(p) {
   return `<form class="card form" data-form="cSignoff" data-token="${p.token}" style="border-color:var(--primary)">
     <div class="eyebrow">Final step</div><h3>Final content approval</h3>
     <p class="small" style="margin:0">Nothing is published until you approve. Please check every name, date, time and venue one last time.</p>
-    ${C.balance(p) > 0 ? `<div class="callout warn">${icon("rupee")}<div>A balance of <b>${C.money(C.balance(p))}</b> is due before we publish. <a href="#/c/${p.token}/project/payment">Pay now</a></div></div>` : ""}
+    ${C.balance(p) > 0 ? `<div class="callout warn">${icon("rupee")}<div>A balance of <b>${C.money(C.balance(p))}</b> is due before we publish. <a href="#/c/${p.token}/payment">Pay now</a></div></div>` : ""}
     <label class="check"><input type="checkbox" name="ok" required><span>I confirm all names, dates and details are correct.</span></label>
     ${field("Your full name", input("name", p.clientName, "text", "required"))}
     <div><button class="btn primary">${icon("check", "icon sm")} Give final approval</button></div>
@@ -287,44 +373,69 @@ function review(p) {
 }
 
 // ── 3 · Messages ────────────────────────
-function messages(p, base, [thread = "design"]) {
+function messages(p, base, [thread = "design"], mine, cbase) {
   if (!C.THREADS[thread]) thread = "design";
   if (markSeen(p, thread, "client")) setTimeout(() => commit("Client read messages", p.code), 0);
-  return { title: "Messages", subtitle: "Talk to your design team, the studio and QA, all in one place.", html: chatView(p, thread, "client", `${base}/messages`, Object.keys(C.THREADS)) };
+  return { title: "Messages", subtitle: "Talk to your design team, the studio and QA, all in one place.", html: switcher(mine, p, (x) => `${cbase}/messages/${x.id}`) + chatView(p, thread, "client", base, Object.keys(C.THREADS)) };
 }
 
 // ── 4 · Settings ────────────────────────
-function settings(p) {
-  const pr = p.clientPrefs || { whatsapp: true, email: true };
+function settings(c) {
+  const pr = c.prefs || { whatsapp: true, email: true };
   return {
     title: "Settings", subtitle: "Manage your account and preferences.",
     html: `<div class="card setlist" style="max-width:720px">
-      <button class="setrow" data-act="cProfile" data-token="${p.token}"><span class="ic">${icon("user")}</span><div class="grow"><b>Profile</b><span>Update your personal information</span></div>${icon("chevron")}</button>
-      <button class="setrow" data-act="cNotify" data-token="${p.token}"><span class="ic">${icon("bell")}</span><div class="grow"><b>Notifications</b><span>Email & WhatsApp preferences · ${[pr.whatsapp && "WhatsApp", pr.email && "Email"].filter(Boolean).join(" + ") || "off"}</span></div>${icon("chevron")}</button>
-      <button class="setrow" data-act="cPrefs" data-token="${p.token}"><span class="ic">${icon("settings")}</span><div class="grow"><b>Project preferences</b><span>Language, best time to contact</span></div>${icon("chevron")}</button>
+      <button class="setrow" data-act="cProfile" data-client="${c.id}"><span class="ic">${icon("user")}</span><div class="grow"><b>Profile</b><span>Update your personal information</span></div>${icon("chevron")}</button>
+      <button class="setrow" data-act="cNotify" data-client="${c.id}"><span class="ic">${icon("bell")}</span><div class="grow"><b>Notifications</b><span>Email & WhatsApp preferences · ${[pr.whatsapp && "WhatsApp", pr.email && "Email"].filter(Boolean).join(" + ") || "off"}</span></div>${icon("chevron")}</button>
+      <button class="setrow" data-act="cPrefs" data-client="${c.id}"><span class="ic">${icon("settings")}</span><div class="grow"><b>Project preferences</b><span>Language, best time to contact</span></div>${icon("chevron")}</button>
       <button class="setrow" data-act="cHelp"><span class="ic">${icon("info")}</span><div class="grow"><b>Help & support</b><span>Get help or contact us</span></div>${icon("chevron")}</button>
-      <button class="setrow" data-act="cForget"><span class="ic">${icon("logout")}</span><div class="grow"><b>Logout</b><span>Forget this invitation on this device</span></div></button>
+      <button class="setrow" data-act="cForget"><span class="ic">${icon("logout")}</span><div class="grow"><b>Logout</b><span>Forget your account on this device</span></div></button>
     </div>`,
   };
 }
 
 // ── actions ─────────────────────────────
 const T = (el) => db.projects.find((x) => x.token === el.dataset?.token);
+const K = (el) => db.clients.find((c) => c.id === el.dataset?.client);
 act({
   cForget: () => { try { localStorage.removeItem("bfi.client"); } catch {} location.hash = "/"; },
-  cProfile: (el) => { const p = T(el); sheet("Profile", `<form class="form" data-form="cProfileSave" data-token="${p.token}">${field("Your name", input("clientName", p.clientName, "text", "required"))}<div class="cols">${field("Phone", input("phone", p.phone, "tel"))}${field("Email", input("email", p.email, "email"))}</div><button class="btn primary">Save</button></form>`); },
-  cProfileSave: (d, f) => { const p = T(f); Object.assign(p, { clientName: d.clientName, phone: d.phone.replace(/\D/g, ""), email: d.email }); closeSheet(); commit("Client profile", p.code); toast("Saved"); },
-  cNotify: (el) => { const p = T(el); const pr = p.clientPrefs || { whatsapp: true, email: true }; sheet("Notifications", `<form class="form" data-form="cNotifySave" data-token="${p.token}">
+  cProfile: (el) => { const c = K(el); sheet("Profile", `<form class="form" data-form="cProfileSave" data-client="${c.id}">${field("Your name", input("name", c.name, "text", "required"))}<div class="cols">${field("Phone", input("phone", c.phone, "tel"))}${field("Email", input("email", c.email, "email"))}</div>${field("City", input("city", c.city || ""))}<button class="btn primary">Save</button></form>`); },
+  cProfileSave: (d, f) => {
+    const c = K(f);
+    Object.assign(c, { name: d.name, phone: d.phone.replace(/\D/g, ""), email: d.email, city: d.city });
+    // Contact details flow to every project on the account.
+    clientProjects(c).forEach((p) => Object.assign(p, { clientName: c.name, phone: c.phone, email: c.email }));
+    closeSheet(); commit("Client profile", c.name); toast("Saved");
+  },
+  cNotify: (el) => { const c = K(el); const pr = c.prefs || { whatsapp: true, email: true }; sheet("Notifications", `<form class="form" data-form="cNotifySave" data-client="${c.id}">
       <div class="setrow"><span class="ic">${icon("message")}</span><div class="grow"><b>WhatsApp</b><span>Preview ready, reminders, delivery</span></div>${toggle("whatsapp", pr.whatsapp)}</div>
       <div class="setrow"><span class="ic">${icon("mail")}</span><div class="grow"><b>Email</b><span>Invoices and receipts</span></div>${toggle("email", pr.email)}</div>
       <button class="btn primary">Save</button></form>`); },
-  cNotifySave: (d, f) => { const p = T(f); p.clientPrefs = { ...(p.clientPrefs || {}), whatsapp: d.whatsapp, email: d.email }; closeSheet(); commit("Client notifications", p.code); toast("Saved"); },
-  cPrefs: (el) => { const p = T(el); const pr = p.clientPrefs || {}; sheet("Project preferences", `<form class="form" data-form="cPrefsSave" data-token="${p.token}">
-      ${field("Invitation language", select("language", ["English", "Hindi", "English + Hindi", "Marwari + Hindi"], p.intake?.language || "English + Hindi"))}
+  cNotifySave: (d, f) => { const c = K(f); c.prefs = { ...(c.prefs || {}), whatsapp: d.whatsapp, email: d.email }; closeSheet(); commit("Client notifications", c.name); toast("Saved"); },
+  cPrefs: (el) => { const c = K(el); const pr = c.prefs || {}; sheet("Project preferences", `<form class="form" data-form="cPrefsSave" data-client="${c.id}">
+      ${field("Invitation language", select("language", ["English", "Hindi", "English + Hindi", "Marwari + Hindi"], pr.language || "English + Hindi"))}
       ${field("Best time to contact", select("contactTime", ["Anytime", "Morning", "Afternoon", "Evening"], pr.contactTime || "Anytime"))}
       ${field("Who should we coordinate with?", input("coordinator", pr.coordinator || "", "text", 'placeholder="e.g. Bride\'s brother, Rahul — 98…"'))}
       <button class="btn primary">Save</button></form>`); },
-  cPrefsSave: (d, f) => { const p = T(f); p.clientPrefs = { ...(p.clientPrefs || {}), contactTime: d.contactTime, coordinator: d.coordinator }; p.intake = { ...p.intake, language: d.language }; closeSheet(); commit("Client preferences", p.code); toast("Saved"); },
+  cPrefsSave: (d, f) => {
+    const c = K(f);
+    c.prefs = { ...(c.prefs || {}), language: d.language, contactTime: d.contactTime, coordinator: d.coordinator };
+    clientProjects(c).filter((p) => p.status === "active" && p.stage < 4).forEach((p) => (p.intake = { ...p.intake, language: d.language }));
+    closeSheet(); commit("Client preferences", c.name); toast("Saved");
+  },
+  cBook: (d, f) => {
+    const c = K(f);
+    const q = { tier: d.tier || "premium", addons: d.addons || [], items: [], discount: 0, rush: false };
+    const occasion = d.occasion === "Wedding invitation" && d.names ? `${d.names} wedding` : d.occasion;
+    const l = { id: uid("l"), name: `${c.name} — ${occasion}`, occasion, phone: c.phone, email: c.email, city: d.city, weddingDate: d.weddingDate,
+      interest: q.tier, source: "Past client", stage: "new", createdAt: now(), clientId: c.id, templateId: d.templateId || null, quote: { ...q, total: C.quoteTotal(q), at: now() },
+      notes: [{ at: now(), by: "Client portal", text: [d.names && `Names: ${d.names}`, d.templateId && `Design: ${byId("templates", d.templateId)?.name}`, d.note].filter(Boolean).join(" · ") || "New project request" }] };
+    db.leads.push(l);
+    bookPrefill = {};
+    commit("Client requested a new project", c.name, occasion);
+    toast("Request sent — we'll confirm shortly 🙏");
+    location.hash = `/c/${c.token}/projects`;
+  },
   cHelp: () => sheet("Help & support", `<div class="menu-list">
       <a href="https://wa.me/${attr(C.S().whatsapp)}" target="_blank" rel="noopener">${icon("message")}<span class="grow">WhatsApp the studio</span></a>
       <a href="mailto:${attr(C.S().email)}">${icon("mail")}<span class="grow">${esc(C.S().email)}</span></a></div>

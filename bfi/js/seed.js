@@ -85,7 +85,7 @@ export function seed({ empty = false } = {}) {
     settings: defaultSettings(),
     users: [], leads: [], projects: [], templates: [], library: [], payouts: [], commissions: [],
     vendors: [], campaigns: [], seo: [], ads: [], spend: [], traffic: [], msgTemplates: [], broadcasts: [],
-    documents: [], audit: [], counters: { project: 1000, invoice: 0 },
+    documents: [], audit: [], clients: [], counters: { project: 1000, invoice: 0 },
   };
   if (empty) return base;
 
@@ -121,6 +121,7 @@ export function seed({ empty = false } = {}) {
     L("l8", { name: "Neha Soni", phone: "919811100008", source: "Past client", refCode: "ADITI001", stage: "new", createdAt: at(-5), weddingDate: day(110), city: "Jaipur", interest: "premium" }),
     L("l9", { name: "Kunal Jain", phone: "919811100009", source: "Instagram", stage: "lost", lostReason: "No response", createdAt: at(-14), city: "Pune" }),
     L("l10", { name: "Amit Agarwal", phone: "919811100010", source: "Google / SEO", stage: "converted", convertedAt: at(-5), createdAt: at(-8), city: "Mumbai" }),
+    L("l11", { name: "Aditi Kothari — brother's wedding", phone: "919822200001", source: "Past client", stage: "converted", convertedAt: at(-3), createdAt: at(-4), city: "Jaipur", clientId: "cl_kothari" }),
     L("l7", { name: "Simran Bajaj", phone: "919811100007", source: "Vendor referral", refCode: "TANVI", affiliateId: "u_aff3", stage: "contacted", createdAt: at(-3), weddingDate: day(35), city: "Jodhpur", interest: "basic" }),
   ];
 
@@ -214,11 +215,28 @@ export function seed({ empty = false } = {}) {
       payments: [{ id: "pay71", at: at(0), amount: 15000, method: "UPI", ref: "UPI-771" }],
       messages: [{ id: "m71", thread: "admin", from: "u_admin", text: "Welcome to BFI, Kavya & Aditya! 🙏 Your Luxury invitation is confirmed. We'll ask for your details next.", at: at(0, 10) }],
     }),
+    P({
+      id: "p_1008", code: "BFI-1008", token: "j6w2nc8tqf3xkm9vdr5hpa", leadId: "l11", clientName: "Aditi Kothari", brideName: "Simran", groomName: "Rohan", occasion: "Brother's wedding",
+      phone: "919822200001", email: "aditi@example.com", weddingDate: day(64), city: "Jaipur", tier: "premium", price: 12998, addons: ["event"],
+      templateId: "t3", designerId: "u_des1", qaId: "u_qa", stage: 2, stageSince: at(-2), createdAt: at(-3), dueDate: day(12),
+      intake: { brideName: "Simran Agarwal", groomName: "Rohan Kothari", events: [] },
+      payments: [{ id: "pay81", at: at(-3), amount: 6500, method: "UPI", ref: "UPI-881" }],
+      messages: [{ id: "m81", thread: "design", from: "u_des1", text: "Namaste Aditi ji! Lovely to work with your family again. Please add Rohan & Simran's photos and the function list when you can.", at: at(-2, 11) }],
+    }),
   ];
-  base.counters.project = 1007;
+  base.counters.project = 1008;
   base.counters.invoice = 2;
   base.projects[0].price = 13498;
   base.projects[4].price = 12998;
+
+  // Client accounts: one private link per family, any number of projects.
+  const CLIENT_TOKENS = { "919822200001": ["cl_kothari", "a3k9vm2xqp7tnd4wbc8hrf"], "919822200002": ["cl_lohia", "b7n2qw5kdx9mtc3hpv6zrs"], "919822200003": ["cl_saraf", "c4p8tz2mvk6qwd9xhn3brf"], "919822200004": ["cl_jhunjhunwala", "d9x3kq7wnb2mtp5vcr8hzf"], "919822200005": ["cl_birla", "e2m6vz9qkd4xwt8nbp3chr"], "919822200006": ["cl_maheshwari", "f5t9hw3mkq8xzd2vbn6pcr"], "919822200007": ["cl_bhandari", "g8q2xn6vdk3mzt9wbh5rcp"] };
+  for (const p of base.projects) {
+    const [id, tok] = CLIENT_TOKENS[p.phone];
+    let c = base.clients.find((x) => x.id === id);
+    if (!c) { c = { id, token: tok, name: p.clientName, phone: p.phone, email: p.email, city: p.city, createdAt: p.createdAt, prefs: { whatsapp: true, email: true } }; base.clients.push(c); }
+    p.clientId = id;
+  }
 
   base.commissions = [
     { id: "c1", partnerId: "u_aff1", projectId: "p_1001", amount: 1890, rate: 14, at: at(-41), status: "paid", payoutId: "po1" },
