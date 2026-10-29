@@ -85,6 +85,19 @@
   will-change: transform;
 }
 
+/* A slow, barely-there drift of the scene behind the tree while it waits:
+   the garden moves a little more than the palace, the palace more than the
+   hills, so the still branch reads as nearest. */
+.intro-far { --drift: 3px; }
+.intro-palace { --drift: 6px; }
+.intro-mid { --drift: 10px; }
+
+.intro-far,
+.intro-palace,
+.intro-mid {
+  animation: intro-drift 11s ease-in-out infinite alternate;
+}
+
 /* Background: pale hills and distant rooftops, softest of all. */
 .intro-far {
   top: auto;
@@ -154,7 +167,50 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 6px 8px rgba(98, 83, 68, 0.12));
+}
+
+/* The limb's cast shadow: a static silhouette, blurred once. */
+.branch-shadow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0.16;
+  translate: 0 7px;
+  filter: blur(5px);
+}
+
+/* A breeze: each twig (its own layer) sways from where it leaves the limb,
+   each at its own speed, and the paler blossoms behind drift slowest. The
+   limb under the dove never moves. */
+.tw {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: var(--ox) var(--oy);
+  animation: intro-sway var(--d) ease-in-out var(--dl) infinite alternate;
+}
+
+/* Out-of-focus blossoms in the very front, bottom right. */
+.intro-fore {
+  position: absolute;
+  right: -14vmin;
+  bottom: -10vmin;
+  width: clamp(150px, 42vmin, 340px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter: blur(3px);
+  opacity: 0.9;
+  transform-origin: 100% 100%;
+  animation: intro-fore 6.5s ease-in-out infinite alternate;
+}
+
+.fore-svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* The terrace the letter lands on. */
@@ -212,7 +268,7 @@
 .intro-carrier {
   position: absolute;
   left: 34%;
-  top: 31%;
+  top: 33.4%;
   width: 44%;
   aspect-ratio: 220 / 205;
   will-change: transform;
@@ -230,10 +286,14 @@
   animation: none;
 }
 
+/* The soft shadow is a CSS filter on the dove's own layer, so the
+   compositor applies it; an SVG filter would be redrawn with every wingbeat. */
 .dove-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
+  filter: drop-shadow(0 2px 2.4px rgba(156, 132, 104, 0.22));
+  will-change: transform;
 }
 
 .dv-head {
@@ -246,8 +306,26 @@
   animation: none;
 }
 
-.dv-wings {
+.dv-wings,
+.dv-trail {
   opacity: 0;
+}
+
+/* Blinks now and then (twice in a row, sometimes). */
+.dv-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  animation: intro-blink 5.6s linear 0.8s infinite;
+}
+
+.is-started .dv-lid {
+  animation: none;
+}
+
+.dove.is-flying .dv-trail {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
 }
 
 .dv-wing {
@@ -263,12 +341,18 @@
   transform-origin: 118px 76px;
 }
 
+/* Flapping: a quick, strong downstroke and a slower recovery. The body
+   lifts on each downstroke. */
 .dove.is-flying .dv-wing-near {
-  animation: intro-flap 0.24s ease-in-out infinite alternate;
+  animation: intro-flap 0.3s linear infinite;
 }
 
 .dove.is-flying .dv-wing-far {
-  animation: intro-flap-far 0.24s ease-in-out 0.03s infinite alternate;
+  animation: intro-flap-far 0.3s linear 0.025s infinite;
+}
+
+.dove.is-flying .dove-svg {
+  animation: intro-bob 0.3s linear infinite;
 }
 
 .dove.is-flying .dv-legs {
@@ -288,6 +372,11 @@
   justify-items: center;
   transform-origin: 50% 0;
   filter: drop-shadow(0 4px 5px rgba(98, 83, 68, 0.18));
+  animation: intro-dangle 3.2s ease-in-out infinite;
+}
+
+.is-started .scroll-sm {
+  animation: none;
 }
 
 .scroll-sm.is-dropped {
@@ -587,13 +676,45 @@
 }
 
 @keyframes intro-flap {
-  from { transform: rotate(-20deg) scaleY(1.05); }
-  to { transform: rotate(40deg) scaleY(0.5); }
+  0% { transform: rotate(-24deg) scaleY(1.04); animation-timing-function: cubic-bezier(0.5, 0, 0.7, 1); }
+  42% { transform: rotate(44deg) scaleY(0.42); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
+  100% { transform: rotate(-24deg) scaleY(1.04); }
 }
 
 @keyframes intro-flap-far {
-  from { transform: rotate(-26deg) scaleY(1); }
-  to { transform: rotate(30deg) scaleY(0.45); }
+  0% { transform: rotate(-28deg) scaleY(1); animation-timing-function: cubic-bezier(0.5, 0, 0.7, 1); }
+  42% { transform: rotate(32deg) scaleY(0.4); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
+  100% { transform: rotate(-28deg) scaleY(1); }
+}
+
+@keyframes intro-bob {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-2.5%); }
+}
+
+@keyframes intro-sway {
+  from { transform: rotate(calc(var(--a) * -1)); }
+  to { transform: rotate(var(--a)); }
+}
+
+@keyframes intro-blink {
+  0%, 45%, 47.4%, 92%, 93.6%, 95%, 96.6%, 100% { transform: scaleY(0); }
+  46.2%, 92.8%, 95.8% { transform: scaleY(1); }
+}
+
+@keyframes intro-dangle {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.4deg); }
+}
+
+@keyframes intro-drift {
+  from { translate: calc(var(--drift) * -1) 0; }
+  to { translate: var(--drift) calc(var(--drift) * -0.25); }
+}
+
+@keyframes intro-fore {
+  from { transform: rotate(-1.5deg); }
+  to { transform: rotate(1.5deg) translate(-4px, -2px); }
 }
 
 @keyframes intro-petal {

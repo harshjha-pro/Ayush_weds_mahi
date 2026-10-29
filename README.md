@@ -107,7 +107,7 @@ tools/intro/            Script that prepares the intro photos (cut-outs, seal, s
 
 ## The opening intro
 
-The intro is a storybook illustration drawn entirely in SVG: `js/components/intro-art.js` (palace, garden, branch, dove, letter, card, terrace), `js/components/intro.js` (the sequence) and `css/intro.css`. After the tap it runs in about 5 seconds: take-off, flight, the letter dropping onto the terrace, a close-up, the ribbon loosening and the paper unrolling into a blank gilded card, then a warm golden bloom into the website. Skip intro and Escape end it at once; links to a section (like `…/#venue`) skip it.
+The intro is a storybook illustration drawn entirely in SVG: `js/components/intro-art.js` (palace, garden, flowering tree, dove, letter, card, terrace), `js/components/intro.js` (the sequence) and `css/intro.css`. While it waits, the dove breathes, blinks and glances about, the tree's twigs sway in a light breeze at different speeds, petals drift and the garden and palace drift very slightly behind the tree. Each group of twigs is its own layer so the breeze is cheap for the browser to draw. After the tap it runs in about 5 seconds: take-off (the wings sweep open from the folded pose), flight (the letter swings beneath the dove like a pendulum), the letter dropping onto the terrace, a close-up, the ribbon loosening and the paper unrolling into a blank gilded card, then a warm golden bloom into the website. Skip intro and Escape end it at once; links to a section (like `…/#venue`) skip it.
 
 `assets/intro/` and `tools/intro/` hold an earlier photographic version that is no longer used. They can be deleted.
 

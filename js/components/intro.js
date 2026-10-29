@@ -9,7 +9,7 @@
 // links bypass it, and any error simply reveals the site.
 import { prefersReducedMotion } from "../utils.js";
 import { hasMusic } from "./music.js";
-import { palaceSvg, hillsSvg, gardenSvg, branchSvg, doveSvg, rollSvg, bowSvg, cardSvg, terraceSvg } from "./intro-art.js";
+import { palaceSvg, hillsSvg, gardenSvg, branchSvg, branchShadowSvg, foreSpraySvg, doveSvg, rollSvg, bowSvg, cardSvg, terraceSvg } from "./intro-art.js";
 
 export const INTRO_STATES = [
   "NEW_INTRO_IDLE",
@@ -45,7 +45,7 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
       <div class="intro-haze"></div>
       <div class="intro-layer intro-mid">${gardenSvg()}</div>
       <div class="intro-surface">${terraceSvg()}</div>
-      <div class="intro-layer intro-near"><div class="perch-box">${branchSvg()}</div></div>
+      <div class="intro-layer intro-near"><div class="perch-box">${branchShadowSvg()}${branchSvg()}</div></div>
     </div>
 
     <div class="intro-dust" aria-hidden="true">${dust(9)}</div>
@@ -57,6 +57,8 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
         <div class="scroll-sm"><span class="scroll-cord"></span>${letter("letter")}</div>
       </div>
     </div>
+
+    <div class="intro-fore" aria-hidden="true">${foreSpraySvg()}</div>
 
     <div class="cl" aria-hidden="true">
       <div class="cl-box">
@@ -156,7 +158,7 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
   document.addEventListener("keydown", onKey);
 }
 
-/* ── The sequence (about 4.5 s after the tap) ─────────────── */
+/* ── The sequence (about 4.8 s after the tap) ─────────────── */
 
 const run = (node, keyframes, options) => node.animate(keyframes, { fill: "forwards", easing: EASE, ...options }).finished;
 
@@ -168,18 +170,31 @@ async function playSequence(el, setState) {
   const dove = $(".dove");
   const scroll = $(".scroll-sm");
 
-  // BIRD_TAKEOFF (~0.6 s): a glance, a small crouch, wings open.
+  // BIRD_TAKEOFF (~0.65 s): a glance up, a crouch while the wings begin to
+  // lift away from the body, then they sweep open as the dove springs up.
+  // The open wings grow out of the folded pose, so there is no cut.
   setState("BIRD_TAKEOFF");
   $(".intro-start").disabled = true;
   run($(".intro-hint"), [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
-  await run($(".dv-head"), [{ transform: "rotate(0)" }, { transform: "rotate(-12deg)" }, { transform: "rotate(6deg)" }], { duration: 280, easing: EASE_IN_OUT });
-  await run(dove, [{ transform: "translateY(0) scaleY(1)" }, { transform: "translateY(3%) scaleY(0.96)" }], { duration: 130, easing: EASE_IN_OUT });
-  dove.classList.add("is-flying"); // the folded wing gives way to flapping wings
+  await run($(".dv-head"), [{ transform: "rotate(0)" }, { transform: "rotate(-12deg)" }, { transform: "rotate(5deg)" }], { duration: 260, easing: EASE_IN_OUT });
+  const wings = [...el.querySelectorAll(".dv-wing")];
+  const FOLDED = "rotate(60deg) scale(0.5, 0.22)";
+  const OPEN = (i) => (i ? "rotate(-24deg) scaleY(1.04)" : "rotate(-28deg) scaleY(1)"); // matches the flap keyframes' first frame
   await Promise.all([
-    run($(".dv-folded"), [{ opacity: 1 }, { opacity: 0 }], { duration: 140 }),
-    ...[...el.querySelectorAll(".dv-wings")].map((w) => run(w, [{ opacity: 0 }, { opacity: 1 }], { duration: 160 })),
-    run(dove, [{ transform: "translateY(3%) scaleY(0.96)" }, { transform: "translateY(0) scaleY(1)" }], { duration: 160 }),
+    run(dove, [{ transform: "translateY(0) scaleY(1)" }, { transform: "translateY(3.5%) scaleY(0.95)" }], { duration: 150, easing: EASE_IN_OUT }),
+    run($(".dv-folded"), [{ transform: "none" }, { transform: "translate(0, -1%) rotate(-3deg)" }], { duration: 150 }),
   ]);
+  const unfold = wings.map((w) =>
+    w.animate([{ transform: FOLDED }, { transform: OPEN(w.classList.contains("dv-wing-near")) }], { duration: 230, easing: "cubic-bezier(0.3, 0, 0.2, 1)", fill: "forwards" }),
+  );
+  await Promise.all([
+    ...unfold.map((a) => a.finished),
+    ...[...el.querySelectorAll(".dv-wings")].map((w) => run(w, [{ opacity: 0 }, { opacity: 1 }], { duration: 90 })),
+    run($(".dv-folded"), [{ opacity: 1 }, { opacity: 0 }], { duration: 110, delay: 40 }),
+    run(dove, [{ transform: "translateY(3.5%) scaleY(0.95)" }, { transform: "translateY(-2%) scaleY(1.02)" }, { transform: "translateY(0) scaleY(1)" }], { duration: 230 }),
+  ]);
+  dove.classList.add("is-flying"); // regular flapping takes over from the open pose
+  unfold.forEach((a) => a.cancel());
 
   // BIRD_FLIGHT (~1.1 s): the dove rises and crosses the garden; layers move
   // at different speeds, so the camera seems to follow it.
@@ -189,12 +204,19 @@ async function playSequence(el, setState) {
   const cy = r0.top + r0.height / 2;
   const at = (x, y, rot = 0, s = 1) => ({ transform: `translate(${x - cx}px, ${y - cy}px) rotate(${rot}deg) scale(${s})` });
   const flight = 1100;
-  const sway = scroll.animate([{ transform: "rotate(-5deg)" }, { transform: "rotate(6deg)" }], {
-    duration: 380,
-    iterations: Infinity,
-    direction: "alternate",
-    easing: "ease-in-out",
-  });
+  // The letter hangs from the dove's feet like a pendulum: it lags behind as
+  // the bird pulls away, then swings back and settles a little each time.
+  const sway = scroll.animate(
+    [
+      { transform: "rotate(0deg)", offset: 0 },
+      { transform: "rotate(17deg)", offset: 0.24 },
+      { transform: "rotate(-7deg)", offset: 0.48 },
+      { transform: "rotate(8deg)", offset: 0.68 },
+      { transform: "rotate(-3deg)", offset: 0.86 },
+      { transform: "rotate(2deg)", offset: 1 },
+    ],
+    { duration: flight, easing: "ease-in-out", fill: "forwards" },
+  );
   await Promise.all([
     run(
       carrier,
@@ -206,7 +228,9 @@ async function playSequence(el, setState) {
       ],
       { duration: flight, easing: "cubic-bezier(0.45, 0.05, 0.4, 1)" },
     ),
-    run($(".intro-near"), [{ transform: "translate(0,0)" }, { transform: "translate(-110vw, 85vh)" }], { duration: flight * 0.8, easing: "ease-in" }),
+    // The branch whips past close to the camera, softened by a little motion blur.
+    run($(".intro-near"), [{ transform: "translate(0,0)", filter: "blur(0px)" }, { transform: "translate(-110vw, 85vh)", filter: "blur(3px)" }], { duration: flight * 0.8, easing: "ease-in" }),
+    run($(".intro-fore"), [{ transform: "translate(0,0)", opacity: 0.9 }, { transform: "translate(-40vw, 60vh)", opacity: 0 }], { duration: flight * 0.6, easing: "ease-in" }),
     run($(".intro-mid"), [{ transform: "translate(0,0)" }, { transform: "translate(-14vw, 10vh)" }], { duration: flight }),
     run($(".intro-palace"), [{ transform: "translate(0,0)" }, { transform: "translate(-6vw, 5vh)" }], { duration: flight }),
     run($(".intro-far"), [{ transform: "translate(0,0)" }, { transform: "translate(-3vw, 3vh)" }], { duration: flight }),
@@ -262,21 +286,20 @@ async function playSequence(el, setState) {
   // LETTER_OPENING (~0.95 s): the ribbon loosens, the seal slides aside and
   // the paper unrolls from the middle into the blank, gilded card.
   setState("LETTER_OPENING");
-  await Promise.all([
-    run($(".cl-bow .bow-knot"), [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: "translate(0, 7px) scale(0.85)", opacity: 0 }], { duration: 350, easing: EASE_IN_OUT }),
-    run($(".cl-bow .bow-band"), [{ transform: "scaleY(1)", opacity: 1 }, { transform: "scaleY(1.4)", opacity: 0 }], { duration: 330, delay: 40 }),
-    run($(".cl-bow .bow-seal"), [{ transform: "translate(0,0) rotate(0)", opacity: 1 }, { transform: "translate(34px, 6px) rotate(40deg)", opacity: 0 }], { duration: 350, easing: EASE_IN_OUT }),
-  ]);
+  // The paper starts to unroll as the ribbon falls away (they overlap by a
+  // beat), and the spent rolls fade as they reach the edges.
   const half = $(".cl-card").getBoundingClientRect().height / 2;
-  const unroll = { duration: 600, easing: "cubic-bezier(0.33, 0, 0.2, 1)" };
+  const unroll = { duration: 620, delay: 240, easing: "cubic-bezier(0.33, 0, 0.2, 1)" };
+  const fadeRoll = { duration: 200, delay: 240 + 470 };
   await Promise.all([
+    run($(".cl-bow .bow-knot"), [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: "translate(0, 7px) scale(0.85)", opacity: 0 }], { duration: 340, easing: EASE_IN_OUT }),
+    run($(".cl-bow .bow-band"), [{ transform: "scaleY(1)", opacity: 1 }, { transform: "scaleY(1.4)", opacity: 0 }], { duration: 300, delay: 40 }),
+    run($(".cl-bow .bow-seal"), [{ transform: "translate(0,0) rotate(0)", opacity: 1 }, { transform: "translate(34px, 6px) rotate(40deg)", opacity: 0 }], { duration: 340, easing: EASE_IN_OUT }),
     run($(".cl-card"), [{ clipPath: "inset(48% 0 48% 0)" }, { clipPath: "inset(0% 0 0% 0)" }], unroll),
     run($(".cl-roll-top"), [{ transform: "translateY(0) scaleY(1)" }, { transform: `translateY(${-half}px) scaleY(0.6)` }], unroll),
     run($(".cl-roll-bottom"), [{ transform: "translateY(0) scale(1, -1)" }, { transform: `translateY(${half}px) scale(1, -0.6)` }], unroll),
-  ]);
-  await Promise.all([
-    run($(".cl-roll-top"), [{ opacity: 1 }, { opacity: 0 }], { duration: 180 }),
-    run($(".cl-roll-bottom"), [{ opacity: 1 }, { opacity: 0 }], { duration: 180 }),
+    run($(".cl-roll-top .roll-svg"), [{ opacity: 1 }, { opacity: 0 }], fadeRoll),
+    run($(".cl-roll-bottom .roll-svg"), [{ opacity: 1 }, { opacity: 0 }], fadeRoll),
   ]);
 
   // GOLDEN_LIGHT_REVEAL (~0.7 s): a small warm glow in the middle of the card
@@ -309,9 +332,10 @@ async function playReduced(el, setState) {
   await run(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 400 });
 }
 
-// A handful of petals that drift down the edges, never across the bird.
+// A handful of petals that drift down the edges and from the crown on the
+// right, never across the bird.
 function fallingPetals() {
-  const lanes = [5, 14, 24, 84, 93];
+  const lanes = [5, 14, 24, 84, 93, 74];
   return lanes
     .map((left, i) => {
       const dur = 13 + i * 2.5;
