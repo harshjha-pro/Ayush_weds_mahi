@@ -150,6 +150,19 @@ export const config = {
       "You are warmly invited to celebrate the engagement of Mahi & Ayush on Sunday, 15 November 2026 in Chittorgarh.",
   },
 
+  // The opening intro film (made in Google Flow; the generator's corner mark
+  // was cropped out, its sound removed, and it was sped up slightly to 7 s).
+  // It plays after the guest taps; the poster is its first frame and the card
+  // is its last. Set to null to use the drawn intro instead. If the film
+  // cannot play, the drawn intro plays automatically.
+  intro: {
+    video: "assets/video/intro.mp4",
+    poster: "assets/images/intro-poster.webp",
+    posterFallback: "assets/images/intro-poster.jpg",
+    card: "assets/images/intro-card.webp",
+    cardFallback: "assets/images/intro-card.jpg",
+  },
+
   // Background music. The player never plays by itself.
   // "Tum Tak" is a commercial film song, used here as a short excerpt (0:01–1:50)
   // at the couple's request. To change it, put an MP3 in assets/audio/ and update

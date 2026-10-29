@@ -1,4 +1,9 @@
-// WeddingIntro: the opening scene, drawn as a storybook illustration. A dove
+// WeddingIntro: the opening scene. When config.intro has a film, the tap plays
+// that film (a painted storybook clip of the same story) and the golden light
+// takes over from its last frame. The drawn version below stays underneath as
+// the fallback for browsers that cannot play the film.
+//
+// The drawn version: a storybook illustration. A dove
 // waits on a blossom branch in a palace garden with the rolled invitation
 // tied to its feet; one tap sends it flying, the letter drops onto a stone
 // terrace, opens into a blank gilded card, and warm light gives way to the site.
@@ -7,7 +12,7 @@
 // previous animation's `finished` promise, so the order is fixed. The intro is
 // a layer above the page, never a gate: Skip and Escape end it at once, deep
 // links bypass it, and any error simply reveals the site.
-import { prefersReducedMotion } from "../utils.js";
+import { esc, prefersReducedMotion } from "../utils.js";
 import { hasMusic } from "./music.js";
 import { palaceSvg, hillsSvg, gardenSvg, branchSvg, branchShadowSvg, foreSpraySvg, doveSvg, rollSvg, bowSvg, cardSvg, terraceSvg } from "./intro-art.js";
 
@@ -59,6 +64,7 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
     </div>
 
     <div class="intro-fore" aria-hidden="true">${foreSpraySvg()}</div>
+    ${config.intro?.video ? filmMarkup(config.intro, reducedMotion) : ""}
 
     <div class="cl" aria-hidden="true">
       <div class="cl-box">
@@ -94,6 +100,25 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
   root.classList.add("is-revealing");
   if (reducedMotion) el.classList.add("is-reduced");
 
+  // The film, if there is one the browser can play. Otherwise it is removed
+  // and the drawn scene shows.
+  const dropFilm = () => {
+    $(".intro-film")?.remove();
+    el.classList.remove("has-film");
+  };
+  const filmVideo = $(".intro-film-video");
+  if ($(".intro-film")) el.classList.add("has-film");
+  if (filmVideo) {
+    const src = filmVideo.querySelector("source");
+    if (!src || !filmVideo.canPlayType(src.type)) dropFilm();
+    else {
+      // A file that fails while the scene waits quietly falls back too.
+      const failedEarly = () => !started && dropFilm();
+      src.addEventListener("error", failedEarly, { once: true });
+      filmVideo.addEventListener("error", failedEarly, { once: true });
+    }
+  }
+
   // Focus the layer itself (not the hint) so no focus ring shows for touch
   // and mouse; keyboard users reach the start button with Tab.
   el.tabIndex = -1;
@@ -128,7 +153,20 @@ export function WeddingIntro(el, config, { reducedMotion = prefersReducedMotion(
     el.classList.add("is-started");
     // Called inside the tap itself, so the browser allows audio to start.
     if (soundBtn?.getAttribute("aria-pressed") === "true") document.dispatchEvent(new CustomEvent("invitation:play-music"));
-    (reducedMotion ? playReduced(el, setState) : playSequence(el, setState)).then(finish, (err) => {
+    const hasFilm = el.classList.contains("has-film");
+    const play = reducedMotion
+      ? hasFilm
+        ? playStill(el, setState)
+        : playReduced(el, setState)
+      : hasFilm
+        ? playFilm(el, setState).catch((err) => {
+            // The film would not start: tell the story with the drawn scene.
+            if (!(err instanceof FilmError) || done) throw err;
+            dropFilm();
+            return playSequence(el, setState);
+          })
+        : playSequence(el, setState);
+    play.then(finish, (err) => {
       console.error("Intro animation stopped early", err);
       finish();
     });
@@ -302,9 +340,16 @@ async function playSequence(el, setState) {
     run($(".cl-roll-bottom .roll-svg"), [{ opacity: 1 }, { opacity: 0 }], fadeRoll),
   ]);
 
-  // GOLDEN_LIGHT_REVEAL (~0.7 s): a small warm glow in the middle of the card
-  // brightens the paper, a few particles rise, the bloom reaches the edges,
-  // and only then does the website show through.
+  await goldenReveal(el, setState);
+}
+
+// GOLDEN_LIGHT_REVEAL (~0.75 s): a small warm glow in the middle of the card
+// brightens the paper, a few particles rise, the bloom reaches the edges,
+// and only then does the website show through.
+async function goldenReveal(el, setState) {
+  const $ = (s) => el.querySelector(s);
+  const W = window.innerWidth;
+  const H = window.innerHeight;
   setState("GOLDEN_LIGHT_REVEAL");
   const glow = $(".intro-glow");
   glow.classList.add("is-on");
@@ -320,6 +365,98 @@ async function playSequence(el, setState) {
   // The screen is now soft ivory; the site fades up underneath.
   document.documentElement.classList.remove("is-revealing");
   await run(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: "ease-out" });
+}
+
+/* ── The film ─────────────────────────────────────────────── */
+
+class FilmError extends Error {}
+
+function filmMarkup(intro, reducedMotion) {
+  const pic = (cls, webp, jpg) => `<picture class="${cls}"><source srcset="${esc(webp)}" type="image/webp" /><img src="${esc(jpg)}" alt="" decoding="async" /></picture>`;
+  return `
+    <div class="intro-film" aria-hidden="true">
+      <img class="intro-film-backdrop" src="${esc(intro.posterFallback)}" alt="" decoding="async" />
+      <div class="intro-film-frame">
+        ${pic("intro-film-still", intro.poster, intro.posterFallback)}
+        ${intro.card ? pic("intro-film-card", intro.card, intro.cardFallback) : ""}
+        ${
+          reducedMotion
+            ? ""
+            : `<video class="intro-film-video" muted playsinline disablepictureinpicture preload="auto">
+                 <source src="${esc(intro.video)}" type='video/mp4; codecs="avc1.640028"' />
+               </video>`
+        }
+      </div>
+    </div>`;
+}
+
+// Moments in the film (seconds), so the same intro:state events fire as in
+// the drawn version.
+const FILM_CUES = [
+  [2.0, "BIRD_FLIGHT"],
+  [3.3, "INVITATION_DROP"],
+  [4.3, "LETTER_CLOSEUP"],
+  [4.7, "LETTER_OPENING"],
+];
+
+async function playFilm(el, setState) {
+  const video = el.querySelector(".intro-film-video");
+  setState("BIRD_TAKEOFF");
+  el.querySelector(".intro-start").disabled = true;
+  run(el.querySelector(".intro-hint"), [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+
+  await new Promise((resolve, reject) => {
+    const cues = [...FILM_CUES];
+    let started = false;
+    let lastT = -1;
+    let lastMove = performance.now();
+    const fail = () => !started && reject(new FilmError("The intro film could not play"));
+    // If the film has not started within a few seconds, use the drawn intro.
+    const timer = setTimeout(fail, 4000);
+    video.addEventListener("error", fail, { once: true });
+    video.querySelector("source")?.addEventListener("error", fail, { once: true });
+    video.addEventListener(
+      "playing",
+      () => {
+        started = true;
+        clearTimeout(timer);
+        el.classList.add("is-film-playing");
+      },
+      { once: true },
+    );
+    video.play().catch(fail);
+
+    // Follow the film frame by frame. The golden light starts half a second
+    // before the end, over the still card, so there is never a frozen frame.
+    // A film that stalls mid-way for 3 s goes straight to the light.
+    const tick = (now) => {
+      if (!video.isConnected) return resolve();
+      const t = video.currentTime;
+      if (t !== lastT) {
+        lastT = t;
+        lastMove = now;
+      }
+      while (cues.length && t >= cues[0][0]) setState(cues.shift()[1]);
+      const end = (Number.isFinite(video.duration) ? video.duration : 7) - 0.5;
+      if (started && (t >= end || video.ended || now - lastMove > 3000)) {
+        cues.forEach(([, s]) => setState(s));
+        return resolve();
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await goldenReveal(el, setState);
+}
+
+// Reduced motion with a film: its first frame is shown still; the tap
+// cross-fades to its last frame (the blank card), then into the site.
+async function playStill(el, setState) {
+  setState("LETTER_OPENING");
+  el.querySelector(".intro-film").classList.add("is-card");
+  await new Promise((r) => setTimeout(r, 1300));
+  setState("GOLDEN_LIGHT_REVEAL");
+  await run(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 400 });
 }
 
 // For visitors who prefer less motion: no flight or zoom, just the opened

@@ -433,6 +433,89 @@
   transform-origin: center;
 }
 
+/* ── The intro film ───────────────────────── */
+
+/* While a film is in use, the drawn scene underneath is not drawn at all
+   (it returns only if the film cannot play). */
+.intro.has-film .intro-world,
+.intro.has-film .intro-dust,
+.intro.has-film .intro-petals,
+.intro.has-film .intro-carrier-box,
+.intro.has-film .intro-fore {
+  display: none;
+}
+
+.intro-film {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--i-ivory);
+}
+
+/* Phones: the portrait film fills the screen. */
+.intro-film-frame,
+.intro-film-frame > picture,
+.intro-film-frame img,
+.intro-film-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-film-frame img,
+.intro-film-video {
+  display: block;
+  object-fit: cover;
+}
+
+/* The first frame is shown as a picture; the video fades in over it only
+   once it is actually playing, so there is never a blank or black flash. */
+.intro-film-video {
+  opacity: 0;
+  transition: opacity 0.15s linear;
+}
+
+.is-film-playing .intro-film-video {
+  opacity: 1;
+}
+
+.intro-film-card {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.intro-film.is-card .intro-film-card {
+  opacity: 1;
+}
+
+/* A soft, blurred copy of the scene fills the sides on wider screens. */
+.intro-film-backdrop {
+  display: none;
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  filter: blur(28px) saturate(1.05);
+  opacity: 0.9;
+}
+
+@media (min-aspect-ratio: 3/4) {
+  .intro-film-backdrop {
+    display: block;
+  }
+
+  .intro-film-frame {
+    left: 50%;
+    right: auto;
+    width: auto;
+    aspect-ratio: 9 / 16;
+    transform: translateX(-50%);
+    box-shadow: 0 0 60px rgba(98, 83, 68, 0.2);
+  }
+}
+
 /* ── Close-up and opening ─────────────────── */
 
 .cl {
@@ -581,6 +664,15 @@
 
 .intro-start:disabled {
   pointer-events: none;
+}
+
+/* Over the painted film, a faint ivory fade keeps the hint readable. */
+.intro.has-film .intro-start {
+  background: linear-gradient(0deg, rgba(255, 249, 240, 0.7) 0%, rgba(255, 249, 240, 0) 22%);
+}
+
+.intro.has-film.is-started .intro-start {
+  background: none;
 }
 
 .intro-chip {
