@@ -134,7 +134,7 @@ When `intro.video` is set in `js/config.js`, the tap plays that film instead (`a
 
 ## Venue map
 
-The venue section embeds an OpenStreetMap map (no API key needed) with a pin at `venue.coordinates` in `js/config.js`. Those coordinates were decoded from the plus code in the address (VJWH+HGX). The map only loads as the section comes near. "Get Directions" uses `venue.mapsUrl`, and "Open larger map" opens OpenStreetMap.
+The venue section (`js/components/venue.js`) centres on an interactive OpenStreetMap map drawn with Leaflet (`js/vendor/leaflet/`, loaded only as the section comes near), pinned at `venue.coordinates` in `js/config.js` (decoded from the plus code VJWH+HGX). Guests can zoom and pan (on phones the small map leaves one-finger swipes to the page; pinch zooms), and tapping the gold pin shows the venue name and address. **Expand** opens a larger, fully interactive map in the page (close with the Close button, Escape or a tap outside). **Get Directions** opens Google Maps directions to the pin; **Copy Address** copies the name and address; **Share Location** shares `venue.mapsUrl` (the phone's share sheet, or copies the link). OpenStreetMap has no satellite imagery, so there is no satellite switch. If Leaflet cannot load, the plain OpenStreetMap embed is used instead.
 
 ## Animated monogram
 

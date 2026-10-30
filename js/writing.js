@@ -22,6 +22,7 @@ const SKIP = [
   // The Celebration has its own, gentler reveals (details.js).
   "#celebration",
   "#countdown",
+  "#venue",
   ".visually-hidden",
   "[aria-hidden='true']",
   "[hidden]",

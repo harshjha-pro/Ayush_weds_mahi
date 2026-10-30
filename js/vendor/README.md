@@ -5,6 +5,7 @@ Kept in the site (not loaded from a CDN) so the invitation works on its own.
 | File | Library | Version | Licence |
 |---|---|---|---|
 | `gsap.min.js`, `ScrollTrigger.min.js`, `SplitText.min.js` | [GSAP](https://gsap.com) | 3.15.0 | GSAP Standard "no charge" licence, https://gsap.com/standard-license |
+| `leaflet/leaflet.js`, `leaflet/leaflet.css` | [Leaflet](https://leafletjs.com) (venue map, OpenStreetMap tiles; loaded only when the venue section comes near) | 1.9.4 | BSD-2-Clause |
 | `motion.min.js` | [Motion](https://motion.dev) (`animate`, `inView`, `hover`, `press`, `stagger` only, bundled with esbuild) | 14.8.0 | MIT |
 
 To rebuild `motion.min.js`:

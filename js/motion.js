@@ -7,13 +7,13 @@ import { prefersReducedMotion } from "./utils.js";
 const LAYERS = [
   [".hero-sprig", 0.08],
   [".closing-sprig", 0.06],
-  [".venue-sprig", 0.05],
   [".arch-sprig", -0.04],
   [".cel-palace", 0.06],
   [".cel-garden", 0.03],
   [".cel-spray-l", 0.05],
   [".cel-spray-r", -0.04],
   [".cd-palace", 0.05],
+  [".vn-palace", 0.05],
   [".cd-spray-l", 0.04],
   [".cd-spray-r", 0.04],
 ];
