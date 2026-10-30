@@ -1,7 +1,6 @@
 // InvitationApp: renders each section from config.js, in order.
 import { config } from "./config.js";
 import { observeReveals, prefersReducedMotion } from "./utils.js";
-import { Navigation } from "./components/navigation.js";
 import { WelcomeSection, FilmSection } from "./components/welcome.js";
 import { WeddingIntro } from "./components/intro.js";
 import { CoupleStorySection } from "./components/story.js";
@@ -19,9 +18,8 @@ const options = { reducedMotion: prefersReducedMotion() };
 
 // Each section renders on its own, so one failure never blanks the page.
 const sections = [
-  [Navigation, "site-nav"],
-  [WelcomeSection, "home"],
   [FilmSection, "film"],
+  [WelcomeSection, "home"],
   [CoupleStorySection, "story"],
   [EventDetailsSection, "celebration"],
   [CountdownTimer, "countdown"],

@@ -13,6 +13,9 @@ const LAYERS = [
   [".cel-garden", 0.03],
   [".cel-spray-l", 0.05],
   [".cel-spray-r", -0.04],
+  [".cd-palace", 0.05],
+  [".cd-spray-l", 0.04],
+  [".cd-spray-r", 0.04],
 ];
 
 export function startParallax() {

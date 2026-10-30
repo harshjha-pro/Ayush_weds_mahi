@@ -86,7 +86,6 @@ js/config.js            ← all invitation content
 js/main.js              Renders the sections in order
 js/utils.js             Shared helpers (date formatting, copy, toast)
 js/components/          One file per part of the page:
-  navigation.js         Top bar, mobile menu, venue shortcut
   intro.js              Opening intro: dove, flight, letter, golden light
   welcome.js            Welcome section
   story.js              Our Story, photo gallery, lightbox
@@ -129,6 +128,10 @@ When `intro.video` is set in `js/config.js`, the tap plays that film instead (`a
 
 `js/components/details.js` with artwork in `js/components/celebration-art.js` (the intro's palace, garden and blossoms, plus gold corners, crest and dividers). Type: the heading is Pinyon Script (drawn on in gold), the date number Cormorant Garamond, titles, dates and names Libre Baskerville, small labels Montserrat. As it scrolls into view: the background fades in (with slight parallax and swaying blossoms), the heading is written, the subtitle rises, the panel's gold rules grow and its corners draw, the 15 settles, the programme's gold line draws down before each stop appears, the venue and families fade up. "Get Directions" opens Google Maps directions to `venue.coordinates` (or `venue.mapsUrl` if there are none). "Share" opens the phone's share sheet or copies the link. With reduced motion everything is shown at once.
 
+## The countdown
+
+`js/components/countdown.js`. "Counting the Days" in Pinyon Script (drawn in gold; outlines in `js/lettering.js`), four framed panels for days, hours, minutes and seconds (four in a row on wide screens, two by two on phones), a palace backdrop with blossom sprays and a few drifting petals. It counts down to the first function in `event.functions` (the Ring Ceremony, 12:00 PM IST on 15 November 2026). Each digit rolls up when it changes. On the day it says "Today is the day"; once started it shows the message from `countdown` in `js/config.js`.
+
 ## Venue map
 
 The venue section embeds an OpenStreetMap map (no API key needed) with a pin at `venue.coordinates` in `js/config.js`. Those coordinates were decoded from the plus code in the address (VJWH+HGX). The map only loads as the section comes near. "Get Directions" uses `venue.mapsUrl`, and "Open larger map" opens OpenStreetMap.
@@ -139,6 +142,6 @@ The large monograms (welcome section and closing) use the couple's animation `as
 
 ## Films
 
-**Couple film.** Straight after the welcome section, the couple's illustrated film (`assets/video/hero.mp4`, 10 s, H.264) runs edge to edge with no frame, fading into the page at the top and bottom. Its soundtrack was removed, so it is always silent. It starts only after the animated monogram above it has finished (if the monogram is on screen), then loops while it is on screen and pauses when scrolled away. Before it plays, for visitors who prefer reduced motion, and in browsers that cannot play it, the first frame (`assets/images/hero-poster.*`) shows instead. To change or remove it, edit `couple.heroVideo` in `js/config.js` (set it to `null` to hide it).
+**Couple film.** The first thing on the page (there is no top bar), the couple's illustrated film (`assets/video/hero.mp4`, 10 s, H.264) runs edge to edge with no frame, fading into the page at the bottom; the welcome section with the monogram follows. Its soundtrack was removed, so it is always silent. It loops while it is on screen and pauses when scrolled away. Before it plays, for visitors who prefer reduced motion, and in browsers that cannot play it, the first frame (`assets/images/hero-poster.*`) shows instead. To change or remove it, edit `couple.heroVideo` in `js/config.js` (set it to `null` to hide it).
 
 **Story slideshow.** Our Story shows the couple's photo slideshow (`assets/video/story.mp4`) in place of the photo grid. The original was 4.8 s long with a new photo every 0.2 s, so it was slowed six times, to about 1.3 s per photo (29 s in all), and its soundtrack removed. It starts only once it is well into view (half of it on screen), loops while visible and pauses when scrolled away, with `assets/images/story-poster.*` as its still. Edit `story.video` in `js/config.js` to change it, or set it to `null` to show the photo grid again. To re-slow a new slideshow: `ffmpeg -i in.mp4 -an -vf "setpts=6*PTS,fps=30,scale=720:1280" -c:v libx264 -crf 25 -pix_fmt yuv420p -movflags +faststart assets/video/story.mp4` (raise or lower the 6).

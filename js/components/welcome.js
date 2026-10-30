@@ -31,14 +31,14 @@ export function WelcomeSection(el, config) {
     </div>`;
 }
 
-// The couple's illustrated film, straight after the welcome section: edge to
-// edge, with no frame, fading softly into the page at the top and bottom. It
-// starts once the monogram above has finished (see startFilms).
+// The couple's illustrated film, the first thing on the page: edge to edge,
+// with no frame, fading softly into the page at the bottom. It plays while
+// on screen (see startFilms); the monogram below plays when scrolled to.
 export function FilmSection(el, config) {
   const video = config.couple.heroVideo;
   if (!video?.src) {
     el.remove();
     return;
   }
-  el.innerHTML = film(video, "hero-film", { after: "#home [data-mono-video]" });
+  el.innerHTML = film(video, "hero-film");
 }
