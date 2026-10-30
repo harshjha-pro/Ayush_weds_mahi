@@ -519,19 +519,23 @@ address {
 }
 
 /* The engagement film: the whole first screen. A portrait film in a
-   champagne-gold frame (a fine outer rule, an ivory mat, an inner
-   hairline, small corners and a lotus crest) in a soft palace garden. It is
-   sized to fit the screen's height, never wider than 440px. */
+   champagne-gold frame (outer rule, ivory mat, inner hairline, small
+   corners and a lotus crest), sized to fit the screen and never wider than
+   440px, on ivory with a faint palace watermark and fine botanical corners.
+   The landing sequence after the intro is further down ("Landing"). */
 .film-section {
+  --ld-pad: clamp(2.75rem, 7vh, 4.5rem);
   position: relative;
   isolation: isolate;
   display: grid;
   place-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding: clamp(2.25rem, 5vh, 3.5rem) var(--gutter);
+  padding: var(--ld-pad) var(--gutter);
   overflow: hidden;
-  background: linear-gradient(180deg, #fdf8f0 0%, var(--ivory) 55%, #fbf3ea 100%);
+  background:
+    radial-gradient(ellipse 80% 45% at 50% 0%, rgba(240, 222, 186, 0.35), rgba(240, 222, 186, 0) 70%),
+    linear-gradient(180deg, #fdf8ef 0%, var(--ivory) 45%, #fcf6ee 100%);
 }
 
 .film-bg {
@@ -541,57 +545,127 @@ address {
   pointer-events: none;
 }
 
-.film-palace {
+/* The intro's golden light, still glowing as the page appears. */
+.ld-glow {
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: min(1100px, 170vw);
-  aspect-ratio: 2 / 1;
-  transform: translateX(-50%);
-  opacity: 0.16;
-  -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 30%, #000 70%, transparent);
-  mask-image: linear-gradient(0deg, transparent 0, #000 30%, #000 70%, transparent);
+  inset: -10%;
+  background: radial-gradient(ellipse 60% 50% at 50% 48%, #fffdf8 0%, rgba(255, 249, 238, 0.95) 35%, rgba(246, 217, 184, 0.55) 70%, rgba(246, 217, 184, 0.25) 100%);
+  opacity: 0;
 }
 
-.film-palace svg {
+.ld-arches {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: clamp(150px, 32vh, 300px);
+  opacity: 0.16;
+  -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 20%, transparent 100%);
+}
+
+.ld-arches-svg,
+.ld-branch-svg,
+.ld-flourish-svg {
+  display: block;
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
-.film-spray {
+.ld-branch {
   position: absolute;
-  top: clamp(0.25rem, 2vw, 1.5rem);
-  width: clamp(84px, 20vw, 220px);
-  aspect-ratio: 1;
-  opacity: 0.85;
+  top: 0;
+  width: clamp(110px, 30vw, 240px);
+  aspect-ratio: 220 / 200;
 }
 
-.film-spray-l {
-  left: clamp(-34px, -3vw, -8px);
+.ld-branch-l {
+  left: 0;
 }
 
-.film-spray-r {
-  right: clamp(-34px, -3vw, -8px);
+.ld-branch-r {
+  right: 0;
   transform: scaleX(-1);
 }
 
+.ld-flourish {
+  position: absolute;
+  bottom: clamp(0.6rem, 2.5vh, 1.5rem);
+  width: clamp(80px, 20vw, 150px);
+  aspect-ratio: 140 / 60;
+  opacity: 0.85;
+}
+
+.ld-flourish-l {
+  left: clamp(0.4rem, 3vw, 2rem);
+}
+
+.ld-flourish-r {
+  right: clamp(0.4rem, 3vw, 2rem);
+  transform: scaleX(-1);
+}
+
+/* Petals: a few, falling once as the page settles. */
+.ld-petals {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ld-petal {
+  position: absolute;
+  top: -4%;
+  width: 10px;
+  height: 7px;
+  border-radius: 62% 38% 60% 40% / 70% 50% 50% 30%;
+  background: linear-gradient(135deg, #fffaf6, #ead6c9);
+  opacity: 0;
+}
+
+.ld-petal.is-blush {
+  background: linear-gradient(135deg, #fbefeb, #e7c0b5);
+}
+
+/* The frame. */
 .hero-film {
   --film-radius: 2px;
   --mat: 12px;
-  width: min(100%, 440px, calc((100svh - 2 * clamp(2.25rem, 5vh, 3.5rem)) * 9 / 16));
+  width: min(100%, 440px, calc((100svh - 2 * var(--ld-pad)) * 9 / 16));
   margin: 0;
-  padding: var(--mat);
-  border: 1px solid #c9a867;
-  border-radius: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   background: linear-gradient(180deg, #fffdf9, #fbf4ea);
   box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 34px 60px -34px rgba(98, 74, 40, 0.45);
 }
 
-.hero-film .film-poster,
-.hero-film .film-video {
+.hero-film .film-art {
   inset: var(--mat);
-  width: calc(100% - 2 * var(--mat));
-  height: calc(100% - 2 * var(--mat));
+}
+
+/* The bride's face and ring sit to the right; the slow push leans there,
+   so it brings them closer instead of pushing them out of frame. */
+.hero-film .film-art > * {
+  transform-origin: 82% 44%;
+}
+
+.film-rules {
+  --g: linear-gradient(#c9a867, #c9a867);
+  --h: 50% 1px;
+  --v: 1px 50%;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    var(--g) left top / var(--h) no-repeat,
+    var(--g) right top / var(--h) no-repeat,
+    var(--g) left bottom / var(--h) no-repeat,
+    var(--g) right bottom / var(--h) no-repeat,
+    var(--g) left top / var(--v) no-repeat,
+    var(--g) left bottom / var(--v) no-repeat,
+    var(--g) right top / var(--v) no-repeat,
+    var(--g) right bottom / var(--v) no-repeat;
 }
 
 /* The inner hairline, just inside the mat. */
@@ -603,19 +677,19 @@ address {
   pointer-events: none;
 }
 
-/* Small corners that sit on the mat and only just touch the painting. */
 .film-corner {
   position: absolute;
   z-index: 1;
-  width: clamp(40px, 11vw, 50px);
+  width: clamp(44px, 12vw, 54px);
   aspect-ratio: 1;
+  overflow: visible;
   pointer-events: none;
 }
 
-.film-corner-tl { top: -12px; left: -12px; }
-.film-corner-tr { top: -12px; right: -12px; transform: scaleX(-1); }
-.film-corner-bl { bottom: -12px; left: -12px; transform: scaleY(-1); }
-.film-corner-br { bottom: -12px; right: -12px; transform: scale(-1, -1); }
+.film-corner-tl { top: -11px; left: -11px; }
+.film-corner-tr { top: -11px; right: -11px; transform: scaleX(-1); }
+.film-corner-bl { bottom: -11px; left: -11px; transform: scaleY(-1); }
+.film-corner-br { bottom: -11px; right: -11px; transform: scale(-1, -1); }
 
 .film-crest {
   position: absolute;
@@ -625,16 +699,127 @@ address {
   width: clamp(104px, 30vw, 140px);
   padding: 0 0.4rem;
   transform: translate(-50%, -52%);
-  background: #fdf9f2;
+  background: #fdf8ef;
 }
 
-/* Corners and crest draw on with the frame. */
-.js .hero-film.is-visible .cel-draw {
-  stroke-dashoffset: 0;
+/* ── Landing: the hand-over from the intro ──
+   Before it runs (scripts on, intro still showing) the screen is plain
+   ivory with the golden light. .is-landing plays the sequence once;
+   .is-landed is the finished screen, shown without motion. */
+
+.js .film-section .ld-glow { opacity: 1; }
+.js .film-section .ld-arches { opacity: 0; }
+.js .film-section .ld-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.js .film-section .ld-bloom,
+.js .film-section .cel-bloom { opacity: 0; }
+.js .film-section .cel-draw { stroke-dashoffset: 1; }
+.js .film-section .film-mat,
+.js .film-section .film-crest { opacity: 0; }
+.js .film-section .hero-film { box-shadow: none; background: transparent; }
+.js .film-section .film-art { opacity: 0; }
+.js .film-section .film-art > * { transform: scale(1); }
+.js .film-section .film-rules { background-size: 0 1px, 0 1px, 0 1px, 0 1px, 1px 0, 1px 0, 1px 0, 1px 0; }
+
+/* 1 · the golden light settles into the ivory page */
+.js .film-section.is-landing .ld-glow {
+  opacity: 0;
+  transition: opacity 2.2s ease 0.1s;
 }
 
-.js .hero-film.is-visible .cel-bloom {
+/* 2 · the palace watermark fades in */
+.js .film-section.is-landing .ld-arches {
+  opacity: 0.16;
+  transition: opacity 2s ease 0.3s;
+}
+
+/* 3 · the frame draws from its corners; the paper and mat follow */
+.js .film-section.is-landing .film-rules {
+  background-size: var(--h), var(--h), var(--h), var(--h), var(--v), var(--v), var(--v), var(--v);
+  transition: background-size 1.5s cubic-bezier(0.45, 0.05, 0.3, 1) 0.35s;
+}
+
+.js .film-section.is-landing .hero-film {
+  background: linear-gradient(180deg, #fffdf9, #fbf4ea);
+  box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 34px 60px -34px rgba(98, 74, 40, 0.45);
+  transition: background 1.4s ease 0.8s, box-shadow 1.6s ease 0.9s;
+}
+
+.js .film-section.is-landing .film-mat,
+.js .film-section.is-landing .film-crest {
   opacity: 1;
+  transition: opacity 1s ease 1.2s;
+}
+
+/* 4 · the illustration fades in, with a slow push towards the bride */
+.js .film-section.is-landing .film-art {
+  opacity: 1;
+  transition: opacity 1.4s ease 0.8s;
+}
+
+.js .film-section.is-landing .film-art > * {
+  transform: scale(1.03);
+  transition: transform 8s cubic-bezier(0.2, 0.6, 0.3, 1) 0.8s;
+}
+
+/* 5 · the corners, crest and botanical lines draw; then they bloom */
+.js .film-section.is-landing .film-corner .ld-draw,
+.js .film-section.is-landing .film-crest .cel-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.2s ease 1.5s;
+}
+
+.js .film-section.is-landing .film-bg .ld-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 2s cubic-bezier(0.45, 0.05, 0.3, 1) 1.3s;
+}
+
+.js .film-section.is-landing .ld-bloom,
+.js .film-section.is-landing .cel-bloom {
+  opacity: 1;
+  transition: opacity 1s ease 2.4s;
+}
+
+/* 6 · a few petals fall, once */
+.js .film-section.is-landing .ld-petal {
+  animation: ld-fall var(--t) cubic-bezier(0.35, 0.1, 0.6, 1) var(--d) 1 both;
+}
+
+/* The finished screen (also reduced motion and visits without the intro). */
+.js .film-section.is-landed .ld-glow,
+.js .film-section.is-landed .ld-petal { opacity: 0; }
+.js .film-section.is-landed .ld-arches { opacity: 0.16; }
+.js .film-section.is-landed .ld-draw,
+.js .film-section.is-landed .cel-draw { stroke-dashoffset: 0; }
+.js .film-section.is-landed .ld-bloom,
+.js .film-section.is-landed .cel-bloom,
+.js .film-section.is-landed .film-mat,
+.js .film-section.is-landed .film-crest,
+.js .film-section.is-landed .film-art { opacity: 1; }
+.js .film-section.is-landed .film-art > * { transform: scale(1.03); }
+.js .film-section.is-landed .film-rules { background-size: var(--h), var(--h), var(--h), var(--h), var(--v), var(--v), var(--v), var(--v); }
+.js .film-section.is-landed .hero-film {
+  background: linear-gradient(180deg, #fffdf9, #fbf4ea);
+  box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 34px 60px -34px rgba(98, 74, 40, 0.45);
+}
+
+@keyframes ld-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.8; }
+  80% { opacity: 0.6; }
+  100% { transform: translate(var(--x), 105vh) rotate(260deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film-section *,
+  .film-section *::before,
+  .film-section *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .js .film-section .film-art > * {
+    transform: none !important;
+  }
 }
 
 .story-film {
@@ -642,14 +827,20 @@ address {
   margin: clamp(2.5rem, 7vw, 4rem) auto 0;
 }
 
+/* The picture area: poster, video and the loop's seam, stacked. */
+.film-art {
+  position: absolute;
+  inset: 6px;
+  border-radius: var(--film-radius);
+  overflow: hidden;
+}
+
 .film-poster,
 .film-video {
   position: absolute;
-  inset: 6px;
-  width: calc(100% - 12px);
-  height: calc(100% - 12px);
-  border-radius: var(--film-radius);
-  overflow: hidden;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .film-poster img {

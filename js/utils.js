@@ -173,7 +173,7 @@ export function monogramMedia(config, { cls = "monogram", preload = "metadata", 
 // the film restarts, so the loop dissolves instead of jumping. If the
 // browser will not autoplay, or the visitor prefers reduced motion, a small
 // play button lets them start it themselves.
-export function film(video, cls = "film", { after = "", frame = "" } = {}) {
+export function film(video, cls = "film", { after = "", frame = "", animate = true } = {}) {
   if (!video?.src) return "";
   const pic = (extra, alt = "") => `
       <picture class="${extra}">
@@ -181,12 +181,14 @@ export function film(video, cls = "film", { after = "", frame = "" } = {}) {
         <img src="${esc(video.posterFallback)}" width="540" height="960" loading="eager" decoding="async" alt="${esc(alt)}" />
       </picture>`;
   return `
-    <figure class="film ${cls}" data-film ${after ? `data-after="${esc(after)}"` : "data-animate"}>
-      ${pic("film-poster", video.alt)}
-      <video class="film-video" muted playsinline disablepictureinpicture preload="none" aria-hidden="true">
-        <source data-src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
-      </video>
-      ${pic("film-poster film-seam")}
+    <figure class="film ${cls}" data-film ${after ? `data-after="${esc(after)}"` : animate ? "data-animate" : ""}>
+      <div class="film-art">
+        ${pic("film-poster", video.alt)}
+        <video class="film-video" muted playsinline disablepictureinpicture preload="none" aria-hidden="true">
+          <source data-src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
+        </video>
+        ${pic("film-poster film-seam")}
+      </div>
       ${frame}
       <button class="film-play" type="button" hidden>${icon("i-play")}<span class="visually-hidden">Play the film</span></button>
     </figure>`;

@@ -1,5 +1,6 @@
-import { celPalace, celSpray, celCorner, celCrest } from "./celebration-art.js";
-import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
+import { celCrest } from "./celebration-art.js";
+import { landingArches, landingBranch, landingFlourish, frameRules, frameCorner } from "./landing-art.js";
+import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words, prefersReducedMotion } from "../utils.js";
 
 export function WelcomeSection(el, config) {
   const { couple, invitation, event } = config;
@@ -33,9 +34,15 @@ export function WelcomeSection(el, config) {
 }
 
 // The engagement film (the bride and her diamond ring), the first screen of
-// the page: a portrait film in a champagne-gold frame, with small gold
-// corners and a lotus crest, in the same palace garden as the other
-// sections. It plays while on screen (see startFilms).
+// the page: a portrait film in a champagne-gold frame, on ivory with a faint
+// watermark of palace arches, fine branches in the upper corners and small
+// flourishes near the lower ones. It plays while on screen (startFilms).
+//
+// When the opening intro ends, its golden light is still glowing here; the
+// light settles, the frame draws from its corners, the illustration fades
+// in with a slow push towards the bride and her ring, the botanical lines
+// draw and bloom, and a few petals fall once (landing styles). Without the
+// intro, or with reduced motion, the screen is simply there.
 export function FilmSection(el, config) {
   const video = config.couple.heroVideo;
   if (!video?.src) {
@@ -43,14 +50,45 @@ export function FilmSection(el, config) {
     return;
   }
   const frame = `
+    ${frameRules()}
     <span class="film-mat" aria-hidden="true"></span>
-    ${celCorner("film-corner film-corner-tl")}${celCorner("film-corner film-corner-tr")}${celCorner("film-corner film-corner-bl")}${celCorner("film-corner film-corner-br")}
+    ${frameCorner("film-corner-tl")}${frameCorner("film-corner-tr")}${frameCorner("film-corner-bl")}${frameCorner("film-corner-br")}
     <span class="film-crest" aria-hidden="true">${celCrest()}</span>`;
+  const petals = Array.from({ length: 7 }, (_, i) => {
+    const left = [8, 22, 38, 61, 76, 88, 50][i];
+    return `<i class="ld-petal${i % 2 ? " is-blush" : ""}" style="left:${left}%;--d:${(1.4 + i * 0.35).toFixed(2)}s;--t:${(6.5 + (i % 3) * 1.2).toFixed(1)}s;--x:${i % 2 ? 26 : -22}px"></i>`;
+  }).join("");
   el.innerHTML = `
     <div class="film-bg" aria-hidden="true">
-      <div class="film-palace">${celPalace("fp-")}</div>
-      <div class="film-spray film-spray-l">${celSpray()}</div>
-      <div class="film-spray film-spray-r">${celSpray()}</div>
+      <div class="ld-glow"></div>
+      <div class="ld-arches">${landingArches()}</div>
+      <div class="ld-branch ld-branch-l">${landingBranch()}</div>
+      <div class="ld-branch ld-branch-r">${landingBranch()}</div>
+      <div class="ld-flourish ld-flourish-l">${landingFlourish()}</div>
+      <div class="ld-flourish ld-flourish-r">${landingFlourish()}</div>
+      <div class="ld-petals">${petals}</div>
     </div>
-    ${film(video, "hero-film", { frame })}`;
+    ${film(video, "hero-film", { frame, animate: false })}`;
+  landing(el);
+}
+
+// Plays the landing sequence once, as the intro hands over; otherwise
+// shows the finished screen straight away.
+function landing(el) {
+  const settle = () => el.classList.add("is-landed");
+  if (prefersReducedMotion()) return settle();
+  // The intro is set up after this section, so look for it a moment later.
+  setTimeout(() => {
+    const intro = document.getElementById("intro");
+    if (!intro || intro.hidden) return settle();
+    document.addEventListener(
+      "invitation:opened",
+      () => {
+        el.classList.add("is-landing");
+        // Once everything has arrived, drop the motion state.
+        setTimeout(() => el.classList.replace("is-landing", "is-landed"), 9500);
+      },
+      { once: true },
+    );
+  });
 }
