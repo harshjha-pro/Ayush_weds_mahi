@@ -2471,6 +2471,7 @@ main > [hidden] {
 
 .mem-track {
   display: flex;
+  align-items: center;
   gap: var(--gap);
   padding: 28px calc(50% - var(--w) / 2) 34px;
   overflow-x: auto;
@@ -2519,6 +2520,22 @@ main > [hidden] {
   border-radius: 18px;
   box-shadow: 0 30px 46px -22px rgba(74, 56, 38, 0.55);
   opacity: calc(0.2 + 0.8 * var(--a));
+}
+
+/* Landscape films get wide cards, so nobody is cropped out. */
+.mem-carousel {
+  --ww: max(260px, min(84vw, 560px, calc((100svh - 330px) * 16 / 9)));
+}
+
+.mem-card.is-wide {
+  flex-basis: var(--ww);
+}
+
+.mem-track.starts-wide { padding-left: calc(50% - var(--ww) / 2); }
+.mem-track.ends-wide { padding-right: calc(50% - var(--ww) / 2); }
+
+.mem-card.is-wide .mem-frame {
+  aspect-ratio: 16 / 9;
 }
 
 .mem-frame {
@@ -2673,7 +2690,7 @@ main > [hidden] {
 
 .mem-dot {
   position: relative;
-  width: 22px;
+  width: clamp(14px, 4.2vw, 22px);
   height: 44px;
   padding: 0;
   border: 0;
@@ -2757,6 +2774,10 @@ main > [hidden] {
   animation: mem-zoom 0.45s var(--ease) both;
 }
 
+.mem-viewer.is-wide .mem-viewer-inner {
+  width: min(94vw, 1100px, calc((100svh - 7rem) * 16 / 9));
+}
+
 .mem-viewer-video {
   display: block;
   width: 100%;
@@ -2764,6 +2785,10 @@ main > [hidden] {
   border-radius: 14px;
   background: #000;
   box-shadow: 0 0 0 1px rgba(195, 160, 100, 0.6), 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+.mem-viewer.is-wide .mem-viewer-video {
+  aspect-ratio: 16 / 9;
 }
 
 .mem-viewer-count {

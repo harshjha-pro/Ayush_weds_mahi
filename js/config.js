@@ -117,12 +117,19 @@ export const config = {
   // one every few seconds (guests can also swipe, drag or use the arrows).
   // Clips 02–04 and 06–08 are cut from the couple's photo slideshow
   // (assets/video/story.mp4), 01 and 05 from the illustrated ring film.
-  // Portrait (9:16) H.264 clips with a poster each; add or remove freely.
+  // Clips 09–12 are the couple's own landscape videos (shown first, in wide
+  // cards: set landscape: true for 16:9 clips). The rest are portrait (9:16).
+  // H.264 clips with a poster each, no sound; add or remove freely.
   memories: {
     eyebrow: "Moments together",
     // Seconds each film stays in the centre before the next one comes in.
     interval: 5,
     videos: [
+      // The couple's own short clips (landscape, sound removed).
+      { src: "assets/video/memories/09.mp4", poster: "assets/images/memories/09.webp", posterFallback: "assets/images/memories/09.jpg", landscape: true, alt: "Mahi and Ayush smiling together at a café" },
+      { src: "assets/video/memories/10.mp4", poster: "assets/images/memories/10.webp", posterFallback: "assets/images/memories/10.jpg", landscape: true, alt: "Mahi and Ayush sitting side by side and laughing, with playful drawings around them" },
+      { src: "assets/video/memories/11.mp4", poster: "assets/images/memories/11.webp", posterFallback: "assets/images/memories/11.jpg", landscape: true, alt: "Mahi and Ayush in a selfie at sunset beneath the palms" },
+      { src: "assets/video/memories/12.mp4", poster: "assets/images/memories/12.webp", posterFallback: "assets/images/memories/12.jpg", landscape: true, alt: "Mahi and Ayush at a table under string lights, with a drawn crown and moustache" },
       { src: "assets/video/memories/01.mp4", poster: "assets/images/memories/01.webp", posterFallback: "assets/images/memories/01.jpg", alt: "Illustrated film: Ayush and Mahi, in an ivory sari, in a softly lit palace hall" },
       { src: "assets/video/memories/02.mp4", poster: "assets/images/memories/02.webp", posterFallback: "assets/images/memories/02.jpg", alt: "Photos of Mahi and Ayush together" },
       { src: "assets/video/memories/03.mp4", poster: "assets/images/memories/03.webp", posterFallback: "assets/images/memories/03.jpg", alt: "Photos of Mahi and Ayush together" },

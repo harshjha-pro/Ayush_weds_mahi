@@ -40,7 +40,7 @@ export function MemoriesSection(el, config) {
     ${
       n
         ? `<div class="mem-carousel" role="region" aria-roledescription="carousel" aria-label="Films of ${esc(config.couple.partnerOne.first)} and ${esc(config.couple.partnerTwo.first)}">
-            <div class="mem-track">
+            <div class="mem-track${videos[0].landscape ? " starts-wide" : ""}${videos[n - 1].landscape ? " ends-wide" : ""}">
               ${videos.map((v, i) => card(v, i, n)).join("")}
             </div>
             <p class="visually-hidden" id="mem-keys">Use the left and right arrow keys to move between films.</p>
@@ -65,11 +65,11 @@ export function MemoriesSection(el, config) {
 
 function card(v, i, n) {
   return `
-    <div class="mem-card" role="group" aria-roledescription="slide" aria-label="Film ${i + 1} of ${n}" data-i="${i}" style="--k:1">
+    <div class="mem-card${v.landscape ? " is-wide" : ""}" role="group" aria-roledescription="slide" aria-label="Film ${i + 1} of ${n}" data-i="${i}" style="--k:1">
       <div class="mem-frame">
         <picture class="mem-poster">
           ${has(v.poster) ? `<source srcset="${esc(v.poster)}" type="image/webp" />` : ""}
-          <img src="${esc(v.posterFallback || v.poster)}" alt="${esc(v.alt ?? "")}" width="360" height="640" draggable="false"
+          <img src="${esc(v.posterFallback || v.poster)}" alt="${esc(v.alt ?? "")}" ${v.landscape ? 'width="960" height="540"' : 'width="360" height="640"'} draggable="false"
                loading="${i < 3 ? "eager" : "lazy"}" decoding="async" />
         </picture>
         <video class="mem-video" muted playsinline disablepictureinpicture preload="none" aria-hidden="true" data-src="${esc(v.src)}"></video>
@@ -151,7 +151,9 @@ function Carousel(root, videos, interval) {
     queued = false;
     const mid = track.scrollLeft + track.clientWidth / 2;
     cards.forEach((c, i) => {
-      const d = Math.max(-2, Math.min(2, (centres[i] - mid) / step));
+      // One card away reads as 1, whether the cards are tall or wide.
+      const gapTo = centres[i] >= mid ? centres[i] - (centres[i - 1] ?? centres[i] - step) : (centres[i + 1] ?? centres[i] + step) - centres[i];
+      const d = Math.max(-2, Math.min(2, (centres[i] - mid) / (gapTo || step)));
       c.style.setProperty("--d", d.toFixed(3));
       c.style.setProperty("--a", Math.max(0, 1 - Math.abs(d)).toFixed(3));
     });
@@ -458,6 +460,7 @@ function Viewer(videos, { onOpen, onClose }) {
     v.poster = f.posterFallback || f.poster || "";
     v.src = f.src;
     v.setAttribute("aria-label", f.alt ?? "");
+    box.classList.toggle("is-wide", !!f.landscape);
     count.textContent = n > 1 ? `${index + 1} / ${n}` : "";
     v.play().catch(() => {});
   };
