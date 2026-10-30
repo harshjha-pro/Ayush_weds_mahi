@@ -20,7 +20,6 @@ export function WelcomeSection(el, config) {
           <span class="name">${esc(couple.partnerTwo.full)}</span>
         </h1>
         <p class="hero-welcome" data-animate>${words(invitation.welcomeLine)}</p>
-        ${film(couple.heroVideo, "hero-film")}
         ${familiesBlock(invitation, "families hero-families", "data-animate")}
         ${
           dateLine
@@ -30,4 +29,16 @@ export function WelcomeSection(el, config) {
         <a class="btn btn-primary hero-cta" href="#story" data-animate>Begin Our Story ${icon("i-down")}</a>
       </div>
     </div>`;
+}
+
+// The couple's illustrated film, straight after the welcome section: edge to
+// edge, with no frame, fading softly into the page at the top and bottom. It
+// starts once the monogram above has finished (see startFilms).
+export function FilmSection(el, config) {
+  const video = config.couple.heroVideo;
+  if (!video?.src) {
+    el.remove();
+    return;
+  }
+  el.innerHTML = film(video, "hero-film", { after: "#home [data-mono-video]" });
 }

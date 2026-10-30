@@ -27,6 +27,11 @@
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/intro.css" />
   <script>document.documentElement.classList.add("js");</script>
+  <!-- GSAP (scroll-driven text writing). Deferred classic scripts run before
+       the module below, in order; if they fail, the site still works. -->
+  <script defer src="js/vendor/gsap.min.js"></script>
+  <script defer src="js/vendor/ScrollTrigger.min.js"></script>
+  <script defer src="js/vendor/SplitText.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -92,6 +97,7 @@
 
   <main id="main">
     <section class="section hero" id="home" aria-labelledby="hero-title"></section>
+    <section class="film-section" id="film" aria-label="An illustrated moment"></section>
     <section class="section story" id="story" aria-labelledby="story-title"></section>
     <section class="section celebration" id="celebration" aria-labelledby="celebration-title"></section>
     <section class="section countdown" id="countdown" aria-labelledby="countdown-title"></section>

@@ -370,6 +370,27 @@ address {
   transform: none;
 }
 
+/* Text that writes itself in (js/writing.js, GSAP SplitText): each word
+   stays whole so lines never break mid-word. Until the writing script has
+   run, text is simply visible. When it runs, the older word-by-word reveal
+   steps aside so the two never play together. */
+.wr-w {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.wr-c {
+  display: inline-block;
+  will-change: opacity, transform;
+}
+
+.is-writing .words .w {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
 .js [data-animate].is-visible {
   opacity: 1;
   transform: none;
@@ -678,9 +699,32 @@ address {
   box-shadow: 0 18px 40px -24px rgba(60, 40, 20, 0.45);
 }
 
+/* The couple's film, after the welcome section: no frame, edge to edge on
+   phones, and the top and bottom fade into the page. */
+.film-section {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .hero-film {
-  --film-radius: 999px 999px 13px 13px;
-  border-radius: 999px 999px 18px 18px;
+  --film-radius: 0;
+  width: min(100%, calc(92svh * 9 / 16));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+}
+
+.hero-film .film-poster,
+.hero-film .film-video {
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .story-film {

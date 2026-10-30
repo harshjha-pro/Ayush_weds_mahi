@@ -166,7 +166,7 @@ export function monogramMedia(config, { cls = "monogram", preload = "metadata", 
 // It is muted (soundtracks were removed) and loops only while in view (see
 // startFilms in motion.js). The poster is the still shown before it plays,
 // for reduced motion, and if the video cannot play.
-export function film(video, cls = "film") {
+export function film(video, cls = "film", { after = "" } = {}) {
   if (!video?.src) return "";
   const poster = `
       <picture class="film-poster">
@@ -179,7 +179,7 @@ export function film(video, cls = "film") {
         <source src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
       </video>`;
   return `
-    <figure class="film ${cls}" data-film data-animate role="img" aria-label="${esc(video.alt)}">
+    <figure class="film ${cls}" data-film ${after ? `data-after="${esc(after)}"` : "data-animate"} role="img" aria-label="${esc(video.alt)}">
       ${poster}${film}
     </figure>`;
 }

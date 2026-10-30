@@ -99,7 +99,8 @@ function startFilm(box) {
   // Fade the film in over the poster only once frames are actually moving.
   video.addEventListener("playing", () => box.classList.add("is-playing"), { once: true });
 
-  const mono = box.closest("section")?.querySelector("[data-mono-video]");
+  // The monogram to wait for: named by data-after, or the one in the same section.
+  const mono = box.dataset.after ? document.querySelector(box.dataset.after) : box.closest("section")?.querySelector("[data-mono-video]");
   let filmInView = false;
   let monoInView = false;
   const update = () => {
@@ -124,4 +125,40 @@ function startFilm(box) {
     },
     { threshold: 0.5 },
   ).observe(box);
+}
+
+// Motion (js/vendor/motion.min.js): gentle springs when buttons are hovered
+// or pressed, and the couple's film rising into view. Loaded on demand; if it
+// cannot load, the page simply works without these touches.
+export async function startSprings() {
+  if (prefersReducedMotion()) return;
+  let M;
+  try {
+    M = await import("./vendor/motion.min.js");
+  } catch {
+    return;
+  }
+  const { animate, hover, press, inView } = M;
+  const spring = { type: "spring", stiffness: 420, damping: 24 };
+  hover(".btn", (el) => {
+    animate(el, { y: -2 }, spring);
+    return () => animate(el, { y: 0 }, spring);
+  });
+  press(".btn, .surprise-envelope", (el) => {
+    animate(el, { scale: 0.96 }, spring);
+    return () => animate(el, { scale: 1 }, spring);
+  });
+
+  const film = document.querySelector(".hero-film");
+  if (film && film.getBoundingClientRect().top > window.innerHeight) {
+    // Hidden only while it is still below the screen, so it never blinks out.
+    film.style.opacity = "0";
+    inView(
+      film,
+      () => {
+        animate(film, { opacity: [0, 1], scale: [0.95, 1] }, { duration: 1.1, ease: [0.22, 0.61, 0.36, 1] });
+      },
+      { amount: 0.15 },
+    );
+  }
 }

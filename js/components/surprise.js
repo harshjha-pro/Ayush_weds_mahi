@@ -58,6 +58,7 @@ export function SurpriseMessage(el, config, { reducedMotion }) {
       note.hidden = false;
       el.querySelector("#surprise-note-title").focus({ preventScroll: true });
       note.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
+      document.dispatchEvent(new CustomEvent("surprise:opened"));
     };
     // Let the envelope animation play first, unless motion is reduced.
     if (reducedMotion) reveal();
