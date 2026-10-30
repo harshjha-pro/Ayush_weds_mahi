@@ -631,7 +631,9 @@ address {
 .hero-film {
   --film-radius: 2px;
   --mat: 12px;
-  width: min(100%, 440px, calc((100svh - 2 * var(--ld-pad)) * 9 / 16));
+  /* Fills the first screen below the blessing (its height is measured into
+     --ld-head-h), leaving room for the corners and a little air. */
+  width: min(100%, 440px, calc((100svh - var(--ld-head-h, 180px) - var(--ld-top) - var(--ld-gap) - 1.5rem) * 9 / 16));
   margin: 0;
   padding: 0;
   border: 0;
@@ -705,19 +707,23 @@ address {
 /* The welcome above the portrait: Lord Ganesha's blessing, the mantra, a
    gold divider, the couple's line in script, their names. */
 .film-section {
-  --ld-shift: 3.4s; /* the portrait's part of the sequence starts after the welcome */
+  --ld-shift: 1.3s; /* the portrait follows the blessing */
+  --ld-top: 0.6rem;
+  --ld-gap: clamp(1.4rem, 3.2vh, 2rem);
   grid-auto-rows: auto;
   align-content: start;
-  row-gap: clamp(1.75rem, 5vh, 2.75rem);
+  row-gap: var(--ld-gap);
+  padding-top: var(--ld-top);
 }
 
+/* The blessing, right at the top, compact so the portrait shares the
+   first screen with it. */
 .ld-head {
   display: grid;
   justify-items: center;
-  gap: 0.35rem;
+  gap: 0.15rem;
   width: 100%;
   max-width: 34rem;
-  padding-top: clamp(0.5rem, 3vh, 1.5rem);
   text-align: center;
 }
 
@@ -725,9 +731,20 @@ address {
 .ld-ganesha {
   position: relative;
   display: block;
-  width: clamp(92px, 26vw, 128px);
+  width: clamp(72px, 19vw, 104px);
   aspect-ratio: 1;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+/* The couple's line, after the portrait. */
+.ld-words {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 34rem;
+  margin-top: clamp(0.5rem, 2vh, 1.25rem);
+  text-align: center;
 }
 
 .ld-ganesha::before {
@@ -749,9 +766,9 @@ address {
 
 .ld-mantra {
   font-family: "Noto Serif Devanagari", "Tiro Devanagari Sanskrit", "Kohinoor Devanagari", "Mangal", "Nirmala UI", serif;
-  font-size: clamp(1.15rem, 4.6vw, 1.4rem);
+  font-size: clamp(1.05rem, 4.2vw, 1.3rem);
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   letter-spacing: 0.02em;
   color: #8a6a32;
 }
@@ -766,9 +783,9 @@ address {
   color: var(--ink-soft);
 }
 
-.ld-head .cel-divider {
+.ld-words .cel-divider {
   width: min(220px, 62%);
-  margin: 0.9rem auto 0.6rem;
+  margin: 0 auto 0.6rem;
 }
 
 .ld-welcome {
@@ -816,6 +833,8 @@ address {
   opacity: 0;
 }
 
+.js .film-section .ld-words .cel-draw { stroke-dashoffset: 1; }
+
 .js .film-section .ld-ganesha {
   transform: scale(0.96);
 }
@@ -844,40 +863,42 @@ address {
   opacity: 1;
 }
 
-.js .film-section.is-landing .ld-mantra { opacity: 1; transition: opacity 1.1s ease 1.1s; }
-.js .film-section.is-landing .ld-translit { opacity: 1; transition: opacity 1s ease 1.35s; }
+.js .film-section.is-landing .ld-mantra { opacity: 1; transition: opacity 1.1s ease 0.9s; }
+.js .film-section.is-landing .ld-translit { opacity: 1; transition: opacity 1s ease 1.1s; }
 
-.js .film-section.is-landing .ld-head .cel-divider .cel-draw {
+/* The words after the portrait, when they come into view: the divider
+   draws, the line is written, the names rise. */
+.js .film-section .ld-words.is-in .cel-divider .cel-draw {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.1s ease 1.55s;
+  transition: stroke-dashoffset 1.1s ease 0.1s;
 }
 
-.js .film-section.is-landing .ld-head .cel-divider .cel-bloom {
-  transition-delay: 2s;
+.js .film-section .ld-words.is-in .cel-divider .cel-bloom {
+  opacity: 1;
+  transition: opacity 0.8s ease 0.6s;
 }
 
-/* The script line is written after the divider. */
-.js .film-section.is-landing .ld-script[data-draw] path {
+.js .film-section .ld-script[data-draw] path {
   transition:
-    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 1.95s),
-    fill-opacity 0.6s ease calc(var(--i) * 55ms + 2.35s);
+    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 0.5s),
+    fill-opacity 0.6s ease calc(var(--i) * 55ms + 0.9s);
 }
 
-.js .film-section.is-landing .ld-script-2[data-draw] path {
+.js .film-section .ld-script-2[data-draw] path {
   transition:
-    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 2.55s),
-    fill-opacity 0.6s ease calc(var(--i) * 55ms + 2.95s);
+    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 1.1s),
+    fill-opacity 0.6s ease calc(var(--i) * 55ms + 1.5s);
 }
 
-.js .film-section.is-landing .ld-names,
-.js .film-section.is-landing .ld-tagline {
+.js .film-section .ld-words.is-in .ld-names,
+.js .film-section .ld-words.is-in .ld-tagline {
   opacity: 1;
   transform: none;
-  transition: opacity 1s ease 3.3s, transform 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) 3.3s;
+  transition: opacity 1s ease 2s, transform 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) 2s;
 }
 
-.js .film-section.is-landing .ld-tagline {
-  transition-delay: 3.55s;
+.js .film-section .ld-words.is-in .ld-tagline {
+  transition-delay: 2.25s;
 }
 
 @keyframes ld-halo {

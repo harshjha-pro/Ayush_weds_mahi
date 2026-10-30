@@ -71,6 +71,10 @@ export function FilmSection(el, config) {
       </picture>
       <p class="ld-mantra" lang="sa">॥ श्री गणेशाय नमः ॥</p>
       <p class="ld-translit">Shri Ganeshaya Namah</p>
+    </div>`;
+  // After the portrait: the couple's line, written as it scrolls into view.
+  const words = `
+    <div class="ld-words">
       ${celDivider()}
       <p class="ld-welcome">${scriptText("Together is a", "script ld-script")}${scriptText("beautiful place to be.", "script ld-script ld-script-2")}</p>
       <p class="ld-names">${esc(couple.partnerOne.first)} <span class="ld-amp">&amp;</span> ${esc(couple.partnerTwo.first)}</p>
@@ -87,8 +91,41 @@ export function FilmSection(el, config) {
       <div class="ld-petals">${petals}</div>
     </div>
     ${head}
-    ${film(video, "hero-film", { frame, animate: false })}`;
+    ${film(video, "hero-film", { frame, animate: false })}
+    ${words}`;
+  fitPortrait(el);
   landing(el);
+  revealWords(el);
+}
+
+// The blessing and the portrait share the first screen: the portrait takes
+// whatever height is left below the blessing (measured, so it is right on
+// every phone), and its width follows from the 9:16 shape.
+function fitPortrait(el) {
+  const head = el.querySelector(".ld-head");
+  const set = () => el.style.setProperty("--ld-head-h", `${Math.ceil(head.getBoundingClientRect().height)}px`);
+  set();
+  if ("ResizeObserver" in window) new ResizeObserver(set).observe(head);
+}
+
+// The words after the portrait reveal when they come into view.
+function revealWords(el) {
+  const words = el.querySelector(".ld-words");
+  const show = () => words.classList.add("is-in");
+  if (prefersReducedMotion() || !("IntersectionObserver" in window)) return show();
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      show();
+    },
+    { rootMargin: "0px 0px -12% 0px", threshold: 0.3 },
+  );
+  setTimeout(() => {
+    const intro = document.getElementById("intro");
+    if (intro && !intro.hidden) document.addEventListener("invitation:opened", () => io.observe(words), { once: true });
+    else io.observe(words);
+  });
 }
 
 // Plays the landing sequence once, as the intro hands over; otherwise
