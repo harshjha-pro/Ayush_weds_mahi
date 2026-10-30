@@ -17,7 +17,8 @@ const SKIP = [
   ".countdown-num",
   ".countdown-caption",
   ".countdown-done",
-  ".surprise-note",
+  // The keepsake has its own reveal (surprise.js).
+  "#surprise",
   ".lightbox",
   // The Celebration has its own, gentler reveals (details.js).
   "#celebration",
@@ -69,16 +70,6 @@ export function startWriting() {
     if (!chars.length) continue;
     writeIn(gsap, chars, { scrollTrigger: { trigger: el, start: "clamp(top 90%)", once: true } });
   }
-
-  // The secret message writes itself when the envelope is opened.
-  document.addEventListener("surprise:opened", () => {
-    document.querySelectorAll(".surprise-message, .surprise-signature").forEach((el, i) => {
-      if (el.dataset.written) return;
-      el.dataset.written = "1";
-      const { chars } = SplitText.create(el, { type: "words,chars", wordsClass: "wr-w", charsClass: "wr-c", aria: "auto" });
-      writeIn(gsap, chars, { delay: 0.35 + i * 1.2 });
-    });
-  });
 
   // Images and fonts can change the page's height after this runs.
   window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });

@@ -55,7 +55,9 @@ The `<noscript>` block and the link-preview `<meta>` tags in `index.html` repeat
 
 ### The surprise photo and message
 
-Set `surprise.photo` to `{ src: "assets/photos/surprise.jpg", alt: "…" }` and replace `surprise.message`. Until a photo is set, the envelope reveals the monogram.
+Set `surprise.photo` to `{ src: "assets/photos/surprise.jpg", thumb: "assets/photos/surprise-800.jpg", alt: "…" }` and replace `surprise.message` (`surprise.eyebrow` and `surprise.invite` are the small texts on the cover). The photo is shown whole in a 4:3 frame. Until a photo is set, the keepsake reveals the monogram.
+
+**A Keepsake from Our Hearts** (`js/components/surprise.js`, styles under "6 · A Keepsake from Our Hearts"). A small illustrated memory book. Closed, its ivory cover has a fine double gold rule, flowering sprigs, gold corners, a sage wreath around a gold heart, JUST FOR YOU, "A Keepsake from Our Hearts" written in gold script, "A little memory, saved with love" and an "Open your keepsake" button (the whole cover is its tap area); a faint light passes across it now and then, and a blush ribbon marks the page. When it first comes into view it settles in and its title and ornaments draw. Opening takes about 3.2 s: the book presses in slightly, a light runs across the cover, the cover lifts away from its top edge, a soft gold glow blooms and fades, the inner page rises, the photograph emerges in its mat and gold frame, then the divider, the message, the "Mahi & Ayush" signature drawn in script, a small flourish and "Close keepsake". Closing runs back in about 1.4 s. The state is `data-state` on `.ks` (closed, opening, open, closing); taps during a sequence are ignored, so it never sticks half way. The open button carries `aria-expanded`; focus moves into the page on opening and back to the button on closing. With reduced motion it is a short fade either way.
 
 ### Music
 
@@ -95,7 +97,7 @@ js/components/          One file per part of the page:
   calendar.js           Google Calendar link + .ics download
   countdown.js          Live countdown
   venue.js              Venue card, directions, copy address
-  surprise.js           Sealed-envelope surprise
+  surprise.js           A Keepsake from Our Hearts (the openable memory book)
   closing.js            Closing section + sharing
   music.js              Optional music button
 assets/images/          Monogram (original + transparent web versions)
@@ -118,7 +120,7 @@ When `intro.video` is set in `js/config.js`, the tap plays that film instead (`a
 
 ## Motion and lettering
 
-- Every line of text writes itself in, letter by letter from left to right, as it scrolls into view (`js/writing.js`, using GSAP SplitText and ScrollTrigger). The secret message writes itself when the envelope opens. The live countdown numbers and buttons are left as they are.
+- Every line of text writes itself in, letter by letter from left to right, as it scrolls into view (`js/writing.js`, using GSAP SplitText and ScrollTrigger). The keepsake has its own reveal. The live countdown numbers and buttons are left as they are.
 - Buttons have a soft spring when hovered or pressed, and the couple's film rises gently into view (`startSprings` in `js/motion.js`, using Motion).
 - GSAP and Motion are kept in `js/vendor/` (see its README for versions and licences). If they fail to load, the page works without these effects.
 

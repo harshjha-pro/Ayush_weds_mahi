@@ -234,7 +234,7 @@ export async function startSprings() {
     animate(el, { y: -2 }, spring);
     return () => animate(el, { y: 0 }, spring);
   });
-  press(".btn, .surprise-envelope", (el) => {
+  press(".btn", (el) => {
     animate(el, { scale: 0.96 }, spring);
     return () => animate(el, { scale: 1 }, spring);
   });

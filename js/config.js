@@ -142,9 +142,12 @@ export const config = {
   },
 
   surprise: {
-    hint: "A little something for you",
-    // The photo revealed inside the envelope (kept out of the gallery on purpose).
-    photo: { src: "assets/photos/surprise.jpg", alt: "Mahi and Ayush together at sunset", focus: "62% 40%" },
+    // The keepsake's cover.
+    eyebrow: "Just for you",
+    invite: "A little memory, saved with love",
+    // The photo revealed inside the keepsake (kept out of the gallery on
+    // purpose). It is shown whole, in its own 4:3 shape, so nothing is cropped.
+    photo: { src: "assets/photos/surprise.jpg", thumb: "assets/photos/surprise-800.jpg", alt: "Mahi and Ayush together at sunset" },
     // Approved. Replace this text to change the secret message.
     message: "Thank you for being a part of our story. Your love and blessings mean the world to us.",
     signature: "Mahi & Ayush",

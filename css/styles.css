@@ -17,7 +17,6 @@
   --gold-deep: #7a5c28;
   --ink: #3a2f24;
   --ink-soft: #6b5d4c;
-  --envelope: #efe6d6;
 
   --serif: "Cormorant Garamond", "Cormorant", "Playfair Display", Garamond, "Times New Roman", serif;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -4498,269 +4497,465 @@ html.has-dialog {
   .vn-spray-r { transform: scaleX(-1) !important; }
 }
 
-/* ── 6 · A Little Surprise ────────────────── */
-
+/* ── 6 · A Keepsake from Our Hearts ───────────
+   A small illustrated memory book (surprise.js). Closed: an ivory cover
+   with a fine gold rule, sprigs, corners, a wreath, the title in script
+   and "Open your keepsake". Opening (about 3.2 s): the book presses in,
+   the cover lifts away from its top edge, a soft gold light blooms, the
+   inner page rises, the photograph emerges, then the divider, message,
+   signature and a last flourish. Closing (about 1.4 s) runs it back. The
+   state is .ks[data-state]: closed, opening, open, closing. */
 .surprise {
-  background: var(--white);
-  background-image: var(--grain);
+  overflow: hidden; /* the reveal's glow reaches past the book */
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 45%, rgba(255, 253, 248, 0.95), rgba(255, 253, 248, 0) 72%),
+    var(--grain),
+    linear-gradient(180deg, #fcf7ee, #faf2e6);
 }
 
-.surprise-stage {
+.ks {
+  --ks-gold: #c3a064;
+  --ks-brown: #4a3826;
+  --ks-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ks-lift: cubic-bezier(0.45, 0.05, 0.25, 1);
   display: grid;
   justify-items: center;
-  gap: 1.5rem;
+  padding-bottom: 2.5rem; /* room for the ribbon */
+}
+
+.ks-book {
+  position: relative;
+  display: grid;
+  width: min(100%, 27rem);
+  perspective: 1500px;
+}
+
+.ks-page,
+.ks-cover {
+  grid-area: 1 / 1;
+  position: relative;
+  border-radius: 3px;
+}
+
+.ks-rules {
+  --g: linear-gradient(var(--ks-gold), var(--ks-gold));
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  background:
+    var(--g) left top / 100% 1px no-repeat, var(--g) left bottom / 100% 1px no-repeat,
+    var(--g) left top / 1px 100% no-repeat, var(--g) right top / 1px 100% no-repeat;
+}
+
+.ks-rules::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 0.5px solid rgba(195, 160, 100, 0.55);
+}
+
+/* The bookmark ribbon, peeping out below the book. */
+.ks-ribbon {
+  position: absolute;
+  z-index: 0;
+  right: 18%;
+  top: calc(100% - 2px);
+  width: 15px;
+  height: 36px;
+  background: linear-gradient(90deg, #e3b5a7, #f5dbd1 50%, #e3b5a7);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+.ks-glow {
+  position: absolute;
+  z-index: 0;
+  inset: -14% -12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(246, 217, 160, 0.6), rgba(246, 217, 160, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The cover */
+.ks-cover {
+  z-index: 2;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  padding: clamp(2.6rem, 9vw, 3.4rem) clamp(1.4rem, 6vw, 2.4rem);
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, rgba(255, 253, 248, 0.95), rgba(255, 253, 248, 0) 70%),
+    var(--grain),
+    linear-gradient(170deg, #fbf4e8, #f2e5cf);
+  box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 40px 64px -38px rgba(98, 74, 40, 0.5);
+  transform-origin: 50% 0;
+  backface-visibility: hidden;
+}
+
+.ks-cover .film-corner {
+  z-index: -1;
+  width: 46px;
+}
+
+.ks-corner-bl { bottom: 6px; left: 6px; transform: scaleY(-1); }
+.ks-corner-br { bottom: 6px; right: 6px; transform: scale(-1, -1); }
+
+.ks-sprig {
+  position: absolute;
+  z-index: -1;
+  top: 13px;
+  width: 36%;
+}
+
+.ks-sprig-l { left: 13px; }
+.ks-sprig-r { right: 13px; transform: scaleX(-1); }
+
+.ks-cover-inner {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  max-width: 20rem;
   text-align: center;
 }
 
-.surprise-envelope {
-  position: relative;
-  width: min(78vw, 320px);
-  aspect-ratio: 1.5;
-  margin-top: 2.5rem;
-  padding: 0;
-  background: none;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: transform 0.35s var(--ease);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.surprise-envelope:hover {
-  transform: translateY(-4px);
-}
-
-.s-env,
-.s-env-back,
-.s-env-pocket,
-.s-env-flap {
-  position: absolute;
-  inset: 0;
-}
-
-.s-env {
-  perspective: 900px;
-}
-
-.s-env-back {
-  background: var(--envelope);
-  border: 1px solid var(--gold-soft);
-  border-radius: 4px;
-  box-shadow: 0 26px 50px -30px rgba(58, 47, 36, 0.5);
-}
-
-.s-env-card {
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 8%;
-  bottom: 8%;
-  display: grid;
-  place-items: center;
-  background: var(--white);
-  border: 1px solid var(--gold-soft);
-  transition: transform 0.55s 0.3s var(--ease);
-}
-
-.s-env-card-sprig {
-  width: 22%;
-  height: auto;
-  aspect-ratio: 120 / 220;
-  color: var(--gold);
-  opacity: 0.8;
-}
-
-.s-env-pocket {
-  filter: drop-shadow(0 -1px 0 var(--gold-soft));
-}
-
-.s-env-pocket::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #f7f1e6, var(--envelope));
-  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
-  border-radius: 4px;
-}
-
-.s-env-flap {
-  z-index: 3;
-  transform-origin: 50% 0;
-  filter: drop-shadow(0 1px 0 var(--gold-soft));
-}
-
-.s-env-flap::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #f3ebdd, #ebe0cc);
-  clip-path: polygon(0 0, 100% 0, 50% 60%);
-}
-
-.s-env-seal {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  top: 60%;
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle at 35% 30%, #d9bd85, var(--gold) 45%, #a7854a 100%);
-  box-shadow: 0 0 0 3px rgba(195, 160, 100, 0.22), 0 6px 14px -6px rgba(122, 92, 40, 0.8);
-  color: var(--ivory);
-  animation: seal-glow 2.8s ease-in-out infinite;
-}
-
-.s-env-seal .icon {
-  width: 24px;
-  height: 24px;
-}
-
-@keyframes seal-glow {
-  50% {
-    box-shadow: 0 0 0 9px rgba(195, 160, 100, 0.12), 0 6px 14px -6px rgba(122, 92, 40, 0.8);
-  }
-}
-
-.is-opening .s-env-seal {
-  animation: seal-away 0.35s var(--ease) forwards;
-}
-
-.is-opening .s-env-flap {
-  animation: flap-open 0.55s 0.15s var(--ease) forwards;
-}
-
-.is-opening .s-env-card {
-  z-index: 2;
-  transform: translateY(-45%);
-}
-
-.is-open .surprise-envelope,
-.is-open .surprise-hint {
-  display: none;
-}
-
-.surprise-hint {
-  display: grid;
-  gap: 0.35rem;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.3rem, 4.6vw, 1.55rem);
-  color: var(--ink);
-}
-
-.surprise-hint span {
-  font-family: var(--sans);
-  font-style: normal;
-  font-size: 0.72rem;
+.ks-eyebrow {
+  font-family: "Montserrat", var(--sans);
+  font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--gold-text);
 }
 
-.surprise-note {
-  width: 100%;
-  max-width: 30rem;
-  animation: unfold 0.7s var(--ease) both;
+.ks-title {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  font-weight: 400;
 }
 
-.surprise-card {
+.ks-script {
+  height: clamp(2.7rem, 11.5vw, 3.5rem);
+  color: #8a6830;
+}
+
+.surprise .ks-script path,
+.surprise .ks-sign path {
+  stroke-width: 5;
+}
+
+.ks-emblem {
+  display: block;
+  width: 108px;
+}
+
+.ks-wreath,
+.ks-divider-svg,
+.ks-finish-svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.ks-invite {
+  font-family: "Cormorant Garamond", var(--serif);
+  font-style: italic;
+  font-size: clamp(1.25rem, 4.8vw, 1.4rem);
+  line-height: 1.35;
+  color: var(--ks-brown);
+}
+
+/* The whole cover is the button's tap area (its ::after); the pill shows
+   where to press. */
+.ks-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 0.35rem;
+  padding: 0.7rem 1.45rem;
+  border: 1px solid var(--ks-gold);
+  border-radius: 999px;
+  background: rgba(255, 252, 245, 0.92);
+  font-family: "Montserrat", var(--sans);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ks-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.ks-open:hover {
+  background: #fffaf0;
+  box-shadow: 0 6px 16px -10px rgba(122, 92, 40, 0.6);
+}
+
+.ks-open:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 3px;
+}
+
+/* A slow, faint light across the closed cover. */
+.ks-sheen {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ks-sheen::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: -45%;
+  width: 35%;
+  background: linear-gradient(100deg, rgba(255, 248, 230, 0), rgba(255, 248, 230, 0.55), rgba(255, 248, 230, 0));
+  transform: skewX(-12deg);
+  opacity: 0;
+}
+
+/* The inner page */
+.ks-page {
+  z-index: 1;
   display: grid;
   justify-items: center;
-  gap: 1.25rem;
-  padding: clamp(2.5rem, 8vw, 3.5rem) clamp(1.25rem, 6vw, 2.75rem);
-  background: var(--ivory);
-  box-shadow: var(--shadow-soft);
+  align-content: center;
+  gap: 1.05rem;
+  padding: clamp(1.9rem, 7vw, 2.6rem) clamp(1.4rem, 6vw, 2.4rem) clamp(2rem, 7vw, 2.6rem);
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 65%),
+    var(--grain),
+    linear-gradient(180deg, #fffcf6, #f9f0e2);
+  box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 36px 60px -36px rgba(98, 74, 40, 0.45);
+  text-align: center;
 }
 
-.surprise-photo-frame {
-  width: min(64vw, 250px);
-  padding: 6px;
-  border: 1px solid var(--gold);
-  border-radius: 999px 999px 4px 4px;
-  background: var(--white);
+.ks-photo {
+  position: relative;
+  width: 100%;
+  margin: 0;
 }
 
-.surprise-photo {
+.ks-photo-mat {
+  padding: 8px;
+  background: #fffdf9;
+  box-shadow: 0 0 0 1px rgba(195, 160, 100, 0.8), 0 16px 28px -18px rgba(74, 56, 38, 0.5);
+}
+
+.ks-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  outline: 1px solid rgba(195, 160, 100, 0.35);
+  outline-offset: -1px;
+}
+
+.surprise-photo-empty {
   display: grid;
   place-items: center;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border-radius: 999px 999px 2px 2px;
+  aspect-ratio: 4 / 3;
   background: var(--paper);
-  animation: photo-in 0.9s 0.25s var(--ease) both;
 }
 
 .surprise-photo-empty .monogram img {
-  width: 82%;
+  width: 50%;
   height: auto;
-  margin: auto;
 }
 
-.surprise-message {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.35rem, 5vw, 1.6rem);
-  line-height: 1.45;
+.ks-divider {
+  width: 140px;
 }
 
-.surprise-signature {
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--gold-text);
+.ks-message {
+  max-width: 24rem;
+  font-family: "Libre Baskerville", Baskerville, Georgia, serif;
+  font-size: clamp(1rem, 3.9vw, 1.08rem);
+  line-height: 1.8;
+  color: var(--ks-brown);
 }
 
-#surprise-note-title:focus {
-  outline: none;
+.ks-signature {
+  margin: 0;
 }
 
-@keyframes unfold {
-  from {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    transform: translateY(-12px);
+.ks-sign {
+  height: clamp(2.4rem, 10vw, 2.9rem);
+  color: #8a6830;
+}
+
+.ks-finish {
+  width: 110px;
+  margin-top: -0.5rem;
+}
+
+.ks-close-wrap {
+  margin-top: 0.2rem;
+}
+
+/* ── Entrance (once, when the section comes into view) */
+.js .ks-book { opacity: 0; transform: translateY(18px) scale(0.98); transition: opacity 0.8s ease, transform 0.9s var(--ks-ease); }
+.js .ks.is-in .ks-book { opacity: 1; transform: none; }
+.js .ks-cover :is(.ks-eyebrow, .ks-invite, .ks-open) { opacity: 0; transform: translateY(10px); }
+.js .ks.is-in .ks-cover :is(.ks-eyebrow, .ks-invite, .ks-open) { opacity: 1; transform: none; }
+.js .ks.is-in .ks-eyebrow { transition: opacity 0.8s ease 0.3s, transform 0.9s var(--ks-ease) 0.3s; }
+.js .ks.is-in .ks-invite { transition: opacity 0.8s ease 1.5s, transform 0.9s var(--ks-ease) 1.5s; }
+.js .ks.is-in .ks-open { transition: opacity 0.8s ease 1.75s, transform 0.9s var(--ks-ease) 1.75s, background-color 0.25s ease, box-shadow 0.25s ease; }
+.js .ks-script path { stroke-dasharray: 1; stroke-dashoffset: 1; fill-opacity: 0; }
+.js .ks.is-in .ks-script path {
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  transition:
+    stroke-dashoffset 0.9s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 80ms + var(--o, 0.45s)),
+    fill-opacity 0.6s ease calc(var(--i) * 80ms + var(--o, 0.45s) + 0.55s);
+}
+.ks-script-2 { --o: 1.05s; }
+.js .ks-cover .ld-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.js .ks-cover .ld-bloom { opacity: 0; }
+.js .ks.is-in .ks-cover .ld-draw { stroke-dashoffset: 0; transition: stroke-dashoffset 1.4s cubic-bezier(0.45, 0.05, 0.3, 1) 0.6s; }
+.js .ks.is-in .ks-cover .ld-bloom { opacity: 1; transition: opacity 0.9s ease 1.4s; }
+.js .ks-rules { background-size: 0 1px, 0 1px, 1px 0, 1px 0; }
+.js .ks.is-in .ks-rules { background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%; transition: background-size 1.3s var(--ks-ease) 0.35s; }
+.js .ks.is-in[data-state="closed"] .ks-sheen::before { animation: ks-sheen 9s ease-in-out 3.5s infinite; }
+
+/* ── The inner page, closed */
+.js .ks-page { opacity: 0; transform: translateY(8px); }
+.js .ks-photo-mat { opacity: 0; transform: scale(0.97); }
+.js .ks-img { opacity: 0; clip-path: inset(12% 12% 12% 12%); transform: scale(0.97); }
+.js .ks-page .ld-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.js .ks-page .ld-bloom { opacity: 0; }
+.js .ks-message { opacity: 0; transform: translateY(10px); }
+.js .ks-sign path { stroke-dasharray: 1; stroke-dashoffset: 1; fill-opacity: 0; }
+.js .ks-close-wrap { opacity: 0; transform: translateY(8px); }
+
+/* ── Opening, and open */
+.ks[data-state="opening"] .ks-book { animation: ks-press 0.38s var(--ks-ease); }
+.ks[data-state="opening"] .ks-sheen::before { opacity: 1; animation: ks-sweep 0.6s ease-out; }
+.ks[data-state="opening"] .ks-glow { animation: ks-glow 1.7s ease-out 0.3s both; }
+.ks:is([data-state="opening"], [data-state="open"]) .ks-cover {
+  transform: rotateX(-82deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.85s var(--ks-lift) 0.25s, opacity 0.4s ease 0.7s;
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-page {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.55s ease 0.35s, transform 0.6s var(--ks-ease) 0.35s;
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-photo-mat {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s ease 0.7s, transform 0.8s var(--ks-ease) 0.7s;
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-img {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  transform: none;
+  transition: opacity 0.5s ease 0.85s, clip-path 0.85s var(--ks-ease) 0.85s, transform 0.9s var(--ks-ease) 0.85s;
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-divider .ld-draw { stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s ease 1.45s; }
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-divider .ld-bloom { opacity: 1; transition: opacity 0.4s ease 1.75s; }
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-message {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s ease 1.65s, transform 0.75s var(--ks-ease) 1.65s;
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-sign path {
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+  transition:
+    stroke-dashoffset 0.5s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 45ms + 2.1s),
+    fill-opacity 0.35s ease calc(var(--i) * 45ms + 2.4s);
+}
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-finish .ld-draw { stroke-dashoffset: 0; transition: stroke-dashoffset 0.45s ease 2.7s; }
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-finish .ld-bloom { opacity: 1; transition: opacity 0.35s ease 2.95s; }
+.js .ks:is([data-state="opening"], [data-state="open"]) .ks-close-wrap {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s ease 2.8s, transform 0.6s var(--ks-ease) 2.8s;
+}
+
+/* ── Closing: the same, gently in reverse */
+.ks[data-state="closing"] .ks-cover { transition: transform 0.75s var(--ks-ease) 0.55s, opacity 0.35s ease 0.55s; }
+.js .ks[data-state="closing"] .ks-page { transition: opacity 0.45s ease 0.6s, transform 0.5s ease 0.6s; }
+.js .ks[data-state="closing"] .ks-photo-mat { transition: opacity 0.4s ease 0.35s, transform 0.45s ease 0.35s; }
+.js .ks[data-state="closing"] .ks-img { transition: opacity 0.4s ease 0.25s, clip-path 0.45s ease 0.2s, transform 0.45s ease 0.2s; }
+.js .ks[data-state="closing"] :is(.ks-message, .ks-close-wrap) { transition: opacity 0.35s ease, transform 0.4s ease; }
+.js .ks[data-state="closing"] .ks-sign path { transition: stroke-dashoffset 0.3s ease, fill-opacity 0.25s ease; }
+.js .ks[data-state="closing"] .ks-page .ld-draw { transition: stroke-dashoffset 0.3s ease 0.1s; }
+.js .ks[data-state="closing"] .ks-page .ld-bloom { transition: opacity 0.2s ease; }
+
+@keyframes ks-press {
+  40% { transform: scale(0.985) translateY(2px); }
+  100% { transform: none; }
+}
+
+@keyframes ks-glow {
+  0% { opacity: 0; transform: scale(0.92); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes ks-sheen {
+  0% { opacity: 0; transform: translateX(0) skewX(-12deg); }
+  4% { opacity: 1; }
+  16% { opacity: 1; }
+  20%, 100% { opacity: 0; transform: translateX(460%) skewX(-12deg); }
+}
+
+@keyframes ks-sweep {
+  from { transform: translateX(0) skewX(-12deg); }
+  to { transform: translateX(460%) skewX(-12deg); }
+}
+
+@media (min-width: 900px) {
+  .ks-book {
+    width: min(100%, 32rem);
   }
-  to {
-    opacity: 1;
-    clip-path: inset(0 0 0 0);
-    transform: none;
-  }
 }
 
-@keyframes photo-in {
-  from {
-    opacity: 0;
-    filter: blur(6px);
-    transform: scale(1.04);
+/* Reduced motion: no lifting, drawing or light; a short fade either way. */
+@media (prefers-reduced-motion: reduce) {
+  .surprise *,
+  .surprise *::before,
+  .surprise *::after {
+    animation: none !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.2s !important;
   }
+
+  .ks:is([data-state="opening"], [data-state="open"]) .ks-cover { transform: none; }
+  .js .ks-book,
+  .js .ks-photo-mat,
+  .js .ks-img,
+  .js .ks-message,
+  .js .ks-close-wrap,
+  .js .ks-page,
+  .js .ks-cover :is(.ks-eyebrow, .ks-invite, .ks-open) { transform: none; clip-path: none; }
+  .js .ks-script path,
+  .js .ks-sign path { stroke-dashoffset: 0; fill-opacity: 1; }
+  .js .surprise .ld-draw { stroke-dashoffset: 0; }
+  .js .surprise .ld-bloom { opacity: 1; }
+  .js .ks-rules { background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%; }
 }
 
 @keyframes fade {
   from {
     opacity: 0;
   }
-}
-
-/* Shared by the surprise envelope. */
-@keyframes seal-away {
-  to {
-    opacity: 0;
-    transform: translate(-50%, -80%) scale(0.85);
-  }
-}
-
-@keyframes flap-open {
-  0% { transform: rotateX(0); z-index: 3; }
-  49% { z-index: 3; }
-  50% { z-index: 1; }
-  100% { transform: rotateX(180deg); z-index: 1; }
 }
 
 /* ── 7 · Closing ──────────────────────────── */
