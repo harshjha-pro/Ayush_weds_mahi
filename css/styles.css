@@ -1179,167 +1179,741 @@ address {
 
 /* ── 3 · The Celebration ──────────────────── */
 
-.details-card {
-  max-width: 40rem;
-  padding: clamp(2.75rem, 8vw, 4rem) clamp(1.25rem, 6vw, 3.5rem);
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
+/* A finely printed invitation in a palace garden. Type: Pinyon Script for
+   the heading (drawn as outlines), Cormorant Garamond for the date number,
+   Libre Baskerville for titles, dates and names, Montserrat for small
+   labels. Each part reveals when it comes into view (.is-in, details.js). */
+.celebration {
+  --cel-serif: "Libre Baskerville", Baskerville, "Cormorant Garamond", Georgia, serif;
+  --cel-label: "Montserrat", var(--sans);
+  --cel-gold: #b89255;
+  --cel-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--ivory) 0%, #fdf8f0 45%, #fbf3ea 100%);
 }
 
-.date-block {
-  text-align: center;
+/* Background: palace and garden, softly faded, with blossom sprays. */
+.cel-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
-.date-weekday {
-  font-size: 0.75rem;
+.cel-palace {
+  position: absolute;
+  left: 50%;
+  top: clamp(1rem, 4vw, 2.5rem);
+  width: min(1100px, 150vw);
+  aspect-ratio: 2 / 1;
+  margin-left: max(-550px, -75vw);
+  opacity: 0.22;
+  -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000 30%, transparent 92%);
+}
+
+.cel-garden {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(140px, 26vw, 260px);
+  opacity: 0.45;
+  -webkit-mask-image: linear-gradient(0deg, #000 40%, transparent), linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(0deg, #000 40%, transparent), linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-composite: intersect;
+}
+
+.cel-palace svg,
+.cel-garden svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cel-spray {
+  position: absolute;
+  width: clamp(120px, 26vw, 250px);
+  aspect-ratio: 1;
+  opacity: 0.9;
+}
+
+.cel-spray-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* On phones the left spray sits above the heading, clear of the words. */
+.cel-spray-l {
+  left: -34px;
+  top: 0;
+  width: clamp(96px, 24vw, 250px);
+  transform-origin: 0 100%;
+}
+
+@media (min-width: 760px) {
+  .cel-spray-l {
+    left: clamp(-60px, -4vw, -10px);
+    top: clamp(5.5rem, 14vw, 9rem);
+  }
+}
+
+.cel-spray-r {
+  right: clamp(-60px, -4vw, -10px);
+  bottom: clamp(5rem, 16vw, 10rem);
+  transform: scaleX(-1);
+  transform-origin: 50% 50%;
+}
+
+/* A gentle breeze in the sprays (the `rotate` property, so it never
+   fights the mirroring or the scroll parallax). */
+.js .cel-bg.is-in .cel-spray {
+  animation: cel-sway 7s ease-in-out infinite alternate;
+}
+
+.js .cel-bg.is-in .cel-spray-r {
+  animation-duration: 8.5s;
+  animation-delay: -3s;
+}
+
+/* Heading: "The Celebration" written by a fine golden pen. */
+.cel-head {
+  position: relative;
+  margin-bottom: clamp(2.5rem, 7vw, 3.75rem);
+}
+
+.cel-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-family: var(--cel-label);
+  font-size: 0.68rem;
   font-weight: 500;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--gold-text);
 }
 
-.date-main {
+.cel-label .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.cel-title {
+  margin-top: 0.5rem;
+}
+
+.cel-script {
+  height: clamp(3.6rem, 16vw, 5.6rem);
+  color: var(--cel-gold);
+}
+
+.celebration .cel-script path {
+  stroke-width: 5;
+}
+
+.js .celebration .cel-script[data-draw] path {
+  transition:
+    stroke-dashoffset 1.1s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 110ms + 0.2s),
+    fill-opacity 0.8s ease calc(var(--i) * 110ms + 0.95s);
+}
+
+.cel-sub {
+  max-width: 30ch;
+  margin: 0.9rem auto 0;
+  font-family: var(--cel-serif);
+  font-style: italic;
+  font-size: clamp(0.98rem, 3.6vw, 1.12rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* The invitation panel: ivory paper, a double gold rule, corner
+   flourishes and a crest on the top edge. */
+.cel-card {
+  position: relative;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(3.4rem, 10vw, 4.75rem) clamp(1.4rem, 7vw, 4rem) clamp(2.75rem, 8vw, 4rem);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(180deg, #fffdf9, #fdf8f0);
+  box-shadow: 0 2px 4px rgba(58, 47, 36, 0.03), 0 30px 60px -36px rgba(98, 74, 40, 0.35);
+}
+
+/* Each rule is four hairlines that grow from the middle of each side. */
+.cel-border {
+  position: absolute;
+  pointer-events: none;
+  --t: 1px;
+  background:
+    linear-gradient(var(--cel-gold), var(--cel-gold)) top center / 100% var(--t) no-repeat,
+    linear-gradient(var(--cel-gold), var(--cel-gold)) bottom center / 100% var(--t) no-repeat,
+    linear-gradient(var(--cel-gold), var(--cel-gold)) left center / var(--t) 100% no-repeat,
+    linear-gradient(var(--cel-gold), var(--cel-gold)) right center / var(--t) 100% no-repeat;
+}
+
+.cel-border-o {
+  inset: 10px;
+  opacity: 0.85;
+}
+
+.cel-border-i {
+  inset: 16px;
+  --t: 0.6px;
+  opacity: 0.55;
+}
+
+.cel-corner {
+  position: absolute;
+  width: clamp(64px, 16vw, 104px);
+  height: auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.cel-corner-tl { top: 4px; left: 4px; }
+.cel-corner-tr { top: 4px; right: 4px; transform: scaleX(-1); }
+.cel-corner-bl { bottom: 4px; left: 4px; transform: scaleY(-1); }
+.cel-corner-br { bottom: 4px; right: 4px; transform: scale(-1, -1); }
+
+.cel-crest {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: clamp(120px, 34vw, 170px);
+  transform: translate(-50%, -48%);
+  padding: 0 0.5rem;
+  background: var(--ivory);
+}
+
+.cel-crest-svg,
+.cel-divider {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.cel-divider {
+  width: min(220px, 70%);
+  margin: clamp(1.9rem, 6vw, 2.5rem) auto;
+}
+
+/* The date: weekday label, then month · 15 · year. */
+.celebration .date-block {
+  text-align: center;
+}
+
+.celebration .date-main {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.75rem, 4vw, 1.5rem);
-  margin-top: 0.6rem;
-  font-family: var(--serif);
+  gap: clamp(0.9rem, 4.5vw, 1.75rem);
+  margin-top: 0.9rem;
 }
 
-.date-month,
-.date-year {
-  min-width: 4.5em;
-  padding-block: 0.4rem;
+.celebration .date-month,
+.celebration .date-year {
+  min-width: 5.6em;
+  padding-block: 0.55rem;
   border-block: 1px solid var(--gold-soft);
-  font-size: clamp(1.05rem, 4.2vw, 1.35rem);
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-family: var(--cel-serif);
+  font-size: clamp(0.78rem, 3vw, 0.92rem);
+  font-weight: 400;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-}
-
-.date-day {
-  font-size: clamp(3.8rem, 17vw, 5.25rem);
-  font-weight: 500;
-  line-height: 1;
   color: var(--ink);
 }
 
-.schedule {
-  display: grid;
-  gap: 0.35rem;
-  margin-top: clamp(2rem, 6vw, 2.75rem);
-}
-
-.schedule-item {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-height: 56px;
-}
-
-.schedule-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--gold-soft);
-  border-radius: 50%;
-  color: var(--gold-text);
-}
-
-.schedule-name {
+.celebration .date-day {
   font-family: var(--serif);
-  font-size: clamp(1.2rem, 4.4vw, 1.4rem);
+  font-size: clamp(3.4rem, 15vw, 4.75rem);
   font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  color: var(--ink);
 }
 
-.schedule-dots {
-  flex: 1;
-  min-width: 1rem;
-  border-bottom: 1px dotted var(--gold);
-  transform: translateY(4px);
-}
-
-.schedule-time {
-  font-family: var(--serif);
-  font-size: clamp(1.2rem, 4.4vw, 1.4rem);
-  font-weight: 600;
-  font-variant-numeric: lining-nums;
-  white-space: nowrap;
-}
-
-.tz-note {
-  margin-top: 0.75rem;
-  text-align: right;
-  font-size: 0.75rem;
-  color: var(--ink-soft);
-}
-
-.details-venue {
-  display: flex;
-  gap: 0.85rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--gold-faint);
-}
-
-.details-venue-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--gold-soft);
-  border-radius: 50%;
-  color: var(--gold-text);
-}
-
-.details-venue-name {
-  font-family: var(--serif);
-  font-size: clamp(1.35rem, 5vw, 1.6rem);
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-.details-venue address {
-  margin: 0.35rem 0 0.5rem;
-  color: var(--ink-soft);
-}
-
-.details-extras {
-  display: grid;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--gold-faint);
-}
-
-.details-extras dt {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--gold-text);
-}
-
-.details-extras dd {
-  margin-top: 0.25rem;
-  color: var(--ink-soft);
-}
-
-.details-calendar {
+/* The programme: a gold line joins the icons; dotted leaders run to the
+   times, which line up on the right. */
+.cel-programme {
   display: grid;
   justify-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--gold-faint);
+  gap: 1.25rem;
+}
+
+.cel-timeline {
+  position: relative;
+  display: grid;
+  gap: clamp(0.9rem, 3vw, 1.3rem);
+  width: 100%;
+  max-width: 30rem;
+  margin: 0;
+}
+
+.cel-timeline::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 22px;
+  bottom: 22px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(184, 146, 85, 0.2), var(--cel-gold) 15%, var(--cel-gold) 85%, rgba(184, 146, 85, 0.2));
+  transform-origin: 50% 0;
+}
+
+.celebration .schedule-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px auto 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 48px;
+}
+
+.celebration .schedule-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--cel-gold);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffdf9, #f8efe0);
+  box-shadow: 0 0 0 4px #fffcf6, 0 6px 14px -10px rgba(122, 92, 40, 0.6);
+  color: var(--gold-text);
+}
+
+.celebration .schedule-icon .icon {
+  width: 19px;
+  height: 19px;
+}
+
+.celebration .schedule-name,
+.celebration .schedule-time {
+  font-family: var(--cel-serif);
+  font-size: clamp(0.98rem, 3.8vw, 1.08rem);
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.celebration .schedule-time {
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--gold-deep);
+}
+
+.celebration .schedule-dots {
+  min-width: 0.75rem;
+  height: 2px;
+  border: 0;
+  background: radial-gradient(circle, var(--cel-gold) 0.8px, transparent 1.1px) left center / 7px 2px repeat-x;
+  opacity: 0.8;
+  transform: translateY(3px);
+}
+
+.celebration .tz-note {
+  margin: 0;
+  font-family: var(--cel-label);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
   text-align: center;
+  color: var(--ink-soft);
+}
+
+/* The venue: a small palace beside the name, address and directions. */
+.cel-venue {
+  display: grid;
+  justify-items: center;
+  gap: 1.1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-align: center;
+}
+
+.cel-venue-art {
+  position: relative;
+  width: min(240px, 72%);
+  aspect-ratio: 2 / 1;
+  -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 22%);
+  mask-image: linear-gradient(0deg, transparent 0, #000 22%);
+}
+
+.cel-venue-art svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cel-venue-info {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+}
+
+.celebration .details-venue-name {
+  font-family: var(--cel-serif);
+  font-size: clamp(1.18rem, 4.6vw, 1.42rem);
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.celebration .details-venue address {
+  margin: 0;
+  font-family: var(--cel-serif);
+  font-style: normal;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.cel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.cel-actions .calendar-actions {
+  display: contents;
+}
+
+@media (min-width: 640px) {
+  .cel-venue {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 2rem;
+    text-align: left;
+  }
+
+  .cel-venue-art {
+    width: 100%;
+  }
+
+  .cel-venue-info {
+    justify-items: start;
+  }
+
+  .cel-venue .cel-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Families. */
+.celebration .details-families {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.celebration .families-line {
+  font-family: var(--cel-serif);
+  font-size: 0.98rem;
+}
+
+.celebration .family .eyebrow {
+  font-family: var(--cel-label);
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+}
+
+.celebration .family-names {
+  font-family: var(--cel-serif);
+  font-size: clamp(0.98rem, 3.8vw, 1.06rem);
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+.celebration .details-extras {
+  margin-top: 2rem;
+}
+
+.celebration .details-calendar {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  margin-top: clamp(2.25rem, 7vw, 3rem);
+  padding: 0;
+  border: 0;
+  text-align: center;
+}
+
+/* Buttons: a restrained gold shimmer on hover, a small press. */
+.celebration .btn {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--cel-label);
+  letter-spacing: 0.18em;
+}
+
+.celebration .btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 240, 206, 0.55) 48%, rgba(255, 240, 206, 0) 62%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.celebration .btn-ghost::after {
+  background: linear-gradient(105deg, transparent 30%, rgba(214, 183, 121, 0.28) 48%, rgba(214, 183, 121, 0) 62%);
+}
+
+@media (hover: hover) {
+  .celebration .btn:hover::after {
+    transform: translateX(120%);
+    transition: transform 0.9s var(--cel-ease);
+  }
+}
+
+.celebration .btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Reveals ── (hidden only when scripts run; .is-in shows them) */
+
+.js .cel-bg {
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.js .cel-bg.is-in {
+  opacity: 1;
+}
+
+.js .cel-head .cel-label,
+.js .cel-sub {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.9s ease, transform 0.9s var(--cel-ease);
+}
+
+.js .cel-sub {
+  transition-delay: 1.5s;
+}
+
+.js .cel-head.is-in .cel-label,
+.js .cel-head.is-in .cel-sub {
+  opacity: 1;
+  transform: none;
+}
+
+/* Panel: the paper fades up, then the gold rules grow from the middle of
+   each side, then the corners and crest are drawn. */
+.js .cel-card {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 1s ease, transform 1.1s var(--cel-ease);
+}
+
+.js .cel-card.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.js .cel-border {
+  background-size: 0% var(--t), 0% var(--t), var(--t) 0%, var(--t) 0%;
+  transition: background-size 1.5s var(--cel-ease) 0.35s;
+}
+
+.js .cel-border-i {
+  transition-delay: 0.6s;
+}
+
+.js .cel-card.is-in .cel-border {
+  background-size: 100% var(--t), 100% var(--t), var(--t) 100%, var(--t) 100%;
+}
+
+.js .cel-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.45, 0.05, 0.4, 1) 0.5s;
+}
+
+.js .cel-bloom {
+  opacity: 0;
+  transition: opacity 0.9s ease 1.5s;
+}
+
+.js .cel-card.is-in .cel-crest .cel-draw,
+.js .cel-corner.is-in .cel-draw,
+.js .cel-divider.is-in .cel-draw {
+  stroke-dashoffset: 0;
+}
+
+.js .cel-card.is-in .cel-crest .cel-bloom,
+.js .cel-corner.is-in .cel-bloom,
+.js .cel-divider.is-in .cel-bloom {
+  opacity: 1;
+}
+
+.js .cel-divider .cel-draw {
+  transition-delay: 0.1s;
+  transition-duration: 1.2s;
+}
+
+.js .cel-divider .cel-bloom {
+  transition-delay: 0.7s;
+}
+
+/* Date: labels fade up; the number settles from a touch smaller. */
+.js .date-block .cel-label,
+.js .date-block .date-month,
+.js .date-block .date-year {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.8s ease, transform 0.8s var(--cel-ease);
+}
+
+.js .date-block .date-month { transition-delay: 0.25s; }
+.js .date-block .date-year { transition-delay: 0.4s; }
+
+.js .date-block .date-day {
+  display: inline-block;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 1.1s ease 0.15s, transform 1.3s var(--cel-ease) 0.15s;
+}
+
+.js .date-block.is-in .cel-label,
+.js .date-block.is-in .date-month,
+.js .date-block.is-in .date-year,
+.js .date-block.is-in .date-day {
+  opacity: 1;
+  transform: none;
+}
+
+/* Programme: the gold line draws downward, then each stop arrives. */
+.js .cel-programme .cel-label,
+.js .cel-programme .tz-note {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.js .cel-programme .tz-note {
+  transition-delay: 1.6s;
+}
+
+.js .cel-timeline::before {
+  transform: scaleY(0);
+  transition: transform 1.4s cubic-bezier(0.45, 0.05, 0.3, 1) 0.2s;
+}
+
+.js .cel-timeline .schedule-icon {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.6s ease, transform 0.7s var(--cel-ease);
+  transition-delay: calc(0.45s + var(--i) * 0.32s);
+}
+
+.js .cel-timeline .schedule-name,
+.js .cel-timeline .schedule-dots,
+.js .cel-timeline .schedule-time {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s ease, transform 0.8s var(--cel-ease);
+  transition-delay: calc(0.6s + var(--i) * 0.32s);
+}
+
+.js .cel-timeline .schedule-time {
+  transition-delay: calc(0.72s + var(--i) * 0.32s);
+}
+
+.js .cel-programme.is-in .cel-label,
+.js .cel-programme.is-in .tz-note,
+.js .cel-programme.is-in .schedule-icon,
+.js .cel-programme.is-in .schedule-name,
+.js .cel-programme.is-in .schedule-time {
+  opacity: 1;
+  transform: none;
+}
+
+.js .cel-programme.is-in .schedule-dots {
+  opacity: 0.8;
+  transform: translateY(3px);
+}
+
+.js .cel-programme.is-in .cel-timeline::before {
+  transform: scaleY(1);
+}
+
+/* Venue: the palace, then the words and buttons, a beat apart. */
+.js .cel-venue-art,
+.js .cel-venue-info > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.9s ease, transform 1s var(--cel-ease);
+}
+
+.js .cel-venue-info > :nth-child(1) { transition-delay: 0.15s; }
+.js .cel-venue-info > :nth-child(2) { transition-delay: 0.3s; }
+.js .cel-venue-info > :nth-child(3) { transition-delay: 0.45s; }
+.js .cel-venue-info > :nth-child(4) { transition-delay: 0.6s; }
+
+.js .cel-venue.is-in .cel-venue-art,
+.js .cel-venue.is-in .cel-venue-info > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* Families and the save-the-date row: a delicate fade. */
+.js .cel-families,
+.js .celebration .details-extras,
+.js .celebration .details-calendar {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.1s;
+}
+
+.js .cel-families.is-in,
+.js .celebration .details-extras.is-in,
+.js .celebration .details-calendar.is-in {
+  opacity: 1;
+}
+
+@keyframes cel-sway {
+  from { rotate: -1.4deg; }
+  to { rotate: 1.4deg; }
+}
+
+/* Reduced motion: everything is simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .celebration *,
+  .celebration *::before,
+  .celebration *::after,
+  .js .cel-bg,
+  .js .cel-card {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .js .celebration [data-cel],
+  .js .celebration [data-cel] *,
+  .js .cel-card {
+    opacity: 1;
+    transform: none;
+  }
+
+  .js .cel-timeline::before { transform: none; }
+  .js .cel-draw { stroke-dashoffset: 0; }
+  .js .cel-bloom { opacity: 1; }
+  .js .cel-border { background-size: 100% var(--t), 100% var(--t), var(--t) 100%, var(--t) 100%; }
+  .js .celebration .schedule-dots { opacity: 0.8; transform: translateY(3px); }
+  .cel-corner-tr { transform: scaleX(-1) !important; }
+  .cel-corner-bl { transform: scaleY(-1) !important; }
+  .cel-corner-br { transform: scale(-1, -1) !important; }
+  .cel-spray-r { transform: scaleX(-1) !important; }
 }
 
 .calendar-actions,

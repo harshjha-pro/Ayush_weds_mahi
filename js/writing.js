@@ -19,6 +19,8 @@ const SKIP = [
   ".countdown-done",
   ".surprise-note",
   ".lightbox",
+  // The Celebration has its own, gentler reveals (details.js).
+  "#celebration",
   ".visually-hidden",
   "[aria-hidden='true']",
   "[hidden]",

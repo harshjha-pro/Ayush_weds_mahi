@@ -9,6 +9,10 @@ const LAYERS = [
   [".closing-sprig", 0.06],
   [".venue-sprig", 0.05],
   [".arch-sprig", -0.04],
+  [".cel-palace", 0.06],
+  [".cel-garden", 0.03],
+  [".cel-spray-l", 0.05],
+  [".cel-spray-r", -0.04],
 ];
 
 export function startParallax() {

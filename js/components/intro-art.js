@@ -9,7 +9,7 @@ const f = (n) => Math.round(n * 10) / 10;
 
 // A filled, tapering stroke along a cubic Bézier: used for bark and twigs so
 // they thin naturally towards their tips.
-function taper([p0, p1, p2, p3], w0, w1, steps = 28) {
+export function taper([p0, p1, p2, p3], w0, w1, steps = 28) {
   const pt = (t) => {
     const u = 1 - t;
     return [
@@ -35,7 +35,7 @@ function taper([p0, p1, p2, p3], w0, w1, steps = 28) {
 }
 
 // A cusped (Rajput) arch opening, base at y.
-function cuspedArch(x, y, w, h) {
+export function cuspedArch(x, y, w, h) {
   const r = w / 2;
   const top = y - h;
   const s = y - h + r * 0.9;
@@ -43,7 +43,7 @@ function cuspedArch(x, y, w, h) {
 }
 
 // Onion dome sitting on a base line.
-function onion(cx, base, w, h) {
+export function onion(cx, base, w, h) {
   const r = w / 2;
   return `M${f(cx - r * 0.82)} ${f(base)}C${f(cx - r * 1.12)} ${f(base - h * 0.32)} ${f(cx - r * 0.98)} ${f(base - h * 0.66)} ${f(cx - r * 0.3)} ${f(base - h * 0.86)}C${f(cx - r * 0.12)} ${f(base - h * 0.92)} ${f(cx)} ${f(base - h * 0.96)} ${f(cx)} ${f(base - h)}C${f(cx)} ${f(base - h * 0.96)} ${f(cx + r * 0.12)} ${f(base - h * 0.92)} ${f(cx + r * 0.3)} ${f(base - h * 0.86)}C${f(cx + r * 0.98)} ${f(base - h * 0.66)} ${f(cx + r * 1.12)} ${f(base - h * 0.32)} ${f(cx + r * 0.82)} ${f(base)}Z`;
 }
@@ -276,7 +276,7 @@ const bez = ([p0, p1, p2, p3], t) => {
 
 // A cherry-like blossom: five notched petals with a soft blush at the heart,
 // fine veins and gold-tipped stamens. `tone` picks ivory, blush or rose.
-function blossom(x, y, r, tone = 0, rot = 0) {
+export function blossom(x, y, r, tone = 0, rot = 0) {
   const fill = ["url(#ib-ivory)", "url(#ib-blush)", "url(#ib-rose)"][tone % 3];
   const edge = ["#E6D8C6", "#E8C6BC", "#DFB2A6"][tone % 3];
   const petal = `M0 0C${f(-r * 0.5)} ${f(-r * 0.22)} ${f(-r * 0.66)} ${f(-r * 0.9)} ${f(-r * 0.24)} ${f(-r * 1.06)}L0 ${f(-r * 0.93)}L${f(r * 0.24)} ${f(-r * 1.06)}C${f(r * 0.66)} ${f(-r * 0.9)} ${f(r * 0.5)} ${f(-r * 0.22)} 0 0Z`;
@@ -297,7 +297,7 @@ function blossom(x, y, r, tone = 0, rot = 0) {
 }
 
 // A blossom seen from the side: a half-open cup on its green calyx.
-function blossomSide(x, y, r, tone = 0, rot = 0) {
+export function blossomSide(x, y, r, tone = 0, rot = 0) {
   const fill = ["url(#ib-ivory)", "url(#ib-blush)", "url(#ib-rose)"][tone % 3];
   const edge = ["#E6D8C6", "#E8C6BC", "#DFB2A6"][tone % 3];
   const p = (a, s) =>
@@ -310,7 +310,7 @@ function blossomSide(x, y, r, tone = 0, rot = 0) {
   </g>`;
 }
 
-function bud(x, y, s, rot) {
+export function bud(x, y, s, rot) {
   return `<g transform="translate(${f(x)} ${f(y)}) rotate(${rot})">
     <path d="M0 0L0 ${f(s * 1.1)}" stroke="#9C8468" stroke-width=".9"/>
     <path d="M0 ${f(-s * 2.1)}C${f(-s * 0.75)} ${f(-s * 1.5)} ${f(-s * 0.7)} ${f(-s * 0.3)} 0 0C${f(s * 0.7)} ${f(-s * 0.3)} ${f(s * 0.75)} ${f(-s * 1.5)} 0 ${f(-s * 2.1)}Z" fill="url(#ib-blush)" stroke="#E2BBB0" stroke-width=".45"/>
@@ -320,7 +320,7 @@ function bud(x, y, s, rot) {
 
 // A slender leaf with a midrib and faint side veins; `fold` adds a paler
 // upper half, as if the leaf were turned a little towards the light.
-function leaf(x, y, len, rot, tone, fold = false) {
+export function leaf(x, y, len, rot, tone, fold = false) {
   const fill = ["url(#ib-leaf1)", "url(#ib-leaf2)", "url(#ib-leaf3)"][tone % 3];
   const w = len * 0.2;
   const veins = [0.3, 0.5, 0.7]
@@ -468,7 +468,16 @@ function treeParts() {
   return { twigs: layers, onLimb, limbLeaves, back };
 }
 
-const BARK_DEFS = `
+// Petal and leaf gradients shared by every flower drawing (ids start "ib-").
+export const FLOWER_DEFS = `
+      <radialGradient id="ib-ivory" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#F1E5D4"/><stop offset=".45" stop-color="#FFFCF7"/><stop offset="1" stop-color="#FFFDF9"/></radialGradient>
+      <radialGradient id="ib-blush" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#E9C2B7"/><stop offset=".5" stop-color="#F3DFD9"/><stop offset="1" stop-color="#FBF1ED"/></radialGradient>
+      <radialGradient id="ib-rose" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#DDAA9C"/><stop offset=".55" stop-color="#EBC6BB"/><stop offset="1" stop-color="#F6E2DC"/></radialGradient>
+      <linearGradient id="ib-leaf1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#CBD2B8"/><stop offset="1" stop-color="#A9B191"/></linearGradient>
+      <linearGradient id="ib-leaf2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D6DCC6"/><stop offset="1" stop-color="#B4BB9C"/></linearGradient>
+      <linearGradient id="ib-leaf3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C0C8A9"/><stop offset="1" stop-color="#9DA685"/></linearGradient>`;
+
+export const BARK_DEFS = `
   <linearGradient id="ib-bark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#AD9375"/><stop offset=".5" stop-color="#8F755B"/><stop offset="1" stop-color="#6F5947"/></linearGradient>`;
 
 // The limb's soft cast shadow, drawn once and blurred by CSS; it never
@@ -491,12 +500,7 @@ export function branchSvg() {
   <svg class="branch-svg" viewBox="0 0 560 420" preserveAspectRatio="xMidYMid meet">
     <defs>
       ${BARK_DEFS}
-      <radialGradient id="ib-ivory" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#F1E5D4"/><stop offset=".45" stop-color="#FFFCF7"/><stop offset="1" stop-color="#FFFDF9"/></radialGradient>
-      <radialGradient id="ib-blush" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#E9C2B7"/><stop offset=".5" stop-color="#F3DFD9"/><stop offset="1" stop-color="#FBF1ED"/></radialGradient>
-      <radialGradient id="ib-rose" cx=".5" cy=".85" r=".9"><stop offset="0" stop-color="#DDAA9C"/><stop offset=".55" stop-color="#EBC6BB"/><stop offset="1" stop-color="#F6E2DC"/></radialGradient>
-      <linearGradient id="ib-leaf1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#CBD2B8"/><stop offset="1" stop-color="#A9B191"/></linearGradient>
-      <linearGradient id="ib-leaf2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D6DCC6"/><stop offset="1" stop-color="#B4BB9C"/></linearGradient>
-      <linearGradient id="ib-leaf3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C0C8A9"/><stop offset="1" stop-color="#9DA685"/></linearGradient>
+      ${FLOWER_DEFS}
     </defs>
     <path d="${taper(LIMB, 15, 6)}" fill="url(#ib-bark)"/>
     <path d="${taper(under, 9, 3)}" fill="#6A5443" opacity=".28"/>
