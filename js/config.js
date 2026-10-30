@@ -150,8 +150,9 @@ export const config = {
       "You are warmly invited to celebrate the engagement of Mahi & Ayush on Sunday, 15 November 2026 in Chittorgarh.",
   },
 
-  // The opening intro film (made in Google Flow; the generator's corner mark
-  // was cropped out, its sound removed, and it was sped up slightly to 7 s).
+  // The opening intro film (a dove carries the scroll across the palace
+  // garden; made in Google Flow, its corner mark cropped out, sound removed,
+  // sped up slightly to about 7.4 s).
   // It plays after the guest taps; the poster is its first frame and the card
   // is its last. Set to null to use the drawn intro instead. If the film
   // cannot play, the drawn intro plays automatically.

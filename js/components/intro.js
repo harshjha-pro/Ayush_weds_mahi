@@ -394,9 +394,9 @@ function filmMarkup(intro, reducedMotion) {
 // the drawn version.
 const FILM_CUES = [
   [2.0, "BIRD_FLIGHT"],
-  [3.3, "INVITATION_DROP"],
-  [4.3, "LETTER_CLOSEUP"],
-  [4.7, "LETTER_OPENING"],
+  [3.6, "INVITATION_DROP"],
+  [5.0, "LETTER_CLOSEUP"],
+  [5.8, "LETTER_OPENING"],
 ];
 
 async function playFilm(el, setState) {

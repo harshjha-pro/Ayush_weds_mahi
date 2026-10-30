@@ -112,7 +112,7 @@ The intro is a storybook illustration drawn entirely in SVG: `js/components/intr
 
 ### The intro film
 
-When `intro.video` is set in `js/config.js`, the tap plays that film instead (`assets/video/intro.mp4`, made in Google Flow, portrait, about 7 s). Its generator's corner mark was cropped out, its sound removed and it was sped up slightly. Its first frame (`assets/images/intro-poster.*`) shows while the page waits, the golden light starts over its last frame (the blank card), and the site appears. On computers it sits in the middle with a soft blurred copy of itself at the sides. Visitors who prefer reduced motion see the first frame, then the blank card (`assets/images/intro-card.*`), then the site. If the film cannot play, or does not start within 4 seconds of the tap, the drawn intro plays instead. Set `intro` to `null` to always use the drawn intro.
+When `intro.video` is set in `js/config.js`, the tap plays that film instead (`assets/video/intro.mp4`, a dove carrying the scroll across the palace garden until it opens into a blank card; made in Google Flow, portrait, about 7.4 s). Its generator's corner mark was cropped out, its sound removed and it was sped up slightly. Its first frame (`assets/images/intro-poster.*`) shows while the page waits, the golden light starts over its last frame (the blank card), and the site appears. On computers it sits in the middle with a soft blurred copy of itself at the sides. Visitors who prefer reduced motion see the first frame, then the blank card (`assets/images/intro-card.*`), then the site. If the film cannot play, or does not start within 4 seconds of the tap, the drawn intro plays instead. Set `intro` to `null` to always use the drawn intro.
 
 ## Motion and lettering
 
