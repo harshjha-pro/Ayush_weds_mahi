@@ -204,7 +204,9 @@ function startFilm(box) {
       filmInView = entry.isIntersecting;
       update();
     },
-    { threshold: 0.5 },
+    // The first screen's portrait sits below the welcome, so it starts as
+    // soon as a fifth of it shows; other films wait until half is in view.
+    { threshold: box.classList.contains("hero-film") ? 0.2 : 0.5 },
   ).observe(box);
 }
 

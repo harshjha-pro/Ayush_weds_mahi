@@ -1,6 +1,6 @@
-import { celCrest } from "./celebration-art.js";
+import { celCrest, celDivider } from "./celebration-art.js";
 import { landingArches, landingBranch, landingFlourish, frameRules, frameCorner } from "./landing-art.js";
-import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words, prefersReducedMotion } from "../utils.js";
+import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words, prefersReducedMotion, scriptText } from "../utils.js";
 
 export function WelcomeSection(el, config) {
   const { couple, invitation, event } = config;
@@ -58,6 +58,24 @@ export function FilmSection(el, config) {
     const left = [8, 22, 38, 61, 76, 88, 50][i];
     return `<i class="ld-petal${i % 2 ? " is-blush" : ""}" style="left:${left}%;--d:${(1.4 + i * 0.35).toFixed(2)}s;--t:${(6.5 + (i % 3) * 1.2).toFixed(1)}s;--x:${i % 2 ? 26 : -22}px"></i>`;
   }).join("");
+  const { couple } = config;
+  // The welcome: Lord Ganesha's blessing, the mantra, a gold divider, the
+  // couple's line in script (two lines, so it stays large on phones) and
+  // their names.
+  const head = `
+    <div class="ld-head">
+      <picture class="ld-ganesha">
+        <source srcset="assets/images/ganesha.webp" type="image/webp" />
+        <img src="assets/images/ganesha.png" width="420" height="420" decoding="async" fetchpriority="high"
+             alt="Lord Ganesha seated on a lotus, raising his hand in blessing" />
+      </picture>
+      <p class="ld-mantra" lang="sa">॥ श्री गणेशाय नमः ॥</p>
+      <p class="ld-translit">Shri Ganeshaya Namah</p>
+      ${celDivider()}
+      <p class="ld-welcome">${scriptText("Together is a", "script ld-script")}${scriptText("beautiful place to be.", "script ld-script ld-script-2")}</p>
+      <p class="ld-names">${esc(couple.partnerOne.first)} <span class="ld-amp">&amp;</span> ${esc(couple.partnerTwo.first)}</p>
+      <p class="ld-tagline">A celebration of love, family &amp; forever</p>
+    </div>`;
   el.innerHTML = `
     <div class="film-bg" aria-hidden="true">
       <div class="ld-glow"></div>
@@ -68,6 +86,7 @@ export function FilmSection(el, config) {
       <div class="ld-flourish ld-flourish-r">${landingFlourish()}</div>
       <div class="ld-petals">${petals}</div>
     </div>
+    ${head}
     ${film(video, "hero-film", { frame, animate: false })}`;
   landing(el);
 }
@@ -86,7 +105,7 @@ function landing(el) {
       () => {
         el.classList.add("is-landing");
         // Once everything has arrived, drop the motion state.
-        setTimeout(() => el.classList.replace("is-landing", "is-landed"), 9500);
+        setTimeout(() => el.classList.replace("is-landing", "is-landed"), 13000);
       },
       { once: true },
     );

@@ -23,6 +23,8 @@ const SKIP = [
   "#celebration",
   "#countdown",
   "#venue",
+  // The first screen's welcome has its own sequence (welcome.js).
+  ".film-section",
   ".visually-hidden",
   "[aria-hidden='true']",
   "[hidden]",

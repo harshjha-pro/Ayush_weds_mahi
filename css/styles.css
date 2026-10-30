@@ -702,6 +702,190 @@ address {
   background: #fdf8ef;
 }
 
+/* The welcome above the portrait: Lord Ganesha's blessing, the mantra, a
+   gold divider, the couple's line in script, their names. */
+.film-section {
+  --ld-shift: 3.4s; /* the portrait's part of the sequence starts after the welcome */
+  grid-auto-rows: auto;
+  align-content: start;
+  row-gap: clamp(1.75rem, 5vh, 2.75rem);
+}
+
+.ld-head {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 34rem;
+  padding-top: clamp(0.5rem, 3vh, 1.5rem);
+  text-align: center;
+}
+
+/* Small, so it opens the page without outweighing the portrait. */
+.ld-ganesha {
+  position: relative;
+  display: block;
+  width: clamp(92px, 26vw, 128px);
+  aspect-ratio: 1;
+  margin-bottom: 0.4rem;
+}
+
+.ld-ganesha::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 217, 160, 0.55) 0%, rgba(246, 217, 160, 0.18) 45%, rgba(246, 217, 160, 0) 70%);
+  pointer-events: none;
+}
+
+.ld-ganesha img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ld-mantra {
+  font-family: "Noto Serif Devanagari", "Tiro Devanagari Sanskrit", "Kohinoor Devanagari", "Mangal", "Nirmala UI", serif;
+  font-size: clamp(1.15rem, 4.6vw, 1.4rem);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: #8a6a32;
+}
+
+.ld-translit,
+.ld-tagline {
+  font-family: "Montserrat", var(--sans);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.ld-head .cel-divider {
+  width: min(220px, 62%);
+  margin: 0.9rem auto 0.6rem;
+}
+
+.ld-welcome {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+}
+
+.ld-script {
+  height: clamp(2.5rem, 11vw, 3.5rem);
+  color: #a27f43;
+}
+
+.film-section .ld-script path {
+  stroke-width: 5;
+}
+
+.ld-names {
+  margin-top: 0.75rem;
+  font-family: "Montserrat", var(--sans);
+  font-size: clamp(0.95rem, 3.8vw, 1.1rem);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding-left: 0.34em;
+}
+
+.ld-amp {
+  font-family: "Libre Baskerville", Baskerville, var(--serif);
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gold-text);
+}
+
+.ld-tagline {
+  font-size: 0.56rem;
+  letter-spacing: 0.24em;
+}
+
+/* Welcome sequence (with the intro's hand-over; see "Landing" below). */
+.js .film-section .ld-ganesha,
+.js .film-section :is(.ld-mantra, .ld-translit, .ld-names, .ld-tagline) {
+  opacity: 0;
+}
+
+.js .film-section .ld-ganesha {
+  transform: scale(0.96);
+}
+
+.js .film-section .ld-ganesha::before {
+  opacity: 0;
+}
+
+.js .film-section .ld-names,
+.js .film-section .ld-tagline {
+  transform: translateY(10px);
+}
+
+.js .film-section.is-landing .ld-ganesha {
+  opacity: 1;
+  transform: none;
+  transition: opacity 1.4s ease 0.4s, transform 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.4s;
+}
+
+/* A soft golden glow that rises behind him and settles. */
+.js .film-section.is-landing .ld-ganesha::before {
+  animation: ld-halo 3.2s ease-out 0.6s 1 both;
+}
+
+.js .film-section.is-landed .ld-ganesha::before {
+  opacity: 1;
+}
+
+.js .film-section.is-landing .ld-mantra { opacity: 1; transition: opacity 1.1s ease 1.1s; }
+.js .film-section.is-landing .ld-translit { opacity: 1; transition: opacity 1s ease 1.35s; }
+
+.js .film-section.is-landing .ld-head .cel-divider .cel-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.1s ease 1.55s;
+}
+
+.js .film-section.is-landing .ld-head .cel-divider .cel-bloom {
+  transition-delay: 2s;
+}
+
+/* The script line is written after the divider. */
+.js .film-section.is-landing .ld-script[data-draw] path {
+  transition:
+    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 1.95s),
+    fill-opacity 0.6s ease calc(var(--i) * 55ms + 2.35s);
+}
+
+.js .film-section.is-landing .ld-script-2[data-draw] path {
+  transition:
+    stroke-dashoffset 0.75s cubic-bezier(0.45, 0.05, 0.4, 1) calc(var(--i) * 55ms + 2.55s),
+    fill-opacity 0.6s ease calc(var(--i) * 55ms + 2.95s);
+}
+
+.js .film-section.is-landing .ld-names,
+.js .film-section.is-landing .ld-tagline {
+  opacity: 1;
+  transform: none;
+  transition: opacity 1s ease 3.3s, transform 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) 3.3s;
+}
+
+.js .film-section.is-landing .ld-tagline {
+  transition-delay: 3.55s;
+}
+
+@keyframes ld-halo {
+  0% { opacity: 0; transform: scale(0.85); }
+  45% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ── Landing: the hand-over from the intro ──
    Before it runs (scripts on, intro still showing) the screen is plain
    ivory with the golden light. .is-landing plays the sequence once;
@@ -735,56 +919,63 @@ address {
 /* 3 · the frame draws from its corners; the paper and mat follow */
 .js .film-section.is-landing .film-rules {
   background-size: var(--h), var(--h), var(--h), var(--h), var(--v), var(--v), var(--v), var(--v);
-  transition: background-size 1.5s cubic-bezier(0.45, 0.05, 0.3, 1) 0.35s;
+  transition: background-size 1.5s cubic-bezier(0.45, 0.05, 0.3, 1) calc(var(--ld-shift) + 0.35s);
 }
 
 .js .film-section.is-landing .hero-film {
   background: linear-gradient(180deg, #fffdf9, #fbf4ea);
   box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 34px 60px -34px rgba(98, 74, 40, 0.45);
-  transition: background 1.4s ease 0.8s, box-shadow 1.6s ease 0.9s;
+  transition: background 1.4s ease calc(var(--ld-shift) + 0.8s), box-shadow 1.6s ease calc(var(--ld-shift) + 0.9s);
 }
 
 .js .film-section.is-landing .film-mat,
 .js .film-section.is-landing .film-crest {
   opacity: 1;
-  transition: opacity 1s ease 1.2s;
+  transition: opacity 1s ease calc(var(--ld-shift) + 1.2s);
 }
 
 /* 4 · the illustration fades in, with a slow push towards the bride */
 .js .film-section.is-landing .film-art {
   opacity: 1;
-  transition: opacity 1.4s ease 0.8s;
+  transition: opacity 1.4s ease calc(var(--ld-shift) + 0.8s);
 }
 
 .js .film-section.is-landing .film-art > * {
   transform: scale(1.03);
-  transition: transform 8s cubic-bezier(0.2, 0.6, 0.3, 1) 0.8s;
+  transition: transform 8s cubic-bezier(0.2, 0.6, 0.3, 1) calc(var(--ld-shift) + 0.8s);
 }
 
 /* 5 · the corners, crest and botanical lines draw; then they bloom */
 .js .film-section.is-landing .film-corner .ld-draw,
 .js .film-section.is-landing .film-crest .cel-draw {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.2s ease 1.5s;
+  transition: stroke-dashoffset 1.2s ease calc(var(--ld-shift) + 1.5s);
 }
 
 .js .film-section.is-landing .film-bg .ld-draw {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 2s cubic-bezier(0.45, 0.05, 0.3, 1) 1.3s;
+  transition: stroke-dashoffset 2s cubic-bezier(0.45, 0.05, 0.3, 1) 0.7s;
 }
 
 .js .film-section.is-landing .ld-bloom,
 .js .film-section.is-landing .cel-bloom {
   opacity: 1;
-  transition: opacity 1s ease 2.4s;
+  transition: opacity 1s ease 1.9s;
+}
+
+.js .film-section.is-landing .film-corner .ld-bloom,
+.js .film-section.is-landing .film-crest .cel-bloom {
+  transition-delay: calc(var(--ld-shift) + 2.4s);
 }
 
 /* 6 · a few petals fall, once */
 .js .film-section.is-landing .ld-petal {
-  animation: ld-fall var(--t) cubic-bezier(0.35, 0.1, 0.6, 1) var(--d) 1 both;
+  animation: ld-fall var(--t) cubic-bezier(0.35, 0.1, 0.6, 1) calc(var(--ld-shift) + var(--d)) 1 both;
 }
 
 /* The finished screen (also reduced motion and visits without the intro). */
+.js .film-section.is-landed .ld-head > *,
+.js .film-section.is-landed .ld-ganesha { opacity: 1; transform: none; }
 .js .film-section.is-landed .ld-glow,
 .js .film-section.is-landed .ld-petal { opacity: 0; }
 .js .film-section.is-landed .ld-arches { opacity: 0.16; }
