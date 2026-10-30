@@ -5,6 +5,7 @@ import { db, commit, uid, now } from "../db.js";
 import { icon, crest, ornament } from "../icons.js";
 import { esc, attr, act, field, input, textarea, select } from "../ui.js";
 import * as C from "../calc.js";
+import { capacityCard } from "./site.js";
 
 let sent = null;
 
@@ -21,6 +22,7 @@ export function enquire(code = "") {
         <p class="muted">Our studio will WhatsApp you within a day to plan your invitation.</p><button class="btn" data-act="enqAgain">Send another enquiry</button></div>` : `
       <div style="text-align:center"><h2>Digital invitations made for Marwari weddings</h2>
         <p class="muted small" style="margin-top:6px">Rituals, family names and Marwari traditions — designed with care, delivered as a beautiful invitation website.</p></div>
+      ${capacityCard()}
       ${partner ? `<div class="callout">${icon("gift")}<div>Referred by <b>${esc(partner.name)}</b> · code ${esc(ref)}</div></div>` : ""}
       <form class="card form" data-form="enqSend">
         <input type="hidden" name="refCode" value="${attr(ref)}">
@@ -40,7 +42,7 @@ export function enquire(code = "") {
 
 act({
   enqSend: (d) => {
-    const l = { id: uid("l"), name: d.name, phone: d.phone.replace(/\D/g, ""), email: "", weddingDate: d.weddingDate, city: d.city, interest: d.interest, source: "Other", refCode: d.refCode || d.refCodeTyped || "", stage: "new", createdAt: now(), notes: d.note ? [{ at: now(), by: "Website", text: d.note }] : [] };
+    const l = { id: uid("l"), name: d.name, phone: d.phone.replace(/\D/g, ""), email: "", weddingDate: d.weddingDate, city: d.city, interest: d.interest, source: "Other", refCode: d.refCode || d.refCodeTyped || "", stage: "new", createdAt: now(), waitlist: !!C.capacity()?.full, notes: d.note ? [{ at: now(), by: "Website", text: d.note }] : [] };
     if (!l.refCode) l.source = "Google / SEO";
     C.attributeLead(l);
     db.leads.push(l);

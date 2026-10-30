@@ -2,7 +2,7 @@
 // Four pages: Dashboard, My Project, Messages, Settings. Shows only this
 // couple's project: never pricing negotiation, internal notes or other clients.
 
-import { db, commit, uid, now, fileUrl, clientOf, clientProjects } from "../db.js";
+import { db, commit, uid, now, fileUrl, clientOf, clientProjects, userName } from "../db.js";
 import { STAGES } from "../seed.js";
 import { icon, crest } from "../icons.js";
 import { esc, attr, act, toast, badge, empty, field, input, textarea, select, checkbox, timeline, wa, qrSvg, download, sheet, closeSheet, progress, templateArt, toggle, copy, share } from "../ui.js";
@@ -10,7 +10,7 @@ import * as C from "../calc.js";
 import { addAssets, assetTiles, hydrateFiles, uploadForm, coupleName, projectTitle, chatView, markSeen, scrollChat, intakeCard } from "./project.js";
 import { enquireLink } from "./marketing.js";
 import { byId } from "../db.js";
-import { website, onBook } from "./site.js";
+import { website, onBook, capacityCard } from "./site.js";
 
 const SECTIONS = ["Cover", "Couple & family names", "Events & timings", "Venue & map", "Photos", "RSVP", "Colours & style", "Wording / language", "Other"];
 const EVENT_NAMES = ["Ganesh puja", "Mayra / Bhaat", "Haldi", "Mehendi", "Mahila sangeet", "Sangeet", "Baraat", "Phera", "Reception", "Other"];
@@ -21,7 +21,7 @@ const MILESTONES = [["Design", 0, 3], ["Your review", 4, 4], ["Final checks", 5,
 //   #/c/T/dashboard[/pid] Dashboard for one project
 //   #/c/T/projects        All their projects, plus new requests
 //   #/c/T/p/pid/sub       One project (overview, details, uploads, …)
-//   #/c/T/messages/pid/thread, #/c/T/settings, #/c/T/book
+//   #/c/T/messages/pid, #/c/T/settings, #/c/T/book
 // Older per-project links (#/c/<project token>/…) still open that project.
 const SUBS = ["overview", "details", "uploads", "preview", "payment", "invite", "review"];
 const PAGES = ["home", "dashboard", "projects", "p", "messages", "settings", "book"];
@@ -32,7 +32,7 @@ export function portal(tok, page, rest = []) {
     client = legacy && clientOf(legacy);
     if (client) {
       const sub = page === "project" ? rest[0] || "overview" : SUBS.includes(page) ? page : null;
-      location.replace(`#/c/${client.token}/${sub ? `p/${legacy.id}/${sub}` : page === "messages" ? `messages/${legacy.id}/${rest[0] || "design"}` : `dashboard/${legacy.id}`}`);
+      location.replace(`#/c/${client.token}/${sub ? `p/${legacy.id}/${sub}` : page === "messages" ? `messages/${legacy.id}` : `dashboard/${legacy.id}`}`);
       return { title: "", html: "" };
     }
   }
@@ -42,7 +42,7 @@ export function portal(tok, page, rest = []) {
   const cbase = `#/c/${client.token}`;
   const mine = clientProjects(client);
   const pick = (id) => mine.find((p) => p.id === id) || mine.filter((p) => p.status === "active").sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] || mine[mine.length - 1];
-  const unreadN = mine.reduce((s, p) => s + Object.keys(C.THREADS).reduce((t, th) => t + C.unread(p, th, "client"), 0), 0);
+  const unreadN = mine.reduce((s, p) => s + C.unread(p, "client"), 0);
   onBook((pre) => { bookPrefill = pre; location.hash = `/c/${client.token}/book`; });
 
   let v;
@@ -91,7 +91,7 @@ function projectsPage(client, cbase) {
     html: `<div class="grid">
       ${pending.map((l) => `<div class="card stack sm" style="border-style:dashed"><div class="row between"><b>${esc(l.occasion || "New invitation")}</b>${badge("Requested", "warn")}</div>
         <div class="small muted">${C.S().tiers[l.quote?.tier || l.interest]?.name || "Package to be confirmed"} · ${l.weddingDate ? C.date(l.weddingDate) : "date TBC"}</div>
-        <p class="small muted" style="margin:0">Sent ${C.ago(l.createdAt)}. The studio will confirm your design, price and timeline shortly.</p></div>`).join("")}
+        <p class="small muted" style="margin:0">Sent ${C.ago(l.createdAt)}. ${l.waitlist ? "You're on the waitlist; we'll confirm as soon as a slot opens." : "The studio will confirm your design, price and timeline shortly."}</p></div>`).join("")}
       ${mine.map((p) => { const h = p.status === "delivered" ? ["Delivered", "ok"] : p.status === "cancelled" ? ["Cancelled", "line"] : [p.stage === 4 ? "Your review" : C.stageName(p.stage), "info"];
         return `<a class="card stack sm" href="${cbase}/p/${p.id}" style="color:inherit;text-decoration:none">
           <div class="row nowrap"><span class="thumb" style="width:64px;height:64px">${templateArt(byId("templates", p.templateId))}</span><div class="grow"><b class="ellipsis" style="display:block">${esc(p.occasion || projectTitle(p))}</b><div class="small muted ellipsis">${esc(p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName)} · ${esc(C.S().tiers[p.tier].name)}</div><div style="margin-top:4px">${badge(h[0], h[1])}</div></div></div>
@@ -110,7 +110,7 @@ function book(client, cbase) {
   const pre = bookPrefill || {};
   return {
     title: "Start a new invitation", subtitle: "Tell us what you're celebrating. The studio will confirm design, price and timeline.", back: `${cbase}/projects`,
-    html: `<form class="card form" data-form="cBook" data-client="${client.id}" style="max-width:760px">
+    html: `<div style="max-width:760px">${capacityCard()}</div><form class="card form" data-form="cBook" data-client="${client.id}" style="max-width:760px">
       <div class="cols">${field("What's the occasion?", select("occasion", OCCASIONS))}${field("Date of the main function", input("weddingDate", "", "date"))}</div>
       <div class="cols">${field("Names on the invitation", input("names", "", "text", 'placeholder="e.g. Rohan & Simran"'))}${field("City", input("city", client.city || ""))}</div>
       <div><div class="label" style="margin-bottom:6px">Package</div><div class="grid three">${Object.entries(s.tiers).map(([k, t]) => `
@@ -118,7 +118,7 @@ function book(client, cbase) {
       ${field("Design", select("templateId", [["", "Help me choose"], ...db.templates.filter((t) => t.status === "active").map((t) => [t.id, t.name])], pre.templateId || ""))}
       <div><div class="label">Add-ons</div>${s.addons.map((a) => checkbox("addons[]", false, `${esc(a.name)} <span class="muted">· ${C.money(a.price)}</span>`, a.id)).join("")}</div>
       ${field("Anything else", textarea("note", "", 'rows="3" placeholder="Functions, style, colours, timeline…"'))}
-      <div><button class="btn primary">${icon("send", "icon sm")} Send request</button></div>
+      <div><button class="btn primary">${icon("send", "icon sm")} ${C.capacity()?.full ? "Join the waitlist" : "Send request"}</button></div>
       <p class="tiny muted" style="margin:0">No payment now. You'll see the new project in My Projects with its own progress, chat and payments.</p>
     </form>`,
   };
@@ -177,7 +177,7 @@ function home(p, base, cbase, mine) {
             <a class="btn" href="${cbase}/messages/${p.id}">${icon("message", "icon sm")} Message</a>
           </div></div>
         <div class="card stack sm"><div class="row between"><h3>Latest message</h3><a class="small" href="${cbase}/messages/${p.id}">Open</a></div>
-          ${lastMsg ? `<div class="bubble" style="max-width:100%"><div class="who">${esc(C.THREADS[lastMsg.thread])}</div>${esc(lastMsg.text)}<div class="tm">${C.ago(lastMsg.at)}</div></div>` : `<p class="small muted" style="margin:0">No messages yet.</p>`}</div>
+          ${lastMsg ? `<div class="bubble" style="max-width:100%"><div class="who">${esc(userName(lastMsg.from))}</div>${esc(lastMsg.text)}<div class="tm">${C.ago(lastMsg.at)}</div></div>` : `<p class="small muted" style="margin:0">No messages yet.</p>`}</div>
         <div class="card stack sm"><h3>Payment</h3><div class="row between"><span class="muted small">Balance</span><b>${C.balance(p) ? C.money(C.balance(p)) : "Paid in full"}</b></div></div>
         <p class="tiny muted" style="text-align:center">${icon("lock", "icon sm")} This page is private to you. Please don't share the link publicly.</p>
       </div>
@@ -373,10 +373,9 @@ function review(p) {
 }
 
 // ── 3 · Messages ────────────────────────
-function messages(p, base, [thread = "design"], mine, cbase) {
-  if (!C.THREADS[thread]) thread = "design";
-  if (markSeen(p, thread, "client")) setTimeout(() => commit("Client read messages", p.code), 0);
-  return { title: "Messages", subtitle: "Talk to your design team, the studio and QA, all in one place.", html: switcher(mine, p, (x) => `${cbase}/messages/${x.id}`) + chatView(p, thread, "client", base, Object.keys(C.THREADS)) };
+function messages(p, base, _, mine, cbase) {
+  if (C.markSeen(p, "client")) setTimeout(() => commit("Client read messages", p.code), 0);
+  return { title: "Messages", subtitle: "One conversation with the studio. Type @ to tag the Design team, Studio admin or QA team.", html: switcher(mine, p, (x) => `${cbase}/messages/${x.id}`) + chatView(p, "client") };
 }
 
 // ── 4 · Settings ────────────────────────
@@ -428,7 +427,7 @@ act({
     const q = { tier: d.tier || "premium", addons: d.addons || [], items: [], discount: 0, rush: false };
     const occasion = d.occasion === "Wedding invitation" && d.names ? `${d.names} wedding` : d.occasion;
     const l = { id: uid("l"), name: `${c.name} — ${occasion}`, occasion, phone: c.phone, email: c.email, city: d.city, weddingDate: d.weddingDate,
-      interest: q.tier, source: "Past client", stage: "new", createdAt: now(), clientId: c.id, templateId: d.templateId || null, quote: { ...q, total: C.quoteTotal(q), at: now() },
+      interest: q.tier, source: "Past client", stage: "new", createdAt: now(), clientId: c.id, waitlist: !!C.capacity()?.full, templateId: d.templateId || null, quote: { ...q, total: C.quoteTotal(q), at: now() },
       notes: [{ at: now(), by: "Client portal", text: [d.names && `Names: ${d.names}`, d.templateId && `Design: ${byId("templates", d.templateId)?.name}`, d.note].filter(Boolean).join(" · ") || "New project request" }] };
     db.leads.push(l);
     bookPrefill = {};

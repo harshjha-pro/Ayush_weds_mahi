@@ -525,3 +525,24 @@ td .t { font-weight: 600; } td .s { font-size: 12px; color: var(--muted); }
 .site-foot .mark { width: 34px; height: 34px; color: var(--gold); }
 .site-welcome { margin-bottom: 16px; }
 .grid.four { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+
+/* Single-conversation chat with @tags */
+.chat.one { grid-template-columns: 1fr; }
+.chat-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.composer { flex-direction: column; position: relative; gap: 8px; }
+.tagbar { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.tagbar .chip { padding: 4px 10px; font-size: 12px; }
+.mention { color: var(--info); font-weight: 600; background: var(--info-soft); border-radius: 4px; padding: 0 3px; }
+.bubble.me .mention { background: color-mix(in srgb, var(--info) 14%, transparent); }
+.bubble.for-me { border-color: var(--warn); box-shadow: inset 3px 0 0 var(--warn); }
+.mention-pop { position: absolute; left: 10px; bottom: calc(100% - 4px); background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px; box-shadow: var(--shadow-lg); padding: 4px; z-index: 5; min-width: 220px; }
+.mention-pop button { display: flex; gap: 10px; align-items: center; width: 100%; border: 0; background: none; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--ink); }
+.mention-pop button:hover, .mention-pop button:focus { background: var(--bg-2); }
+.mention-pop .avatar { width: 28px; height: 28px; font-size: 11px; }
+/* Booking capacity */
+.cap-pill { display: inline-flex; gap: 8px; align-items: center; padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(255,255,255,.1); color: #f3dca8; border: 1px solid rgba(227,196,134,.35); }
+.cap-pill .dot { color: #4ade80; }
+.cap-pill.full .dot { color: #f87171; }
+.cap-meter { display: flex; gap: 4px; }
+.cap-meter i { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-2); }
+.cap-meter i.on { background: var(--primary); }

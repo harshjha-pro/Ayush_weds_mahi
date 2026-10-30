@@ -67,6 +67,8 @@ export function defaultSettings() {
       { id: "thanks", name: "Digital thank-you page", price: 999 },
     ],
     commission: { basic: 10, premium: 12, luxury: 15 },
+    // Booking capacity shown to clients: "only N orders in the next 7 days".
+    capacity: { enabled: true, slots: 5, days: 7, start: new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10) },
     rushFee: 25,
     hourlyCost: 600,
     hostingCost: 300,
@@ -162,7 +164,7 @@ export function seed({ empty = false } = {}) {
       notes: [{ id: "n1", at: at(-3), byId: "u_des2", text: "Client wants gold foil effect on the cover — doable with CSS, no extra scope." }],
       messages: [
         { id: "m1", thread: "design", from: "u_des2", text: "Hi! We've updated the design with your feedback. Please take a look.", at: at(-2, 10) },
-        { id: "m2", thread: "design", from: "client", text: "Looks great! Just one small change in the date font.", at: at(-2, 12) },
+        { id: "m2", from: "client", text: "@Design team Looks great! Just one small change in the date font.", tags: ["design"], at: at(-2, 12) },
         { id: "m3", thread: "design", from: "u_des2", text: "Noted! Updating now.", at: at(-2, 13) },
         { id: "m4", thread: "admin", from: "u_admin", text: "Namaste Nidhi ji, your balance invoice is in the Payment section whenever you're ready.", at: at(-5, 16) },
       ],

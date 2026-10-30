@@ -45,6 +45,7 @@ function dashboard(_, user) {
         ${kpi("Active projects", active.length, overdue.length ? `<span style="color:var(--bad)">${overdue.length} overdue</span>` : "", projD)}
         ${kpi("Revenue (MTD)", C.short(rev), "", revPrev >= 1000 ? ((rev - revPrev) / revPrev) * 100 : NaN)}
       </div>
+      ${capacityAdmin()}
       <div class="two">
         <div class="card">
           <div class="card-head"><h3>Revenue trend</h3>
@@ -76,6 +77,19 @@ function dashboard(_, user) {
   };
 }
 
+// Booking capacity as clients see it, with requests waiting for a slot.
+function capacityAdmin() {
+  const c = C.capacity();
+  const waiting = db.leads.filter((l) => !["converted", "lost"].includes(l.stage));
+  if (!c) return `<div class="card row between"><div><b>Booking capacity is off</b><div class="small muted">Turn it on to show clients how many invitation slots are left.</div></div><a class="btn sm" href="#/studio">Set capacity</a></div>`;
+  return `<div class="card stack sm">
+    <div class="row between"><div><h3>Booking capacity</h3><div class="small muted">${C.date(c.start)} – ${C.date(c.until)} · shown to clients on the website, booking page and enquiry form</div></div>
+      <div class="row"><b style="font-size:20px">${c.used}/${c.slots}</b>${badge(c.full ? "Full: waitlist on" : `${c.left} slot(s) left`, c.full ? "bad" : c.left <= 1 ? "warn" : "ok")}<a class="btn sm" href="#/studio">Edit</a></div></div>
+    <div class="cap-meter">${Array.from({ length: c.slots }, (_, i) => `<i class="${i < c.used ? "on" : ""}"></i>`).join("")}</div>
+    <div class="small muted">Clients see: “${esc(C.capacityLine(c))}”${waiting.length ? ` · ${waiting.length} open request(s), ${waiting.filter((l) => l.waitlist).length} on the waitlist` : ""}</div>
+  </div>`;
+}
+
 // ── Leads & Sales ───────────────────────
 function leads() {
   const q = ui.leadQ.toLowerCase();
@@ -98,7 +112,7 @@ function leads() {
         <select data-change="leadDate" aria-label="Date">${[["", "Date: newest"], ["old", "Oldest first"], ["7", "Last 7 days"], ["30", "Last 30 days"], ["90", "Last 90 days"]].map(([v, l]) => `<option value="${v}" ${ui.leadDate === v ? "selected" : ""}>${l}</option>`).join("")}</select>
       </div>
       ${rtable([{ label: "Name" }, { label: "Source" }, { label: "Stage", cls: "pill" }, { label: "Wedding" }, { label: "Date" }, { label: "", cls: "act" }],
-        list.map((l) => [`<span class="t">${esc(l.name)}</span><div class="s">${esc(l.city || "")}${l.refCode ? ` · ${esc(l.refCode)}` : ""}</div>`, srcBadge(l.source), badge(LEAD_STAGES.find((s) => s.key === l.stage)?.name.replace(" enquiry", ""), leadTone[l.stage]), C.date(l.weddingDate), C.date(l.createdAt),
+        list.map((l) => [`<span class="t">${esc(l.name)}</span><div class="s">${esc(l.city || "")}${l.refCode ? ` · ${esc(l.refCode)}` : ""}${l.waitlist ? ` ${badge("Waitlist", "warn")}` : ""}</div>`, srcBadge(l.source), badge(LEAD_STAGES.find((s) => s.key === l.stage)?.name.replace(" enquiry", ""), leadTone[l.stage]), C.date(l.weddingDate), C.date(l.createdAt),
           `<button class="icon-btn plain" data-act="leadMenu" data-id="${l.id}" aria-label="Actions">${icon("more")}</button>`]),
         { empty: "No leads match. Add phone or walk-in enquiries with Add Lead.", href: (i) => `#/lead/${list[i].id}` })}
     </div>`,
@@ -625,6 +639,10 @@ function studio() {
       <div class="card form"><h3>Tiers</h3>${Object.entries(s.tiers).map(([k, t]) => `
         <div class="cols">${field(t.name + " price ₹", input(`t_${k}_price`, t.price, "number"))}${field("Revision rounds (99 = unlimited)", input(`t_${k}_revisions`, t.revisions, "number"))}${field("Turnaround days", input(`t_${k}_days`, t.days, "number"))}</div>`).join("")}</div>
       <div class="card form"><h3>Add-ons</h3>${s.addons.map((a) => `<div class="cols">${field("Name", input(`a_${a.id}_name`, a.name))}${field("Price ₹", input(`a_${a.id}_price`, a.price, "number"))}</div>`).join("")}</div>
+      <div class="card form"><h3>Booking capacity</h3>
+        <p class="small muted" style="margin:0">Clients see how many new invitation orders you're accepting, e.g. “Only 3 of 5 slots left for the next 7 days”. When full, new requests join a waitlist.</p>
+        ${checkbox("capEnabled", s.capacity?.enabled, "Show booking capacity to clients")}
+        <div class="cols">${field("Orders accepted per window", input("capSlots", s.capacity?.slots || 5, "number", 'min="1" max="200"'))}${field("Window length (days)", input("capDays", s.capacity?.days || 7, "number", 'min="1" max="60"'))}${field("Window starts", input("capStart", s.capacity?.start || C.today(), "date"), "then repeats")}</div></div>
       <div class="card form"><h3>Commission & costs</h3>
         <div class="cols">${["basic", "premium", "luxury"].map((t) => field(`${s.tiers[t].name} commission %`, input(`c_${t}`, s.commission[t], "number", 'step="0.5"'))).join("")}</div>
         <div class="cols">${field("Rush fee %", input("rushFee", s.rushFee, "number"))}${field("Design cost ₹/hour", input("hourlyCost", s.hourlyCost, "number"))}${field("Hosting ₹/order", input("hostingCost", s.hostingCost, "number"))}${field("Gateway fee %", input("gatewayFee", s.gatewayFee, "number", 'step="0.1"'))}${field("Cost per revision ₹", input("revisionCost", s.revisionCost, "number"))}</div></div>
@@ -839,6 +857,7 @@ act({
     ["basic", "premium", "luxury"].forEach((t) => (s.commission[t] = Number(d[`c_${t}`]) || 0));
     ["rushFee", "hourlyCost", "hostingCost", "gatewayFee", "revisionCost"].forEach((k) => (s[k] = Number(d[k]) || 0));
     s.slaDays = STAGES.map((_, i) => Number(d[`sla_${i}`]) || 0);
+    s.capacity = { enabled: d.capEnabled, slots: Math.max(1, Number(d.capSlots) || 5), days: Math.max(1, Number(d.capDays) || 7), start: d.capStart || C.today() };
     s.policy = { text: d.policyText, refundPct: STAGES.map((_, i) => Number(d[`rf_${i}`]) || 0) };
     commit("Studio settings", "Settings");
     toast("Settings saved");

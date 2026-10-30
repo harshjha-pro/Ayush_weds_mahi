@@ -280,9 +280,52 @@ export function delta(items, dateOf, days = 30, valueOf = () => 1) {
 // Percent through the 8 stages, for client-facing progress bars.
 export const progressPct = (p) => (p.status === "delivered" ? 100 : Math.round((p.stage / 7) * 100));
 
-// Client ↔ team message threads.
-export const THREADS = { design: "Design team", admin: "Studio admin", qa: "QA team" };
-export function unread(p, thread, side) {
-  const seen = p.seen?.[`${side}:${thread}`] || "";
-  return (p.messages || []).filter((m) => m.thread === thread && (side === "client" ? m.from !== "client" : m.from === "client") && m.at > seen).length;
+// Client ↔ team chat: one conversation per project. Typing @Design team,
+// @Studio admin or @QA team tags who the message is for.
+export const TAGS = { design: "Design team", admin: "Studio admin", qa: "QA team" };
+export const THREADS = TAGS;
+const ALIASES = { design: ["design team", "designer", "design"], admin: ["studio admin", "studio", "admin"], qa: ["qa team", "qa"] };
+export function parseTags(text = "") {
+  const t = text.toLowerCase();
+  return Object.keys(ALIASES).filter((k) => ALIASES[k].some((a) => new RegExp(`@${a.replace(/ /g, "\\s+")}(?![a-z])`).test(t)));
+}
+// Messages saved before tagging carried a group "thread" instead.
+export const msgTags = (m) => m.tags || (m.thread && m.from === "client" ? [m.thread] : []);
+export const roleGroup = (role) => (role === "qa" ? "qa" : role === "admin" ? "admin" : "design");
+const seenKey = (side, role) => (side === "client" ? "client" : `team:${roleGroup(role)}`);
+// Unread for the client: any team reply. For a team member: client
+// messages tagged to their group or untagged (admin sees every one).
+export function unread(p, side, role) {
+  const seen = p.seen?.[seenKey(side, role)] || "";
+  return (p.messages || []).filter((m) => m.at > seen && (side === "client" ? m.from !== "client"
+    : m.from === "client" && (role === "admin" || !msgTags(m).length || msgTags(m).includes(roleGroup(role))))).length;
+}
+export function markSeen(p, side, role) {
+  const key = seenKey(side, role);
+  const last = (p.messages || []).map((m) => m.at).sort().pop() || "";
+  if (last && (p.seen?.[key] || "") < last) { p.seen = { ...(p.seen || {}), [key]: last }; return true; }
+  return false;
+}
+
+// Booking capacity: the studio accepts `slots` new orders per `days`-long
+// window, starting from `start` and rolling forward. Accepted = projects
+// created in the window (cancelled ones free their slot).
+export function capacity() {
+  const cap = S().capacity;
+  if (!cap?.enabled || !cap.slots) return null;
+  const days = Number(cap.days) || 7;
+  const t0 = new Date(`${cap.start || today()}T00:00:00`);
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const n = Math.max(0, Math.floor((t - t0) / (days * DAY)));
+  const start = new Date(t0.getTime() + n * days * DAY), end = new Date(start.getTime() + days * DAY);
+  const used = db.projects.filter((p) => p.status !== "cancelled" && new Date(p.createdAt) >= start && new Date(p.createdAt) < end).length;
+  const left = Math.max(0, Number(cap.slots) - used);
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return { slots: Number(cap.slots), used, left, days, full: left === 0, start: iso(start), until: iso(new Date(end.getTime() - DAY)), next: iso(end) };
+}
+// Client-facing line, e.g. "Only 3 of 5 invitation slots left until 3 Nov".
+export function capacityLine(c = capacity()) {
+  if (!c) return "";
+  return c.full ? `Fully booked until ${shortDate(c.until)}. New requests join the waitlist for ${shortDate(c.next)} onwards`
+    : `${c.left <= Math.ceil(c.slots / 2) ? "Only " : ""}${c.left} of ${c.slots} invitation slots left for the next ${c.days} days (until ${shortDate(c.until)})`;
 }

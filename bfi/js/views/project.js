@@ -95,41 +95,55 @@ export function intakeCard(p, { remind = true } = {}) {
   </div>`;
 }
 
-// Client ↔ team conversation (also used by the client portal).
-export function chatView(p, thread, side, base, threads) {
-  const msgs = (p.messages || []).filter((m) => m.thread === thread);
+// Client ↔ team conversation (also used by the client portal): one chat
+// per project; @tags in the text say who a message is for.
+const mentionHtml = (text) => {
+  let h = esc(text);
+  for (const label of Object.values(C.TAGS)) h = h.replace(new RegExp(`@${label.replace(/ /g, "\\s+")}`, "gi"), `<span class="mention">@${label}</span>`);
+  return h;
+};
+export function chatView(p, side, role) {
   const me = side === "client" ? "client" : currentUser()?.id;
-  return `<div class="chat">
-    <nav class="threads">${threads.map((t) => {
-      const n = C.unread(p, t, side);
-      return `<a href="${base}/${t}" class="${t === thread ? "on" : ""}">${avatar(C.THREADS[t])}<span>${esc(C.THREADS[t])}</span>${n ? `<span class="unread">${n}</span>` : ""}</a>`;
-    }).join("")}</nav>
+  const mine = side === "team" ? C.roleGroup(role) : null;
+  const msgs = (p.messages || []).slice().sort((a, b) => a.at.localeCompare(b.at));
+  return `<div class="chat one">
     <div class="convo">
+      <div class="chat-head"><b>${side === "client" ? "BFI studio" : esc(p.clientName)}</b><span class="small muted">${side === "client" ? "Design team · Studio admin · QA team" : "One conversation with the client · tag teammates with @"}</span></div>
       <div class="msgs" data-scroll-bottom>${msgs.map((m) => {
-        const mine = m.from === me || (side === "team" && m.from !== "client" && m.from === me);
+        const mineMsg = m.from === me;
         const who = m.from === "client" ? p.clientName : userName(m.from);
-        return `<div class="bubble ${mine ? "me" : ""}">${!mine ? `<div class="who">${esc(who)}</div>` : ""}${esc(m.text)}<div class="tm">${new Date(m.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div>`;
-      }).join("") || `<div class="empty"><p class="small">No messages yet — say namaste 🙏</p></div>`}</div>
-      <form class="composer" data-form="msgSend" data-pid="${p.id}" data-thread="${thread}" data-side="${side}">
-        <input type="text" name="text" placeholder="Type a message…" autocomplete="off" required aria-label="Message"><button class="btn primary" aria-label="Send">${icon("send", "icon sm")}</button>
+        const tags = C.msgTags(m);
+        const forMe = side === "team" && m.from === "client" && tags.includes(mine);
+        return `<div class="bubble ${mineMsg ? "me" : ""} ${forMe ? "for-me" : ""}">${!mineMsg ? `<div class="who">${esc(who)}</div>` : ""}${mentionHtml(m.text)}${!m.tags && tags.length ? ` <span class="mention">@${esc(C.TAGS[tags[0]])}</span>` : ""}<div class="tm">${new Date(m.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div>`;
+      }).join("") || `<div class="empty"><p class="small">No messages yet. Say namaste 🙏</p></div>`}</div>
+      <form class="composer" data-form="msgSend" data-pid="${p.id}" data-side="${side}" autocomplete="off">
+        <div class="mention-pop" hidden></div>
+        <div class="tagbar">${Object.values(C.TAGS).map((l) => `<button type="button" class="chip" data-act="tagInsert" data-label="${attr(l)}">@${esc(l)}</button>`).join("")}</div>
+        <div class="row nowrap"><input type="text" name="text" placeholder="Type a message… use @ to tag" required aria-label="Message" data-input="mentionInput" class="grow"><button class="btn primary" aria-label="Send">${icon("send", "icon sm")}</button></div>
       </form>
     </div>
   </div>`;
 }
-export function markSeen(p, thread, side) {
-  const key = `${side}:${thread}`;
-  const last = (p.messages || []).filter((m) => m.thread === thread).map((m) => m.at).sort().pop() || "";
-  if (last && (p.seen?.[key] || "") < last) { p.seen = { ...(p.seen || {}), [key]: last }; return true; }
-  return false;
+// Insert "@Label " at the caret, replacing a half-typed "@des".
+function insertTag(input, label) {
+  const pos = input.selectionStart ?? input.value.length;
+  let before = input.value.slice(0, pos).replace(/@[a-z]{0,12}$/i, "");
+  if (before && !before.endsWith(" ")) before += " ";
+  const after = input.value.slice(pos);
+  input.value = `${before}@${label} ${after}`;
+  const caret = before.length + label.length + 2;
+  input.focus();
+  input.setSelectionRange(caret, caret);
+  input.closest("form").querySelector(".mention-pop").hidden = true;
 }
+export const markSeen = C.markSeen;
 export const scrollChat = (root) => root.querySelectorAll("[data-scroll-bottom]").forEach((el) => (el.scrollTop = el.scrollHeight));
 
 // ── view ────────────────────────────────
 export function projectView(p, user, tab, base, rest = []) {
   const role = user.role;
   const isAdmin = role === "admin";
-  const threadsFor = isAdmin ? ["design", "admin", "qa"] : role === "qa" ? ["qa"] : ["design"];
-  const unreadN = threadsFor.reduce((s, t) => s + C.unread(p, t, "team"), 0);
+  const unreadN = C.unread(p, "team", role);
   const all = [
     ["overview", "Overview"], ["design", "Design"], ["assets", "Assets", p.assets.length], ["brief", "Brief"],
     ["messages", unreadN ? `Messages •` : "Messages"], ["notes", "Notes", p.notes.length], ["handover", role === "qa" ? "QA review" : "Handover & QA"],
@@ -138,14 +152,13 @@ export function projectView(p, user, tab, base, rest = []) {
   const T = isAdmin ? all : all.filter(([k]) => !["money", "consent", "overview"].includes(k) || (k === "overview" && false));
   if (!T.some(([k]) => k === tab)) tab = T[0][0];
   const h = C.health(p);
-  const thread = threadsFor.includes(rest[0]) ? rest[0] : threadsFor[0];
-  if (tab === "messages" && markSeen(p, thread, "team")) setTimeout(() => commit("Read messages", p.code), 0);
+  if (tab === "messages" && C.markSeen(p, "team", role)) setTimeout(() => commit("Read messages", p.code), 0);
   const body = {
     overview: () => overview(p, user),
     design: () => designTab(p, user),
     assets: () => `<div class="two side"><div class="stack">${intakeCard(p)}${uploadForm(p)}</div><div class="card stack"><h3>Client references</h3>${assetTiles(p, { canDelete: isAdmin })}</div></div>`,
     brief: () => brief(p),
-    messages: () => chatView(p, thread, "team", `${base}/${p.id}/messages`, threadsFor),
+    messages: () => chatView(p, "team", role),
     notes: () => notesTab(p, user),
     handover: () => handoverTab(p, user),
     money: () => moneyTab(p),
@@ -523,8 +536,18 @@ act({
     const side = f.dataset.side;
     const from = side === "client" ? "client" : currentUser().id;
     p.messages = p.messages || [];
-    p.messages.push({ id: uid("msg"), thread: f.dataset.thread, from, text: d.text, at: now() });
-    markSeen(p, f.dataset.thread, side);
-    commit("Message", p.code, `${C.THREADS[f.dataset.thread]} · ${side}`);
+    const tags = C.parseTags(d.text);
+    p.messages.push({ id: uid("msg"), from, text: d.text, tags, at: now() });
+    C.markSeen(p, side, side === "client" ? null : currentUser().role);
+    commit("Message", p.code, `${side}${tags.length ? " → " + tags.map((t) => C.TAGS[t]).join(", ") : ""}`);
   },
+  tagInsert: (el) => insertTag(el.closest("form").querySelector("input[name=text]"), el.dataset.label),
+  mentionInput: (el) => {
+    const pop = el.closest("form").querySelector(".mention-pop");
+    const m = el.value.slice(0, el.selectionStart ?? el.value.length).match(/@([a-z]{0,12})$/i);
+    const opts = m ? Object.values(C.TAGS).filter((l) => l.toLowerCase().startsWith(m[1].toLowerCase())) : [];
+    pop.hidden = !opts.length;
+    pop.innerHTML = opts.map((l) => `<button type="button" data-act="tagPick" data-label="${attr(l)}">${avatar(l)}<span>@${esc(l)}</span></button>`).join("");
+  },
+  tagPick: (el) => insertTag(el.closest("form").querySelector("input[name=text]"), el.dataset.label),
 });

@@ -1,6 +1,6 @@
 // Offline shell: app files are cached on install and served cache-first;
 // everything else goes to the network, falling back to the cache.
-const VERSION = "bfi-v4";
+const VERSION = "bfi-v5";
 const SHELL = [
   "./", "index.html", "manifest.webmanifest", "css/app.css", "vendor/qrcode.js",
   "js/app.js", "js/db.js", "js/ui.js", "js/icons.js", "js/seed.js", "js/calc.js",

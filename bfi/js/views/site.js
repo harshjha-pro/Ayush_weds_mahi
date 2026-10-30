@@ -48,6 +48,7 @@ function hero(mode, client) {
           <button class="btn gold" data-act="siteBook">${icon("plus", "icon sm")} ${mode === "client" ? "Start a new invitation" : "Book a consultation"}</button>
           <button class="btn site-ghost" data-act="siteJump" data-to="designs">Explore designs</button>
         </div>
+        ${C.capacity() ? `<div><span class="cap-pill ${C.capacity().full ? "full" : ""}"><span class="dot"></span>${esc(C.capacityLine())}</span></div>` : ""}
         <div class="site-stats">
           <div><b>${Math.max(delivered, 1)}+</b><span>families served</span></div>
           <div><b>${avg}★</b><span>average rating</span></div>
@@ -92,6 +93,7 @@ export function website({ mode = "public", client = null, base = "" } = {}) {
 
     <section class="site-sec" id="sec-packages">
       <div class="site-head"><div class="eyebrow">Products & pricing</div><h2>Packages</h2><p>Transparent pricing. Every package includes a private project page to track progress, send changes and pay.</p></div>
+      ${capacityCard()}
       <div class="grid three">${Object.entries(s.tiers).map(([k, t]) => `
         <div class="card price-card ${k === "premium" ? "featured" : ""}">
           ${k === "premium" ? `<span class="badge gold" style="align-self:flex-start">Most popular</span>` : ""}
@@ -167,6 +169,15 @@ export function website({ mode = "public", client = null, base = "" } = {}) {
       <footer class="site-foot">${crest("mark")}<span><b>BFI — Marwari Invitations</b><br><span class="tiny muted">© ${new Date().getFullYear()} · Terms, privacy and refund policy shared before booking</span></span></footer>
     </section>
   </div>`;
+}
+
+// Live booking capacity, so families know how soon we can start.
+export function capacityCard() {
+  const c = C.capacity();
+  if (!c) return "";
+  return `<div class="callout ${c.full ? "warn" : ""}" style="margin-bottom:16px;align-items:center">${icon("calendar")}<div class="grow"><b>${esc(C.capacityLine(c))}</b>
+    <div class="cap-meter" style="margin-top:8px;max-width:320px" aria-label="${c.used} of ${c.slots} slots booked">${Array.from({ length: c.slots }, (_, i) => `<i class="${i < c.used ? "on" : ""}"></i>`).join("")}</div>
+    <div class="tiny muted" style="margin-top:4px">We take a limited number of invitations each week so every family gets full attention.</div></div></div>`;
 }
 
 // Public website page (#/site): its own header, no app shell.

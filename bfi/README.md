@@ -13,8 +13,12 @@ site in the repository root.
 | Designer / freelancer | My Projects · Asset Intake checklist · Design Workspace (preview, versions, revision log) · Workload & Deadlines · Brand Workspace (fonts, colours, templates, assets) · Handover checklist → QA. Freelancers only see the projects shared with them, until their access end date |
 | QA reviewer | QA queue · QA review (pass / send back with defects) · Workload · Brand |
 | Affiliate / vendor | Referral code & link · Leads & Projects · Commission tracker · Trade status · Submit a referral · Marketing kit · payout details in Settings |
-| Client | One private account per family, `#/c/<token>`, no login, any number of projects: **Home** (the full BFI website with their projects on top, where "Book" starts a new project request) · Dashboard (per project) · My Projects (overview, details form, uploads, preview & consolidated changes, UPI payment, invitation + QR, review & consent) · Messages (design team, studio, QA, per project) · Settings. Older per-project links still work |
+| Client | One private account per family, `#/c/<token>`, no login, any number of projects: **Home** (the full BFI website with their projects on top, where "Book" starts a new project request) · Dashboard (per project) · My Projects (overview, details form, uploads, preview & consolidated changes, UPI payment, invitation + QR, review & consent) · Messages (one conversation per project; type @ to tag the Design team, Studio admin or QA team) · Settings. Older per-project links still work |
 | Anyone | `#/site`: the public website (services, packages & pricing, add-ons, design catalogue, how it works, reviews, partner programme, FAQ, contact) · `#/enquire/<CODE>`: enquiry form; the code attributes the lead automatically |
+
+## Booking capacity
+
+Admin → Settings → Prices & policies → Booking capacity sets how many new orders the studio accepts per window (e.g. 5 per 7 days). Clients see the slots left on the website, the booking page and the enquiry form. When it's full, new requests join a waitlist. The admin dashboard shows the same meter.
 
 ## Data
 
