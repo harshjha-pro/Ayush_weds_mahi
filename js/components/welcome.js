@@ -1,3 +1,4 @@
+import { celPalace, celSpray, celCorner, celCrest } from "./celebration-art.js";
 import { esc, icon, ornament, divider, monogramMedia, film, toDate, formatWeekday, formatDate, familiesBlock, words } from "../utils.js";
 
 export function WelcomeSection(el, config) {
@@ -31,14 +32,25 @@ export function WelcomeSection(el, config) {
     </div>`;
 }
 
-// The couple's illustrated film, the first thing on the page: edge to edge,
-// with no frame, fading softly into the page at the bottom. It plays while
-// on screen (see startFilms); the monogram below plays when scrolled to.
+// The engagement film (the bride and her diamond ring), the first screen of
+// the page: a portrait film in a champagne-gold frame, with small gold
+// corners and a lotus crest, in the same palace garden as the other
+// sections. It plays while on screen (see startFilms).
 export function FilmSection(el, config) {
   const video = config.couple.heroVideo;
   if (!video?.src) {
     el.remove();
     return;
   }
-  el.innerHTML = film(video, "hero-film");
+  const frame = `
+    <span class="film-mat" aria-hidden="true"></span>
+    ${celCorner("film-corner film-corner-tl")}${celCorner("film-corner film-corner-tr")}${celCorner("film-corner film-corner-bl")}${celCorner("film-corner film-corner-br")}
+    <span class="film-crest" aria-hidden="true">${celCrest()}</span>`;
+  el.innerHTML = `
+    <div class="film-bg" aria-hidden="true">
+      <div class="film-palace">${celPalace("fp-")}</div>
+      <div class="film-spray film-spray-l">${celSpray()}</div>
+      <div class="film-spray film-spray-r">${celSpray()}</div>
+    </div>
+    ${film(video, "hero-film", { frame })}`;
 }

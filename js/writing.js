@@ -47,7 +47,12 @@ export function startWriting() {
   document.documentElement.classList.add("is-writing");
 
   const all = [...document.querySelectorAll(CANDIDATES)].filter(
-    (el) => el.textContent.trim() && !el.closest(SKIP) && !el.querySelector("svg, img, video, button, input, select, textarea"),
+    (el) =>
+      el.textContent.trim() &&
+      !el.closest(SKIP) &&
+      !el.querySelector("svg, img, video, button, input, select, textarea") &&
+      // In a flex or grid box every split word would become its own item.
+      !/flex|grid/.test(getComputedStyle(el).display),
   );
   // Only the outermost of nested matches is split (an h1 holds its names).
   const targets = all.filter((el) => !all.some((other) => other !== el && other.contains(el)));

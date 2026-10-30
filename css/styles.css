@@ -518,32 +518,123 @@ address {
   box-shadow: 0 18px 40px -24px rgba(60, 40, 20, 0.45);
 }
 
-/* The couple's film, after the welcome section: no frame, edge to edge on
-   phones, and the top and bottom fade into the page. */
+/* The engagement film: the whole first screen. A portrait film in a
+   champagne-gold frame (a fine outer rule, an ivory mat, an inner
+   hairline, small corners and a lotus crest) in a soft palace garden. It is
+   sized to fit the screen's height, never wider than 440px. */
 .film-section {
-  display: flex;
-  justify-content: center;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(2.25rem, 5vh, 3.5rem) var(--gutter);
   overflow: hidden;
+  background: linear-gradient(180deg, #fdf8f0 0%, var(--ivory) 55%, #fbf3ea 100%);
+}
+
+.film-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.film-palace {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(1100px, 170vw);
+  aspect-ratio: 2 / 1;
+  transform: translateX(-50%);
+  opacity: 0.16;
+  -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(0deg, transparent 0, #000 30%, #000 70%, transparent);
+}
+
+.film-palace svg {
+  width: 100%;
+  height: 100%;
+}
+
+.film-spray {
+  position: absolute;
+  top: clamp(0.25rem, 2vw, 1.5rem);
+  width: clamp(84px, 20vw, 220px);
+  aspect-ratio: 1;
+  opacity: 0.85;
+}
+
+.film-spray-l {
+  left: clamp(-34px, -3vw, -8px);
+}
+
+.film-spray-r {
+  right: clamp(-34px, -3vw, -8px);
+  transform: scaleX(-1);
 }
 
 .hero-film {
-  --film-radius: 0;
-  width: min(100%, calc(92svh * 9 / 16));
+  --film-radius: 2px;
+  --mat: 12px;
+  width: min(100%, 440px, calc((100svh - 2 * clamp(2.25rem, 5vh, 3.5rem)) * 9 / 16));
   margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 90%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0, #000 90%, transparent 100%);
+  padding: var(--mat);
+  border: 1px solid #c9a867;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #fffdf9, #fbf4ea);
+  box-shadow: 0 2px 6px rgba(58, 47, 36, 0.05), 0 34px 60px -34px rgba(98, 74, 40, 0.45);
 }
 
 .hero-film .film-poster,
 .hero-film .film-video {
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: var(--mat);
+  width: calc(100% - 2 * var(--mat));
+  height: calc(100% - 2 * var(--mat));
+}
+
+/* The inner hairline, just inside the mat. */
+.film-mat {
+  position: absolute;
+  inset: calc(var(--mat) - 5px);
+  border: 0.5px solid rgba(184, 146, 85, 0.7);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Small corners that sit on the mat and only just touch the painting. */
+.film-corner {
+  position: absolute;
+  z-index: 1;
+  width: clamp(40px, 11vw, 50px);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.film-corner-tl { top: -12px; left: -12px; }
+.film-corner-tr { top: -12px; right: -12px; transform: scaleX(-1); }
+.film-corner-bl { bottom: -12px; left: -12px; transform: scaleY(-1); }
+.film-corner-br { bottom: -12px; right: -12px; transform: scale(-1, -1); }
+
+.film-crest {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 0;
+  width: clamp(104px, 30vw, 140px);
+  padding: 0 0.4rem;
+  transform: translate(-50%, -52%);
+  background: #fdf9f2;
+}
+
+/* Corners and crest draw on with the frame. */
+.js .hero-film.is-visible .cel-draw {
+  stroke-dashoffset: 0;
+}
+
+.js .hero-film.is-visible .cel-bloom {
+  opacity: 1;
 }
 
 .story-film {
@@ -575,6 +666,73 @@ address {
 
 .film.is-playing .film-video {
   opacity: 1;
+}
+
+/* The loop's seam: a copy of the first frame above the video, shown only
+   while one pass dissolves into the next. */
+.film-seam {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.film.is-seam .film-seam {
+  opacity: 1;
+}
+
+/* Shown only if the browser will not autoplay, or with reduced motion. */
+.film-play {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(201, 168, 103, 0.9);
+  border-radius: 50%;
+  background: rgba(255, 252, 247, 0.82);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: var(--gold-deep);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  box-shadow: 0 10px 24px -12px rgba(98, 74, 40, 0.5);
+}
+
+.film-play .icon {
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
+}
+
+.film-play:focus-visible {
+  outline: 2px solid var(--gold-text);
+  outline-offset: 3px;
+}
+
+.film-play[hidden] {
+  display: none;
+}
+
+/* Every section fills at least the whole screen, its content centred. */
+main > .section {
+  display: grid;
+  align-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+main > [hidden] {
+  display: none;
+}
+
+/* Children keep their usual full width (a centred grid item with auto
+   margins would otherwise shrink to its content). Zero specificity, so any
+   width a section sets for its own parts still wins. */
+:where(main > .section) > :where(*) {
+  width: 100%;
 }
 
 /* Both families: two columns with a hairline between, stacked on small phones. */

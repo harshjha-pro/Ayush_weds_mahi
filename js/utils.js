@@ -166,21 +166,29 @@ export function monogramMedia(config, { cls = "monogram", preload = "metadata", 
 // It is muted (soundtracks were removed) and loops only while in view (see
 // startFilms in motion.js). The poster is the still shown before it plays,
 // for reduced motion, and if the video cannot play.
-export function film(video, cls = "film", { after = "" } = {}) {
+//
+// The video is not downloaded until the film is about to come into view
+// (data-src, set by startFilms). The poster also sits above the video as a
+// "seam": it fades in over the last moments of each pass and out again as
+// the film restarts, so the loop dissolves instead of jumping. If the
+// browser will not autoplay, or the visitor prefers reduced motion, a small
+// play button lets them start it themselves.
+export function film(video, cls = "film", { after = "", frame = "" } = {}) {
   if (!video?.src) return "";
-  const poster = `
-      <picture class="film-poster">
+  const pic = (extra, alt = "") => `
+      <picture class="${extra}">
         <source srcset="${esc(video.poster)}" type="image/webp" />
-        <img src="${esc(video.posterFallback)}" width="540" height="960" loading="eager" decoding="async" alt="" />
+        <img src="${esc(video.posterFallback)}" width="540" height="960" loading="eager" decoding="async" alt="${esc(alt)}" />
       </picture>`;
-  const film = prefersReducedMotion()
-    ? ""
-    : `<video class="film-video" muted loop playsinline disablepictureinpicture preload="metadata" aria-hidden="true">
-        <source src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
-      </video>`;
   return `
-    <figure class="film ${cls}" data-film ${after ? `data-after="${esc(after)}"` : "data-animate"} role="img" aria-label="${esc(video.alt)}">
-      ${poster}${film}
+    <figure class="film ${cls}" data-film ${after ? `data-after="${esc(after)}"` : "data-animate"}>
+      ${pic("film-poster", video.alt)}
+      <video class="film-video" muted playsinline disablepictureinpicture preload="none" aria-hidden="true">
+        <source data-src="${esc(video.src)}" type='video/mp4; codecs="avc1.64001F"' />
+      </video>
+      ${pic("film-poster film-seam")}
+      ${frame}
+      <button class="film-play" type="button" hidden>${icon("i-play")}<span class="visually-hidden">Play the film</span></button>
     </figure>`;
 }
 
