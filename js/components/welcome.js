@@ -11,7 +11,7 @@ export function WelcomeSection(el, config) {
     return `<i class="inv-petal${i % 2 ? " is-blush" : ""}" style="left:${left}%;--d:${(1.2 + i * 0.4).toFixed(1)}s;--t:${(8 + (i % 3) * 1.5).toFixed(1)}s;--x:${i % 2 ? 24 : -20}px"></i>`;
   }).join("");
 
-  // The invitation card, in reading order: Lord Ganesha's blessing, the
+  // The invitation card, in reading order: Radha and Krishna's blessing, the
   // monogram, the couple, the invitation, the families, the date, and the
   // way into their story. Around it, a palace garden. The sequence is in the
   // "Invitation" styles; it plays once as the card comes into view.
@@ -33,12 +33,12 @@ export function WelcomeSection(el, config) {
 
       <div class="hero-inner">
         <div class="inv-blessing">
-          <picture class="inv-ganesha">
-            <source srcset="assets/images/ganesha.webp" type="image/webp" />
-            <img src="assets/images/ganesha.png" width="420" height="420" decoding="async"
-                 alt="Lord Ganesha seated on a lotus, raising his hand in blessing" />
+          <picture class="inv-deity">
+            <source srcset="assets/images/radha-krishna.webp" type="image/webp" />
+            <img src="assets/images/radha-krishna.png" width="440" height="560" decoding="async"
+                 alt="Radha and Krishna standing together on a lotus, Krishna playing his flute" />
           </picture>
-          <p class="inv-mantra" lang="sa">॥ श्री गणेशाय नमः ॥</p>
+          <p class="inv-mantra" lang="sa">॥ श्री राधाकृष्णाय नमः ॥</p>
         </div>
 
         <p class="inv-eyebrow">${esc(invitation.eyebrow)}</p>
@@ -140,9 +140,19 @@ export function FilmSection(el, config) {
     const left = [8, 22, 38, 61, 76, 88, 50][i];
     return `<i class="ld-petal${i % 2 ? " is-blush" : ""}" style="left:${left}%;--d:${(1.4 + i * 0.35).toFixed(2)}s;--t:${(6.5 + (i % 3) * 1.2).toFixed(1)}s;--x:${i % 2 ? 26 : -22}px"></i>`;
   }).join("");
-  // After the portrait: the couple's line in script (two lines, so it stays
-  // large on phones), written as it scrolls into view. Lord Ganesha's
-  // blessing opens the invitation card that follows.
+  // Above the portrait, Lord Ganesha's blessing opens the page. After it,
+  // the couple's line in script (two lines, so it stays large on phones),
+  // written as it scrolls into view.
+  const head = `
+    <div class="ld-head">
+      <picture class="ld-ganesha">
+        <source srcset="assets/images/ganesha.webp" type="image/webp" />
+        <img src="assets/images/ganesha.png" width="420" height="420" decoding="async" fetchpriority="high"
+             alt="Lord Ganesha seated on a lotus, raising his hand in blessing" />
+      </picture>
+      <p class="ld-mantra" lang="sa">॥ श्री गणेशाय नमः ॥</p>
+      <p class="ld-translit">Shri Ganeshaya Namah</p>
+    </div>`;
   const words = `
     <div class="ld-words">
       ${celDivider()}
@@ -158,10 +168,21 @@ export function FilmSection(el, config) {
       <div class="ld-flourish ld-flourish-r">${landingFlourish()}</div>
       <div class="ld-petals">${petals}</div>
     </div>
+    ${head}
     ${film(video, "hero-film", { frame, animate: false })}
     ${words}`;
+  fitPortrait(el);
   landing(el);
   revealWords(el);
+}
+
+// The portrait fills the screen below the blessing, so the CSS needs the
+// blessing's height (it changes with the fonts and the screen width).
+function fitPortrait(el) {
+  const head = el.querySelector(".ld-head");
+  const set = () => el.style.setProperty("--ld-head-h", `${Math.ceil(head.getBoundingClientRect().height)}px`);
+  set();
+  if ("ResizeObserver" in window) new ResizeObserver(set).observe(head);
 }
 
 // The words after the portrait reveal when they come into view.

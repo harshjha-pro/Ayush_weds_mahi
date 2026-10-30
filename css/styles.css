@@ -631,8 +631,9 @@ address {
 .hero-film {
   --film-radius: 2px;
   --mat: 12px;
-  /* Fills the first screen, leaving room for the crest and corners. */
-  width: min(100%, 440px, calc((100svh - 2 * var(--ld-top) - 0.5rem) * 9 / 16));
+  /* Fills the first screen below the blessing (its height is measured into
+     --ld-head-h), leaving room for the corners and a little air. */
+  width: min(100%, 440px, calc((100svh - var(--ld-head-h, 180px) - var(--ld-top) - var(--ld-gap) - 1.5rem) * 9 / 16));
   margin: 0;
   padding: 0;
   border: 0;
@@ -707,7 +708,7 @@ address {
    gold divider, the couple's line in script, their names. */
 .film-section {
   --ld-shift: 1.3s; /* the portrait follows the blessing */
-  --ld-top: 1.6rem; /* room for the frame's crest */
+  --ld-top: 0.6rem;
   --ld-gap: clamp(1.4rem, 3.2vh, 2rem);
   grid-auto-rows: auto;
   align-content: start;
@@ -1416,21 +1417,21 @@ main > [hidden] {
   gap: 0;
 }
 
-/* Lord Ganesha: small, still, with a soft golden light behind. */
+/* Radha and Krishna: small, still, with a soft golden light behind. */
 .inv-blessing {
   display: grid;
   justify-items: center;
   gap: 0.15rem;
 }
 
-.inv-ganesha {
+.inv-deity {
   position: relative;
   display: block;
-  width: clamp(76px, 20vw, 104px);
-  aspect-ratio: 1;
+  width: clamp(88px, 24vw, 120px);
+  aspect-ratio: 440 / 560;
 }
 
-.inv-ganesha::before {
+.inv-deity::before {
   content: "";
   position: absolute;
   inset: -24%;
@@ -1438,7 +1439,7 @@ main > [hidden] {
   background: radial-gradient(circle, rgba(246, 217, 160, 0.55) 0%, rgba(246, 217, 160, 0.18) 45%, rgba(246, 217, 160, 0) 70%);
 }
 
-.inv-ganesha img {
+.inv-deity img {
   position: relative;
   display: block;
   width: 100%;
@@ -1692,8 +1693,8 @@ main > [hidden] {
 .js .hero .inv-card { opacity: 0; transform: translateY(14px); }
 .js .hero .inv-rules { background-size: 0 1px, 0 1px, 0 1px, 0 1px, 1px 0, 1px 0, 1px 0, 1px 0; }
 .js .hero .inv-rules::after,
-.js .hero .inv-ganesha,
-.js .hero .inv-ganesha::before,
+.js .hero .inv-deity,
+.js .hero .inv-deity::before,
 .js .hero .inv-eyebrow,
 .js .hero .inv-monogram,
 .js .hero .inv-couple,
@@ -1727,8 +1728,8 @@ main > [hidden] {
 .js .hero.is-in .inv-rules::after { opacity: 1; transition: opacity 1s ease 1s; }
 
 /* B · Lord Ganesha (still; only light and opacity change) */
-.js .hero.is-in .inv-ganesha { opacity: 1; transition: opacity 1.2s ease 0.35s; }
-.js .hero.is-in .inv-ganesha::before { animation: ld-halo 2.6s ease-out 0.55s 1 both; }
+.js .hero.is-in .inv-deity { opacity: 1; transition: opacity 1.2s ease 0.35s; }
+.js .hero.is-in .inv-deity::before { animation: ld-halo 2.6s ease-out 0.55s 1 both; }
 .js .hero.is-in .inv-mantra { opacity: 1; transform: none; transition: opacity 0.9s ease 0.8s, transform 1s var(--inv-ease) 0.8s; }
 
 /* C · heading, divider, monogram */
