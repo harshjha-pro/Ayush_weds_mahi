@@ -75,7 +75,13 @@ export function startMonogramVideos() {
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         io.disconnect();
-        video.play().catch(fallback);
+        // In the invitation card the monogram is revealed partway through
+        // the card's sequence; it starts drawing itself as it appears.
+        const card = box.closest(".hero");
+        if (!card) return video.play().catch(fallback);
+        const go = () => setTimeout(() => video.play().catch(fallback), 1300);
+        if (card.classList.contains("is-in")) go();
+        else card.addEventListener("invitation:card", go, { once: true });
       },
       { threshold: 0.4 },
     );

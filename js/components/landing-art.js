@@ -89,3 +89,56 @@ export function frameCorner(cls) {
     </g>
   </svg>`;
 }
+
+// Palace scenery for the sides of the invitation card: a carved column and
+// cusped arch with a jharokha above, a small chhatri on top, two cypresses
+// and a lotus at the foot. Soft beige washes with fine gold lines, drawn in
+// the same hand as the rest. Mirrored for the right-hand side.
+export function invSide() {
+  const g = "#C9A867";
+  return `
+  <svg class="inv-side-svg" viewBox="0 0 220 640" aria-hidden="true">
+    <defs>
+      <linearGradient id="iv-stone" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#EADCC4"/><stop offset=".6" stop-color="#F4EADA"/><stop offset="1" stop-color="#EFE2CC"/></linearGradient>
+      <linearGradient id="iv-dome" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E4D3B6"/><stop offset=".6" stop-color="#F8F0E2"/><stop offset="1" stop-color="#EADBC2"/></linearGradient>
+    </defs>
+    <!-- chhatri -->
+    <g>
+      <path d="${onion(110, 132, 74, 66)}" fill="url(#iv-dome)" stroke="${g}" stroke-width=".8"/>
+      <path d="M106 66L110 50L114 66Z" fill="#D6B779"/><circle cx="110" cy="64" r="3" fill="#D6B779"/>
+      <rect x="66" y="132" width="88" height="8" fill="#E4D3B6" stroke="${g}" stroke-width=".6"/>
+      <rect x="74" y="140" width="8" height="46" fill="url(#iv-stone)"/><rect x="138" y="140" width="8" height="46" fill="url(#iv-stone)"/>
+      <path d="${cuspedArch(84, 186, 52, 44)}" fill="#E9DBC3" opacity=".7"/>
+      <rect x="60" y="186" width="100" height="8" fill="#E4D3B6" stroke="${g}" stroke-width=".6"/>
+    </g>
+    <!-- jharokha balcony -->
+    <g>
+      <rect x="62" y="194" width="96" height="120" fill="url(#iv-stone)"/>
+      <path d="${cuspedArch(78, 296, 64, 80)}" fill="#E2D0B2" stroke="${g}" stroke-width=".7"/>
+      <path d="M78 296H142" stroke="${g}" stroke-width=".7"/>
+      ${Array.from({ length: 6 }, (_, i) => `<path d="M${84 + i * 10} 296V266" stroke="#F6EEE0" stroke-width="1.2"/>`).join("")}
+      <path d="M52 314H168L156 330H64Z" fill="#E4D3B6" stroke="${g}" stroke-width=".6"/>
+      ${Array.from({ length: 5 }, (_, i) => `<path d="M${72 + i * 19} 330L${76 + i * 19} 342L${80 + i * 19} 330" fill="none" stroke="${g}" stroke-width=".6"/>`).join("")}
+    </g>
+    <!-- column and great arch -->
+    <g>
+      <rect x="40" y="342" width="140" height="236" fill="url(#iv-stone)"/>
+      <path d="${cuspedArch(62, 578, 96, 170)}" fill="#E6D6BC" stroke="${g}" stroke-width=".8"/>
+      <path d="${cuspedArch(74, 578, 72, 146)}" fill="none" stroke="${g}" stroke-width=".5" opacity=".7"/>
+      <rect x="40" y="342" width="22" height="236" fill="#E2D2B6"/><rect x="158" y="342" width="22" height="236" fill="#EBDDC5"/>
+      ${[360, 420, 480, 540].map((y) => `<path d="M40 ${y}H62M158 ${y}H180" stroke="${g}" stroke-width=".5" opacity=".7"/>`).join("")}
+      <rect x="34" y="338" width="152" height="6" fill="#E4D3B6" stroke="${g}" stroke-width=".5"/>
+      <rect x="30" y="578" width="160" height="10" fill="#E4D3B6" stroke="${g}" stroke-width=".5"/>
+    </g>
+    <!-- cypresses and a lotus at the foot -->
+    <g>
+      <path d="M22 600C12 560 14 500 24 450C34 500 36 560 26 600Z" fill="#BCC4A6"/>
+      <path d="M200 604C190 572 192 524 200 486C208 524 210 572 202 604Z" fill="#C7CEB3"/>
+      <path d="M24 600V614M201 604V614" stroke="#A8957A" stroke-width="2"/>
+      <g transform="translate(110 612)">
+        ${[-50, -25, 0, 25, 50].map((a) => `<path d="M0 0C-6 -8 -6 -20 0 -28C6 -20 6 -8 0 0Z" transform="rotate(${a})" fill="#F2D8D0" stroke="#E2B8AC" stroke-width=".5"/>`).join("")}
+        <path d="M-30 4H30" stroke="#BCC4A6" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>`;
+}

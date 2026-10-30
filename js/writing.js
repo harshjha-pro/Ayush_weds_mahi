@@ -25,6 +25,7 @@ const SKIP = [
   "#venue",
   // The first screen's welcome has its own sequence (welcome.js).
   ".film-section",
+  "#home",
   ".visually-hidden",
   "[aria-hidden='true']",
   "[hidden]",
