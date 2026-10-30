@@ -36,6 +36,8 @@ export function MusicControl(config) {
     try {
       await audio.play();
       set(true);
+      // A film playing with sound goes quiet (memories.js).
+      document.dispatchEvent(new Event("invitation:music-playing"));
     } catch {
       set(false);
     }
@@ -51,6 +53,8 @@ export function MusicControl(config) {
   // Sent by the intro from inside the guest's tap, so browsers allow playback.
   document.addEventListener("invitation:play-music", () => audio.paused && play());
   audio.addEventListener("pause", () => set(false));
+  // ...and the music pauses when a guest turns a film's sound on.
+  document.addEventListener("invitation:pause-music", () => audio.pause());
   // If the file is missing, remove the control instead of leaving a dead button.
   audio.addEventListener("error", () => btn.remove());
 }

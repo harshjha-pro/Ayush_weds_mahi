@@ -4,6 +4,7 @@ import { observeReveals, prefersReducedMotion } from "./utils.js";
 import { WelcomeSection, FilmSection } from "./components/welcome.js";
 import { WeddingIntro } from "./components/intro.js";
 import { CoupleStorySection } from "./components/story.js";
+import { MemoriesSection } from "./components/memories.js";
 import { EventDetailsSection } from "./components/details.js";
 import { CountdownTimer } from "./components/countdown.js";
 import { VenueSection } from "./components/venue.js";
@@ -21,6 +22,7 @@ const sections = [
   [FilmSection, "film"],
   [WelcomeSection, "home"],
   [CoupleStorySection, "story"],
+  [MemoriesSection, "memories"],
   [EventDetailsSection, "celebration"],
   [CountdownTimer, "countdown"],
   [VenueSection, "venue"],

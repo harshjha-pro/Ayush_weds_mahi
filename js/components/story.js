@@ -1,46 +1,124 @@
-import { esc, has, icon, ornament, sectionHeading, film } from "../utils.js";
+import { esc, has, icon, scriptText, prefersReducedMotion } from "../utils.js";
+import { LETTERING } from "../lettering.js";
+import { celDivider } from "./celebration-art.js";
+import { landingBranch, landingFlourish, frameCorner, invSide } from "./landing-art.js";
 
+// Our Story, as a page from a royal wedding journal: the couple's heading,
+// their story, then the Saptapadi promise in its own gold-framed panel.
+// Around it, an ivory page with fine branches in the upper corners, faint
+// palace outlines at the edges and small flourishes near the lower corners.
+// Each part reveals once as it comes into view (the "Our Story" styles).
+// The couple's films are in the Memories section that follows.
 export function CoupleStorySection(el, config) {
   const { story, couple } = config;
   const paragraphs = story.paragraphs ?? [];
   const more = story.moreParagraphs ?? [];
-  const photos = (story.photos ?? []).filter((p) => has(p?.src));
+  const petals = Array.from({ length: 5 }, (_, i) => {
+    const left = [9, 24, 74, 88, 56][i];
+    return `<i class="st-petal${i % 2 ? "" : " is-blush"}" style="left:${left}%;--d:${(1.5 + i * 0.9).toFixed(1)}s;--t:${(11 + (i % 3) * 2).toFixed(1)}s;--x:${i % 2 ? 30 : -24}px"></i>`;
+  }).join("");
 
   const text = has(paragraphs)
-    ? paragraphs.map((p) => `<p>${esc(p)}</p>`).join("")
-    : `<p class="story-soon">Our story, in our own words, will be shared here soon.</p>`;
+    ? paragraphs.map((p, i) => `<p data-st style="--n:${i}">${esc(p)}</p>`).join("")
+    : `<p class="story-soon" data-st>Our story, in our own words, will be shared here soon.</p>`;
+
+  // "Sakhā saptapadī bhava · The Saptapadi": the words, then their source.
+  const [words, source] = (story.quote?.attribution ?? "").split(" · ");
 
   el.innerHTML = `
-    ${sectionHeading({ id: "story-title", eyebrow: `${couple.partnerOne.first} & ${couple.partnerTwo.first}`, title: "Our Story" })}
-    <div class="story-body" data-animate>
+    <div class="st-bg" aria-hidden="true" data-st>
+      <div class="st-palace st-palace-l">${invSide()}</div>
+      <div class="st-palace st-palace-r">${invSide()}</div>
+      <div class="st-branch st-branch-l"><div class="st-sway">${landingBranch()}</div></div>
+      <div class="st-branch st-branch-r"><div class="st-sway">${landingBranch()}</div></div>
+      <div class="st-flourish st-flourish-l">${landingFlourish()}</div>
+      <div class="st-flourish st-flourish-r">${landingFlourish()}</div>
+      <div class="st-petals">${petals}</div>
+    </div>
+
+    <header class="section-head st-head" data-st>
+      <p class="st-eyebrow">${esc(couple.partnerOne.first)} &amp; ${esc(couple.partnerTwo.first)}</p>
+      <h2 class="section-title st-title${LETTERING["Our Story"] ? " is-script" : ""}" id="story-title">${scriptText("Our Story", "script st-script")}</h2>
+      ${celDivider()}
+    </header>
+
+    <div class="story-body st-body">
       ${text}
       ${
         has(more)
-          ? `<details class="story-more"><summary><span class="more-closed">Read more</span><span class="more-open">Show less</span>${icon("i-down")}</summary>${more
+          ? `<details class="story-more" data-st><summary><span class="more-closed">Read more</span><span class="more-open">Show less</span>${icon("i-down")}</summary>${more
               .map((p) => `<p>${esc(p)}</p>`)
               .join("")}</details>`
           : ""
       }
     </div>
-    ${has(story.quote?.text) ? `
-      <figure class="story-quote" data-animate>
-        <blockquote><p>${esc(story.quote.text)}</p></blockquote>
-        ${has(story.quote.attribution) ? `<figcaption>${esc(story.quote.attribution)}</figcaption>` : ""}
-      </figure>` : ""}
-    ${has(story.video?.src) ? film(story.video, "story-film") : photos.length ? `<div class="gallery" data-count="${photos.length}"></div>` : storyArches()}`;
 
-  if (!has(story.video?.src) && photos.length) PhotoGallery(el.querySelector(".gallery"), photos);
+    ${
+      has(story.quote?.text)
+        ? `<figure class="story-quote st-quote" data-st>
+            <span class="st-rules" aria-hidden="true"></span>
+            ${frameCorner("st-corner st-corner-tl")}${frameCorner("st-corner st-corner-tr")}${frameCorner("st-corner st-corner-bl")}${frameCorner("st-corner st-corner-br")}
+            <span class="st-emblem" aria-hidden="true">${lotusEmblem()}</span>
+            <blockquote><p>${esc(story.quote.text)}</p></blockquote>
+            <span class="st-quote-divider" aria-hidden="true">${quoteDivider()}</span>
+            ${
+              has(words)
+                ? `<figcaption><span class="st-translit">${esc(words)}</span>${has(source) ? `<span class="st-source">— ${esc(source)} —</span>` : ""}</figcaption>`
+                : ""
+            }
+          </figure>`
+        : ""
+    }`;
+
+  revealStory(el);
 }
 
-// Shown until photographs are added: three illustrated arches, so the
-// section still feels finished rather than empty.
-function storyArches() {
-  return `
-    <div class="story-arches" aria-hidden="true" data-animate>
-      <div class="arch">${ornament("sprig", "arch-sprig")}</div>
-      <div class="arch arch-tall">${ornament("sprig", "arch-sprig")}</div>
-      <div class="arch">${ornament("sprig", "arch-sprig arch-sprig-flip")}</div>
-    </div>`;
+// A small lotus over the quote.
+const lotusEmblem = () => `
+  <svg viewBox="0 0 60 30" class="st-emblem-svg">
+    <g class="ld-bloom">
+      ${[-56, -28, 0, 28, 56].map((a) => `<path d="M0 0C-4.4 -6 -4.4 -15 0 -21C4.4 -15 4.4 -6 0 0Z" transform="translate(30 25) rotate(${a})" fill="${a ? "#F2D8D0" : "#F6E3DD"}" stroke="#D9AFA3" stroke-width=".45"/>`).join("")}
+    </g>
+    <path class="ld-draw" pathLength="1" d="M6 26.5H54" fill="none" stroke="#C3A064" stroke-width=".7" stroke-linecap="round"/>
+  </svg>`;
+
+// The divider under the quote: two gold lines and a small blossom, with a
+// soft highlight that passes across once (styles: .st-quote-divider).
+const quoteDivider = () => `
+  <svg viewBox="0 0 160 16" class="st-quote-divider-svg">
+    <path class="ld-draw" pathLength="1" d="M8 8H66M94 8H152" fill="none" stroke="#C3A064" stroke-width=".8" stroke-linecap="round"/>
+    <g class="ld-bloom">${Array.from({ length: 5 }, (_, i) => `<ellipse cx="80" cy="4" rx="2.2" ry="3.4" transform="rotate(${i * 72} 80 8)" fill="#F2D8D0" stroke="#D9AFA3" stroke-width=".4"/>`).join("")}<circle cx="80" cy="8" r="1.5" fill="#D6B779"/><circle cx="4" cy="8" r="1.2" fill="#D6B779"/><circle cx="156" cy="8" r="1.2" fill="#D6B779"/></g>
+  </svg>`;
+
+// Each part reveals once, when it comes into view; reduced motion (or no
+// observer support) shows everything at once. The text is never held back
+// for long: each paragraph starts as soon as it is on screen.
+function revealStory(root) {
+  const parts = [...root.querySelectorAll("[data-st]")];
+  const heading = root.querySelector(".st-script");
+  const show = (p) => {
+    p.classList.add("is-in");
+    if (p.classList.contains("st-head")) heading?.classList.add("is-drawn");
+  };
+  if (prefersReducedMotion() || !("IntersectionObserver" in window)) {
+    parts.forEach(show);
+    return;
+  }
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        show(e.target);
+        io.unobserve(e.target);
+      }),
+    { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
+  );
+  const start = () => parts.forEach((p) => io.observe(p));
+  setTimeout(() => {
+    const intro = document.getElementById("intro");
+    if (intro && !intro.hidden) document.addEventListener("invitation:opened", start, { once: true });
+    else start();
+  });
 }
 
 export function PhotoGallery(el, photos) {

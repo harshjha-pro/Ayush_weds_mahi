@@ -88,19 +88,11 @@ export const config = {
     // Optional longer part, shown behind a "Read more" toggle.
     moreParagraphs: [],
     // Photos live in assets/photos/ (a 1600px version for the full-screen
-    // viewer and an 800px "thumb" for the grid). The first one is shown larger.
+    // viewer and an 800px "thumb" for the grid). The grid appears in the
+    // Memories section only when it has no films. The first one is shown larger.
     //   { src, thumb, alt, width, height, focus }
     // width/height are the real pixel size; they keep the layout steady while loading.
     // focus (optional) moves the crop, e.g. "50% 20%" to keep heads in frame.
-    // The couple's photo slideshow, shown in place of the photo grid
-    // (slowed to about 1.3 s per photo, muted). Set to null to show the
-    // photos below as a grid again.
-    video: {
-      src: "assets/video/story.mp4",
-      poster: "assets/images/story-poster.webp",
-      posterFallback: "assets/images/story-poster.jpg",
-      alt: "Slideshow of photos of Mahi and Ayush together",
-    },
     photos: [
       { src: "assets/photos/01.jpg", thumb: "assets/photos/01-800.jpg", alt: "Mahi and Ayush smiling together at a café", width: 1280, height: 960 },
       { src: "assets/photos/02.jpg", thumb: "assets/photos/02-800.jpg", alt: "Mahi and Ayush in a selfie at night", width: 1200, height: 1600 },
@@ -119,6 +111,27 @@ export const config = {
     // "Sakhā saptapadī bhava": the line from the Vedic wedding vows that asks
     // the couple to become friends for life once the seven steps are taken.
     quote: { text: "Having walked seven steps together, be my friend.", attribution: "Sakhā saptapadī bhava · The Saptapadi" },
+  },
+
+  // The Memories section: a carousel of short films that glides to the next
+  // one every few seconds (guests can also swipe, drag or use the arrows).
+  // Clips 02–04 and 06–08 are cut from the couple's photo slideshow
+  // (assets/video/story.mp4), 01 and 05 from the illustrated ring film.
+  // Portrait (9:16) H.264 clips with a poster each; add or remove freely.
+  memories: {
+    eyebrow: "Moments together",
+    // Seconds each film stays in the centre before the next one comes in.
+    interval: 5,
+    videos: [
+      { src: "assets/video/memories/01.mp4", poster: "assets/images/memories/01.webp", posterFallback: "assets/images/memories/01.jpg", alt: "Illustrated film: Ayush and Mahi, in an ivory sari, in a softly lit palace hall" },
+      { src: "assets/video/memories/02.mp4", poster: "assets/images/memories/02.webp", posterFallback: "assets/images/memories/02.jpg", alt: "Photos of Mahi and Ayush together" },
+      { src: "assets/video/memories/03.mp4", poster: "assets/images/memories/03.webp", posterFallback: "assets/images/memories/03.jpg", alt: "Photos of Mahi and Ayush together" },
+      { src: "assets/video/memories/04.mp4", poster: "assets/images/memories/04.webp", posterFallback: "assets/images/memories/04.jpg", alt: "Photos of Mahi and Ayush together" },
+      { src: "assets/video/memories/05.mp4", poster: "assets/images/memories/05.webp", posterFallback: "assets/images/memories/05.jpg", alt: "Illustrated film: Mahi's hand with mehndi and her engagement ring" },
+      { src: "assets/video/memories/06.mp4", poster: "assets/images/memories/06.webp", posterFallback: "assets/images/memories/06.jpg", alt: "Photos of Mahi and Ayush together" },
+      { src: "assets/video/memories/07.mp4", poster: "assets/images/memories/07.webp", posterFallback: "assets/images/memories/07.jpg", alt: "Photos of Mahi and Ayush together" },
+      { src: "assets/video/memories/08.mp4", poster: "assets/images/memories/08.webp", posterFallback: "assets/images/memories/08.jpg", alt: "Photos of Mahi and Ayush together" },
+    ],
   },
 
   countdown: {

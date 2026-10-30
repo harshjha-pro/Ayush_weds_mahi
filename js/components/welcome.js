@@ -35,10 +35,10 @@ export function WelcomeSection(el, config) {
         <div class="inv-blessing">
           <picture class="inv-deity">
             <source srcset="assets/images/radha-krishna.webp" type="image/webp" />
-            <img src="assets/images/radha-krishna.png" width="440" height="560" decoding="async"
+            <img src="assets/images/radha-krishna.png" width="317" height="560" decoding="async"
                  alt="Radha and Krishna standing together on a lotus, Krishna playing his flute" />
           </picture>
-          <p class="inv-mantra" lang="sa">॥ श्री राधाकृष्णाय नमः ॥</p>
+          <p class="inv-mantra" lang="sa">॥ राधे कृष्ण ॥</p>
         </div>
 
         <p class="inv-eyebrow">${esc(invitation.eyebrow)}</p>

@@ -23,6 +23,9 @@ const SKIP = [
   "#celebration",
   "#countdown",
   "#venue",
+  // Our Story and Memories reveal paragraph by paragraph (story.js, memories.js).
+  "#story",
+  "#memories",
   // The first screen's welcome has its own sequence (welcome.js).
   ".film-section",
   "#home",
