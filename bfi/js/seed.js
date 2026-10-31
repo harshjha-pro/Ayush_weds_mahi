@@ -21,7 +21,7 @@ export const LEAD_STAGES = [
 ];
 
 export const LOST_REASONS = ["Price too high", "Chose printed cards", "Went with a competitor", "No response", "Wedding cancelled / postponed", "Timeline too short", "Wanted DIY / free tool", "Other"];
-export const SOURCES = ["Instagram", "Pinterest", "Google / SEO", "WhatsApp group", "Vendor referral", "Past client", "Walk-in / phone", "Other"];
+export const SOURCES = ["Direct outreach", "Instagram", "Pinterest", "Google / SEO", "WhatsApp group", "Vendor referral", "Past client", "Walk-in / phone", "Other"];
 export const PURPOSES = { couple: "Couple photos", family: "Family photos / names", venue: "Venue photos / details", inspiration: "Inspiration links", logo: "Logo / monogram", other: "Other" };
 export const VENDOR_KINDS = ["Wedding planner", "Photographer", "Videographer", "Makeup artist", "Venue / banquet", "Content creator"];
 export const OUTREACH_STAGES = [
@@ -34,7 +34,8 @@ export const OUTREACH_STAGES = [
 ];
 export const ROLES = {
   admin: { name: "Admin", desc: "Leads, projects, team, finance, compliance" },
-  marketing: { name: "Marketing & outreach", desc: "Vendors, referrals, campaigns, SEO" },
+  marketing: { name: "Marketing", desc: "Campaigns, lead sources, testimonials, SEO, ads, assets" },
+  outreach: { name: "Outreach & client management", desc: "Vendor CRM, direct outreach, referral codes, my clients, commission" },
   designer: { name: "Designer", desc: "My projects, references, previews, revisions" },
   qa: { name: "QA reviewer", desc: "Projects waiting for quality checks" },
   freelancer: { name: "Freelancer", desc: "Time-boxed access to assigned projects" },
@@ -66,7 +67,11 @@ export function defaultSettings() {
       { id: "travel", name: "Guest info & travel guide", price: 2499 },
       { id: "thanks", name: "Digital thank-you page", price: 999 },
     ],
-    commission: { basic: 10, premium: 12, luxury: 15 },
+    // Vendor / affiliate rate (per-partner overrides allowed).
+    commission: { basic: 15, premium: 15, luxury: 20 },
+    // Client manager and designer EACH earn this on an order.
+    teamDirect: { basic: 15, premium: 15, luxury: 20 },
+    teamReferred: { basic: 10, premium: 10, luxury: 15 },
     // Booking capacity shown to clients: "only N orders in the next 7 days".
     capacity: { enabled: true, slots: 5, days: 7, start: new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10) },
     rushFee: 25,
@@ -94,11 +99,12 @@ export function seed({ empty = false } = {}) {
   base.users = [
     { id: "u_admin", name: "Studio Admin", role: "admin", email: "admin@bfi.in", phone: "919800000001", active: true, createdAt: at(-90) },
     { id: "u_mkt", name: "Riya Agarwal", role: "marketing", email: "riya@bfi.in", phone: "919800000002", active: true, createdAt: at(-80) },
+    { id: "u_out", name: "Vikram Sethi", role: "outreach", email: "vikram@bfi.in", phone: "919800000013", active: true, payout: { upi: "vikram@okhdfc" }, createdAt: at(-80) },
     { id: "u_des1", name: "Kunal Jain", role: "designer", email: "kunal@bfi.in", phone: "919800000003", active: true, createdAt: at(-80) },
     { id: "u_des2", name: "Sneha Bansal", role: "designer", email: "sneha@bfi.in", phone: "919800000004", active: true, createdAt: at(-60) },
     { id: "u_qa", name: "Pooja Goenka", role: "qa", email: "pooja@bfi.in", phone: "919800000005", active: true, createdAt: at(-60) },
     { id: "u_fl", name: "Arjun Mehta (freelance)", role: "freelancer", email: "arjun@studio.in", phone: "919800000006", active: true, projectIds: ["p_1003"], accessUntil: day(20), createdAt: at(-10) },
-    { id: "u_aff1", name: "Neha Daga · Shubh Events", role: "affiliate", partnerType: "affiliate", partnerKind: "Wedding planner", refCode: "SHUBH12", email: "neha@shubhevents.in", phone: "919800000007", active: true, commissionOverride: { premium: 14 }, payout: { upi: "nehadaga@okaxis", bank: "", pan: "" }, createdAt: at(-75) },
+    { id: "u_aff1", name: "Neha Daga · Shubh Events", role: "affiliate", partnerType: "affiliate", partnerKind: "Wedding planner", refCode: "SHUBH12", email: "neha@shubhevents.in", phone: "919800000007", active: true, payout: { upi: "nehadaga@okaxis", bank: "", pan: "" }, createdAt: at(-75) },
     { id: "u_aff2", name: "Lens & Vows Studio", role: "affiliate", partnerType: "affiliate", partnerKind: "Photographer", refCode: "LENSVOWS", email: "hello@lensvows.in", phone: "919800000008", active: true, payout: { upi: "", bank: "HDFC ••4421", pan: "" }, createdAt: at(-50) },
     { id: "u_aff3", name: "Glam by Tanvi", role: "affiliate", partnerType: "trade", partnerKind: "Makeup artist", refCode: "TANVI", email: "tanvi@glam.in", phone: "919800000009", active: true, tradeLimit: 3, payout: {}, createdAt: at(-20) },
   ];
@@ -115,14 +121,15 @@ export function seed({ empty = false } = {}) {
   const L = (id, o) => ({ id, phone: "", email: "", notes: [], createdAt: at(-20), weddingDate: day(60), city: "Jaipur", refCode: "", affiliateId: null, ...o });
   base.leads = [
     L("l1", { name: "Ishita Maheshwari", phone: "919811100001", source: "Instagram", stage: "new", createdAt: at(-1), weddingDate: day(75), city: "Kolkata", interest: "premium" }),
-    L("l2", { name: "Rohan Khandelwal", phone: "919811100002", source: "Vendor referral", refCode: "SHUBH12", affiliateId: "u_aff1", stage: "contacted", createdAt: at(-4), weddingDate: day(50), city: "Jaipur", interest: "luxury" }),
-    L("l3", { name: "Priya Sethia", phone: "919811100003", source: "Google / SEO", stage: "quoted", createdAt: at(-9), weddingDate: day(40), city: "Mumbai", interest: "premium", quote: { tier: "premium", addons: ["std"], items: [], discount: 0, rush: false, total: 13498, at: at(-7) } }),
+    L("l2", { ownerId: "u_out", name: "Rohan Khandelwal", phone: "919811100002", source: "Vendor referral", refCode: "SHUBH12", affiliateId: "u_aff1", stage: "contacted", createdAt: at(-4), weddingDate: day(50), city: "Jaipur", interest: "luxury" }),
+    L("l3", { ownerId: "u_out", name: "Priya Sethia", phone: "919811100003", source: "Google / SEO", stage: "quoted", createdAt: at(-9), weddingDate: day(40), city: "Mumbai", interest: "premium", quote: { tier: "premium", addons: ["std"], items: [], discount: 0, rush: false, total: 13498, at: at(-7) } }),
     L("l4", { name: "Ankit Somani", phone: "919811100004", source: "WhatsApp group", stage: "lost", lostReason: "Chose printed cards", createdAt: at(-30), city: "Surat" }),
     L("l5", { name: "Megha Rathi", phone: "919811100005", source: "Pinterest", stage: "lost", lostReason: "Price too high", createdAt: at(-25), city: "Delhi" }),
-    L("l6", { name: "Kavya & Aditya", phone: "919811100006", source: "Vendor referral", refCode: "LENSVOWS", affiliateId: "u_aff2", stage: "new", createdAt: at(-2), weddingDate: day(90), city: "Udaipur", interest: "luxury" }),
-    L("l8", { name: "Neha Soni", phone: "919811100008", source: "Past client", refCode: "ADITI001", stage: "new", createdAt: at(-5), weddingDate: day(110), city: "Jaipur", interest: "premium" }),
+    L("l6", { ownerId: "u_out", name: "Kavya & Aditya", phone: "919811100006", source: "Vendor referral", refCode: "LENSVOWS", affiliateId: "u_aff2", stage: "new", createdAt: at(-2), weddingDate: day(90), city: "Udaipur", interest: "luxury" }),
+    L("l12", { ownerId: "u_out", name: "Ritika Mundhra", phone: "919811100012", source: "Direct outreach", stage: "contacted", createdAt: at(-2), weddingDate: day(80), city: "Bikaner", interest: "luxury", notes: [{ at: at(-2), by: "Vikram Sethi", text: "Met at the Bikaner wedding expo — wants a Luxury invite with a Mayra page." }] }),
+    L("l8", { ownerId: "u_out", name: "Neha Soni", phone: "919811100008", source: "Past client", refCode: "ADITI001", stage: "new", createdAt: at(-5), weddingDate: day(110), city: "Jaipur", interest: "premium" }),
     L("l9", { name: "Kunal Jain", phone: "919811100009", source: "Instagram", stage: "lost", lostReason: "No response", createdAt: at(-14), city: "Pune" }),
-    L("l10", { name: "Amit Agarwal", phone: "919811100010", source: "Google / SEO", stage: "converted", convertedAt: at(-5), createdAt: at(-8), city: "Mumbai" }),
+    L("l10", { ownerId: "u_out", name: "Amit Agarwal", phone: "919811100010", source: "Google / SEO", stage: "converted", convertedAt: at(-5), createdAt: at(-8), city: "Mumbai" }),
     L("l11", { name: "Aditi Kothari — brother's wedding", phone: "919822200001", source: "Past client", stage: "converted", convertedAt: at(-3), createdAt: at(-4), city: "Jaipur", clientId: "cl_kothari" }),
     L("l7", { name: "Simran Bajaj", phone: "919811100007", source: "Vendor referral", refCode: "TANVI", affiliateId: "u_aff3", stage: "contacted", createdAt: at(-3), weddingDate: day(35), city: "Jodhpur", interest: "basic" }),
   ];
@@ -138,7 +145,7 @@ export function seed({ empty = false } = {}) {
 
   base.projects = [
     P({
-      id: "p_1001", code: "BFI-1001", token: "q7m4xk2vthp9wce8nrb3da", leadId: null, clientName: "Aditi Kothari", brideName: "Aditi", groomName: "Varun",
+      id: "p_1001", clientManagerId: "u_out", code: "BFI-1001", token: "q7m4xk2vthp9wce8nrb3da", leadId: null, clientName: "Aditi Kothari", brideName: "Aditi", groomName: "Varun",
       phone: "919822200001", email: "aditi@example.com", weddingDate: day(-12), city: "Jaipur", tier: "premium", addons: ["std"], price: 13498,
       templateId: "t2", designerId: "u_des1", qaId: "u_qa", affiliateId: "u_aff1", stage: 7, status: "delivered", stageSince: at(-30),
       createdAt: at(-62), dueDate: day(-40), deliveredAt: at(-41),
@@ -154,7 +161,7 @@ export function seed({ empty = false } = {}) {
       handover: { content: true, links: true, rsvp: true, mobile: true, privacy: true, spelling: true },
     }),
     P({
-      id: "p_1002", code: "BFI-1002", token: "h3n8wd5prk2zmya7ftc4vb", clientName: "Nidhi Lohia", brideName: "Nidhi", groomName: "Sahil",
+      id: "p_1002", clientManagerId: "u_out", code: "BFI-1002", token: "h3n8wd5prk2zmya7ftc4vb", clientName: "Nidhi Lohia", brideName: "Nidhi", groomName: "Sahil",
       phone: "919822200002", email: "nidhi@example.com", weddingDate: day(28), city: "Kolkata", tier: "luxury", addons: ["itin", "travel"], price: 34497,
       templateId: "t4", designerId: "u_des2", qaId: "u_qa", affiliateId: "u_aff2", stage: 4, stageSince: at(-2), createdAt: at(-20), dueDate: day(4),
       intake: { brideName: "Nidhi Lohia", groomName: "Sahil Poddar", brideParents: "Mr. & Mrs. Rajesh Lohia", groomParents: "Mr. & Mrs. Anil Poddar", events: [{ name: "Haldi", date: day(26), time: "10:00", venue: "Lohia Bari" }, { name: "Sangeet", date: day(27), time: "19:00", venue: "ITC Royal Bengal" }, { name: "Phera", date: day(28), time: "21:00", venue: "ITC Royal Bengal" }], rsvpBy: day(14), language: "English", submittedAt: at(-14) },
@@ -171,7 +178,7 @@ export function seed({ empty = false } = {}) {
       costs: { hours: 14, hosting: 300, other: 0 },
     }),
     P({
-      id: "p_1003", code: "BFI-1003", token: "k9p2tf6xnd3wqh8mrc5yaz", clientName: "Riddhi Saraf", brideName: "Riddhi", groomName: "Karan",
+      id: "p_1003", clientManagerId: "u_out", code: "BFI-1003", token: "k9p2tf6xnd3wqh8mrc5yaz", clientName: "Riddhi Saraf", brideName: "Riddhi", groomName: "Karan",
       phone: "919822200003", email: "riddhi@example.com", weddingDate: day(18), city: "Jodhpur", tier: "basic", price: 4999, rush: true,
       templateId: "t3", designerId: "u_fl", qaId: "u_qa", stage: 3, stageSince: at(-7), createdAt: at(-12), dueDate: day(-1),
       intake: { brideName: "Riddhi Saraf", groomName: "Karan Mundra", events: [{ name: "Phera", date: day(18), time: "20:30", venue: "Umaid Bhawan" }], submittedAt: at(-9) },
@@ -180,13 +187,13 @@ export function seed({ empty = false } = {}) {
       costs: { hours: 3, hosting: 300, other: 0 },
     }),
     P({
-      id: "p_1004", code: "BFI-1004", token: "w4c8ry2hkm7nfp3xtd9qbe", clientName: "Tanya Jhunjhunwala", brideName: "Tanya", groomName: "Mohit",
+      id: "p_1004", clientManagerId: "u_out", code: "BFI-1004", token: "w4c8ry2hkm7nfp3xtd9qbe", clientName: "Tanya Jhunjhunwala", brideName: "Tanya", groomName: "Mohit",
       phone: "919822200004", email: "tanya@example.com", weddingDate: day(45), city: "Mumbai", tier: "premium", price: 11999,
       templateId: "t1", designerId: "u_des1", qaId: "u_qa", affiliateId: "u_aff1", stage: 2, stageSince: at(-3), createdAt: at(-5), dueDate: day(9),
       payments: [{ id: "pay5", at: at(-5), amount: 6000, method: "UPI", ref: "UPI-822" }],
     }),
     P({
-      id: "p_1005", code: "BFI-1005", token: "z2b6mq9kdt4xhw7pnr3cfa", clientName: "Shruti Birla", brideName: "Shruti", groomName: "Yash",
+      id: "p_1005", clientManagerId: "u_out", code: "BFI-1005", token: "z2b6mq9kdt4xhw7pnr3cfa", clientName: "Shruti Birla", brideName: "Shruti", groomName: "Yash",
       phone: "919822200005", email: "shruti@example.com", weddingDate: day(33), city: "Jaipur", tier: "premium", price: 11999, addons: ["thanks"],
       templateId: "t2", designerId: "u_des2", qaId: "u_qa", affiliateId: "u_aff3", stage: 5, stageSince: at(-1), createdAt: at(-16), dueDate: day(2),
       intake: { brideName: "Shruti Birla", groomName: "Yash Rungta", events: [{ name: "Phera", date: day(33), time: "20:00", venue: "Jai Mahal" }], submittedAt: at(-12) },
@@ -197,7 +204,7 @@ export function seed({ empty = false } = {}) {
       costs: { hours: 8, hosting: 300, other: 0 },
     }),
     P({
-      id: "p_1006", code: "BFI-1006", token: "r8d3kv6wpz2hqn9ytc4xmb", clientName: "Pooja Maheshwari", brideName: "Pooja", groomName: "Arjun",
+      id: "p_1006", clientManagerId: "u_out", code: "BFI-1006", token: "r8d3kv6wpz2hqn9ytc4xmb", clientName: "Pooja Maheshwari", brideName: "Pooja", groomName: "Arjun",
       phone: "919822200006", email: "pooja@example.com", weddingDate: day(21), city: "Jaipur", tier: "premium", price: 13498, addons: ["std"],
       templateId: "t5", designerId: "u_des1", qaId: "u_qa", stage: 6, stageSince: at(-1), createdAt: at(-24), dueDate: day(2),
       intake: { brideName: "Pooja Maheshwari", groomName: "Arjun Daga", brideParents: "Mr. & Mrs. Vinod Maheshwari", groomParents: "Mr. & Mrs. Sanjay Daga", events: [{ name: "Mehendi", date: day(19), time: "16:00", venue: "Maheshwari Bhawan" }, { name: "Phera", date: day(21), time: "20:30", venue: "Fairmont Jaipur" }], rsvpBy: day(10), rsvpPhone: "919822200006", language: "English + Hindi", submittedAt: at(-18) },
@@ -218,7 +225,7 @@ export function seed({ empty = false } = {}) {
       messages: [{ id: "m71", thread: "admin", from: "u_admin", text: "Welcome to BFI, Kavya & Aditya! 🙏 Your Luxury invitation is confirmed. We'll ask for your details next.", at: at(0, 10) }],
     }),
     P({
-      id: "p_1008", code: "BFI-1008", token: "j6w2nc8tqf3xkm9vdr5hpa", leadId: "l11", clientName: "Aditi Kothari", brideName: "Simran", groomName: "Rohan", occasion: "Brother's wedding",
+      id: "p_1008", clientManagerId: "u_out", code: "BFI-1008", token: "j6w2nc8tqf3xkm9vdr5hpa", leadId: "l11", clientName: "Aditi Kothari", brideName: "Simran", groomName: "Rohan", occasion: "Brother's wedding",
       phone: "919822200001", email: "aditi@example.com", weddingDate: day(64), city: "Jaipur", tier: "premium", price: 12998, addons: ["event"],
       templateId: "t3", designerId: "u_des1", qaId: "u_qa", stage: 2, stageSince: at(-2), createdAt: at(-3), dueDate: day(12),
       intake: { brideName: "Simran Agarwal", groomName: "Rohan Kothari", events: [] },
@@ -241,9 +248,14 @@ export function seed({ empty = false } = {}) {
   }
 
   base.commissions = [
-    { id: "c1", partnerId: "u_aff1", projectId: "p_1001", amount: 1890, rate: 14, at: at(-41), status: "paid", payoutId: "po1" },
+    { id: "c1", partnerId: "u_aff1", role: "partner", projectId: "p_1001", amount: 2025, rate: 15, at: at(-41), status: "paid", payoutId: "po1" },
+    { id: "c2", partnerId: "u_out", role: "client_manager", projectId: "p_1001", amount: 1350, rate: 10, at: at(-41), status: "paid", payoutId: "po2" },
+    { id: "c3", partnerId: "u_des1", role: "designer", projectId: "p_1001", amount: 1350, rate: 10, at: at(-41), status: "owed", payoutId: null },
   ];
-  base.payouts = [{ id: "po1", partnerId: "u_aff1", amount: 1890, at: at(-35), ref: "UPI-PAYOUT-77", entries: ["c1"] }];
+  base.payouts = [
+    { id: "po1", partnerId: "u_aff1", amount: 2025, at: at(-35), ref: "UPI-PAYOUT-77", entries: ["c1"] },
+    { id: "po2", partnerId: "u_out", amount: 1350, at: at(-35), ref: "UPI-PAYOUT-78", entries: ["c2"] },
+  ];
 
   base.library = [
     { id: "a1", title: "Kothari wedding — cover reveal (before/after)", kind: "Before / after", source: "customer", projectId: "p_1001", status: "approved", url: "", at: at(-38) },

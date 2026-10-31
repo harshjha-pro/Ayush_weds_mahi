@@ -153,7 +153,7 @@ img { max-width: 100%; display: block; }
 .stack.sm { gap: 8px; }
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .row.between { justify-content: space-between; }
-.row.nowrap { flex-wrap: nowrap; }
+.row.nowrap { flex-wrap: nowrap; white-space: normal; } /* keep items on one line, let their text wrap */
 .grow { flex: 1; min-width: 0; }
 .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
 .grid.kpi { grid-template-columns: repeat(auto-fit, minmax(min(46%, 180px), 1fr)); gap: 12px; }
@@ -168,7 +168,7 @@ img { max-width: 100%; display: block; }
 .card.flat { box-shadow: none; }
 .card.tight { padding: 12px; }
 .card.pad0 { padding: 0; overflow: hidden; }
-.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .card-head h3 { font-size: 15px; }
 .card.navy { background: var(--primary); color: var(--on-primary); border: 0; }
 .card.navy .muted { color: color-mix(in srgb, var(--on-primary) 70%, transparent); }

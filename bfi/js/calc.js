@@ -137,24 +137,50 @@ export function checklist(p) {
 export const checklistDone = (p) => checklist(p).filter((c) => c.done).length;
 
 // ── commission ───────────────────────────
+// Who earns on an order (rates in Settings, each person earns the full rate):
+//   direct order (no vendor):  client manager + designer, teamDirect each
+//   via vendor / affiliate:    client manager + designer, teamReferred each,
+//                              plus the vendor/affiliate at the partner rate
+// One-time trade partners get no cash; their cost is the discount.
+export const COMMISSION_ROLES = { partner: "Vendor / affiliate", client_manager: "Client management", designer: "Designer" };
 export function commissionRate(partner, tier) {
   if (!partner || partner.partnerType === "trade") return 0;
   const o = partner.commissionOverride?.[tier];
   return Number.isFinite(Number(o)) && o !== "" && o !== null && o !== undefined ? Number(o) : S().commission[tier] || 0;
 }
+export const isReferred = (p) => !!p.affiliateId;
+export const teamRate = (p) => Number((isReferred(p) ? S().teamReferred : S().teamDirect)?.[p.tier]) || 0;
+// Everyone owed on this order, at today's rates.
+export function commissionPlan(p) {
+  const plan = [];
+  const pct = (rate) => Math.round(p.price * rate / 100);
+  if (p.affiliateId) { const partner = byId("users", p.affiliateId); const r = commissionRate(partner, p.tier); if (r) plan.push({ userId: p.affiliateId, role: "partner", rate: r, amount: pct(r) }); }
+  const t = teamRate(p);
+  if (t && p.clientManagerId) plan.push({ userId: p.clientManagerId, role: "client_manager", rate: t, amount: pct(t) });
+  if (t && p.designerId) plan.push({ userId: p.designerId, role: "designer", rate: t, amount: pct(t) });
+  return plan;
+}
+export const commissionRole = (c) => c.role || "partner";
 // Commission is earned only on completed, paid orders.
 export function ensureCommission(p) {
-  if (!p.affiliateId || p.status !== "delivered" || balance(p) > 0) return;
-  if (db.commissions.some((c) => c.projectId === p.id)) return;
-  const partner = byId("users", p.affiliateId);
-  const rate = commissionRate(partner, p.tier);
-  if (!rate) return;
-  db.commissions.push({ id: uid("c"), partnerId: partner.id, projectId: p.id, rate, amount: Math.round(p.price * rate / 100), at: now(), status: "owed", payoutId: null });
+  if (p.status !== "delivered" || balance(p) > 0) return;
+  for (const e of commissionPlan(p)) {
+    if (db.commissions.some((c) => c.projectId === p.id && commissionRole(c) === e.role && c.partnerId === e.userId)) continue;
+    db.commissions.push({ id: uid("c"), partnerId: e.userId, role: e.role, projectId: p.id, rate: e.rate, amount: e.amount, at: now(), status: "owed", payoutId: null });
+  }
 }
-export const commissionOf = (p) => db.commissions.find((c) => c.projectId === p.id);
+export const commissionsOf = (p) => db.commissions.filter((c) => c.projectId === p.id);
+export const commissionOf = (p) => db.commissions.find((c) => c.projectId === p.id && commissionRole(c) === "partner");
 export function projectedCommission(p) {
   const partner = byId("users", p.affiliateId);
   return Math.round(p.price * commissionRate(partner, p.tier) / 100);
+}
+// What one person earns (or will earn) on an order.
+export function earningFor(p, userId) {
+  const booked = db.commissions.filter((c) => c.projectId === p.id && c.partnerId === userId);
+  if (booked.length) return { amount: booked.reduce((s, c) => s + c.amount, 0), status: booked.every((c) => c.status === "paid") ? "paid" : "owed", rate: booked[0].rate, role: commissionRole(booked[0]) };
+  const e = commissionPlan(p).filter((x) => x.userId === userId);
+  return e.length ? { amount: e.reduce((s, x) => s + x.amount, 0), status: "projected", rate: e[0].rate, role: e[0].role } : null;
 }
 
 // ── margin (Section 11) ──────────────────
@@ -164,7 +190,8 @@ export function margin(p) {
   const labour = (Number(p.costs?.hours) || 0) * s.hourlyCost;
   const hosting = Number(p.costs?.hosting) || 0;
   const fees = Math.round(paid(p) * s.gatewayFee / 100);
-  const commission = commissionOf(p)?.amount || (p.affiliateId ? projectedCommission(p) : 0);
+  const booked = commissionsOf(p);
+  const commission = booked.length ? booked.reduce((t, c) => t + c.amount, 0) : p.status === "cancelled" ? 0 : commissionPlan(p).reduce((t, c) => t + c.amount, 0);
   const revisions = revisionsUsed(p) * s.revisionCost;
   const other = Number(p.costs?.other) || 0;
   const cost = labour + hosting + fees + commission + revisions + other;
@@ -198,7 +225,7 @@ export function metrics({ from, to, channel } = {}) {
   const partners = db.users.filter((u) => u.role === "affiliate" && u.active !== false);
   const refLeads = leads.filter((l) => l.affiliateId);
   const refConverted = refLeads.filter((l) => l.stage === "converted").length + projects.filter((p) => p.affiliateId && !p.leadId).length;
-  const commissions = db.commissions.filter((c) => inRange(c.at, from, to));
+  const commissions = db.commissions.filter((c) => inRange(c.at, from, to) && commissionRole(c) === "partner");
   const revenue = projects.reduce((s, p) => s + paid(p) - refunded(p), 0);
   const margins = projects.map(margin);
   const contribution = margins.reduce((s, m) => s + m.contribution, 0);

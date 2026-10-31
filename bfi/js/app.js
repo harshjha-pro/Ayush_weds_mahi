@@ -13,21 +13,25 @@ import * as affiliate from "./views/affiliate.js";
 import * as client from "./views/client.js";
 import * as pub from "./views/public.js";
 import * as site from "./views/site.js";
+import * as outreach from "./views/outreach.js";
 
 const app = document.getElementById("app");
 
 // Navigation per role: [section, label, icon]. The first entry is home.
-const DESIGN_NAV = [["home", "My Projects", "folder"], ["intake", "Asset Intake", "checkCircle"], ["workspace", "Design Workspace", "palette"], ["workload", "Workload", "calendar"], ["brand", "Brand Workspace", "layers"], ["handover", "Handover", "send"], ["settings", "Settings", "settings"]];
+const DESIGN_NAV = [["home", "My Projects", "folder"], ["intake", "Asset Intake", "checkCircle"], ["workspace", "Design Workspace", "palette"], ["workload", "Workload", "calendar"], ["brand", "Brand Workspace", "layers"], ["handover", "Handover", "send"], ["earnings", "My Commission", "rupee"], ["settings", "Settings", "settings"]];
 const NAV = {
   admin: [
     ["home", "Dashboard", "home"], ["leads", "Leads & Sales", "inbox"], ["projects", "Projects", "folder"], ["people", "People", "users"],
-    ["finance", "Finance", "rupee"], ["content", "Content & Assets", "image"], ["outreach", "Marketing", "megaphone"], ["compliance", "Compliance", "shield"],
+    ["finance", "Finance", "rupee"], ["content", "Content & Assets", "image"], ["campaigns", "Marketing", "megaphone"], ["outreach", "Outreach", "users"], ["compliance", "Compliance", "shield"],
     ["metrics", "Metrics", "chart"], ["comms", "Communications", "message"], ["settings", "Settings", "settings"],
   ],
   marketing: [
-    ["home", "Dashboard", "home"], ["outreach", "Outreach CRM", "users"], ["campaigns", "Campaigns", "calendar"], ["sources", "Lead Source & CAC", "chart"],
-    ["testimonials", "Testimonials", "star"], ["seo", "SEO Tracker", "globe"], ["ads", "Paid Ads", "target"], ["referrals", "Referral Codes", "link"],
-    ["library", "Asset Library", "image"], ["settings", "Settings", "settings"],
+    ["home", "Dashboard", "home"], ["campaigns", "Campaigns", "calendar"], ["sources", "Lead Source & CAC", "chart"], ["testimonials", "Testimonials", "star"],
+    ["seo", "SEO Tracker", "globe"], ["ads", "Paid Ads", "target"], ["library", "Asset Library", "image"], ["settings", "Settings", "settings"],
+  ],
+  outreach: [
+    ["home", "Dashboard", "home"], ["outreach", "Vendor CRM", "users"], ["direct", "Direct Outreach", "phone"], ["myclients", "My Clients", "folder"],
+    ["referrals", "Referral Codes", "link"], ["earnings", "My Commission", "rupee"], ["settings", "Settings", "settings"],
   ],
   designer: DESIGN_NAV,
   freelancer: DESIGN_NAV,
@@ -38,13 +42,14 @@ const NAV = {
   ],
 };
 const EXTRA = {
-  admin: ["lead", "project", "person", "vendor", "referrals", "campaigns", "testimonials", "library", "sources", "seo", "ads", "studio", "invoice", "brand"],
-  marketing: ["vendor", "leads", "lead"],
+  admin: ["lead", "project", "person", "vendor", "referrals", "testimonials", "library", "sources", "seo", "ads", "direct", "myclients", "studio", "invoice", "brand"],
+  marketing: [],
+  outreach: ["vendor", "lead"],
   designer: ["job"], freelancer: ["job"], qa: ["job"], affiliate: [],
 };
 // Detail pages highlight their parent in the navigation.
 const PARENT = { lead: "leads", project: "projects", person: "people", vendor: "outreach", job: "home", invoice: "finance", studio: "settings" };
-const ROUTES = { ...admin.routes, ...marketing.routes, ...designer.routes, ...affiliate.routes };
+const ROUTES = { ...admin.routes, ...marketing.routes, ...designer.routes, ...affiliate.routes, ...outreach.routes };
 
 const parse = () => location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
 
@@ -76,17 +81,20 @@ function render() {
   else view = ROUTES[section]?.(args, user);
   if (!view) view = { title: "Not found", html: `<div class="card">That page doesn't exist or isn't shared with you.</div>` };
 
-  const activeKey = user.role === "admin" && ["referrals", "campaigns", "sources", "seo", "ads", "testimonials", "library", "vendor"].includes(section) ? "outreach" : PARENT[section] || section;
+  // Admin reaches the two panels' pages through one nav item each.
+  const adminGroup = { campaigns: "campaigns", sources: "campaigns", seo: "campaigns", ads: "campaigns", testimonials: "campaigns", library: "campaigns", outreach: "outreach", vendor: "outreach", direct: "outreach", myclients: "outreach", referrals: "outreach" };
+  const activeKey = user.role === "admin" && adminGroup[section] ? adminGroup[section] : PARENT[section] || section;
   frame({
     nav: nav.map(([k, l, ic]) => [`#/${k}`, l, ic, k === activeKey]),
     who: { name: user.name, sub: ROLES[user.role].name, href: "#/settings" },
-    search: ["admin", "marketing", "designer", "freelancer", "qa"].includes(user.role),
+    search: ["admin", "marketing", "outreach", "designer", "freelancer", "qa"].includes(user.role),
   }, view, scroll);
 }
 
 function homeFor(user, args) {
   if (user.role === "admin") return admin.routes.dashboard(args, user);
   if (user.role === "marketing") return marketing.routes.mhome(args, user);
+  if (user.role === "outreach") return outreach.routes.ohome(args, user);
   if (user.role === "affiliate") return affiliate.routes.ahome(args, user);
   if (user.role === "qa") return designer.routes.qahome(args, user);
   return designer.routes.dhome(args, user);
@@ -105,7 +113,9 @@ const wordmark = (href = "#/home") => `<a class="wordmark" href="${href}"><b>BFI
 // header and bottom tab bar (phone).
 function frame(f, view, scroll) {
   const link = ([href, l, ic, on]) => `<a class="nav ${on ? "on" : ""}" href="${href}">${icon(ic)}<span>${esc(l)}</span></a>`;
-  const tab = ([href, l, ic, on]) => `<a href="${href}" class="${on ? "on" : ""}">${icon(ic)}<span>${esc(l.split(" ")[0] === "My" || l.length < 11 ? l : l.split(" ")[0])}</span></a>`;
+  // Phone tab labels: "Leads & Sales" → "Leads", "Lead Source & CAC" → "Lead Source".
+  const short = (l) => (l.length < 11 || (l.startsWith("My ") && l.length <= 13) ? l : l.split(" &")[0].length <= 12 && l.includes(" &") ? l.split(" &")[0] : l.split(" ")[0]);
+  const tab = ([href, l, ic, on]) => `<a href="${href}" class="${on ? "on" : ""}">${icon(ic)}<span>${esc(short(l))}</span></a>`;
   const primary = f.nav.slice(0, f.nav.length > 5 ? 4 : 5);
   const rest = f.nav.slice(primary.length);
   document.title = `${view.title} · BFI`;
@@ -224,7 +234,7 @@ act({
     const pBase = user.role === "admin" ? "#/project/" : "#/job/";
     mine.filter((p) => `${p.code} ${p.clientName} ${p.brideName} ${p.groomName} ${p.city}`.toLowerCase().includes(q))
       .forEach((p) => hits.push([pBase + p.id, `${p.brideName && p.groomName ? `${p.brideName} & ${p.groomName}` : p.clientName}`, `${p.code} · ${C.stageName(p.stage)}`, "folder"]));
-    if (["admin", "marketing"].includes(user.role)) {
+    if (["admin", "marketing", "outreach"].includes(user.role)) {
       db.leads.filter((l) => `${l.name} ${l.phone} ${l.city} ${l.refCode}`.toLowerCase().includes(q)).forEach((l) => hits.push([`#/lead/${l.id}`, l.name, `Lead · ${l.source}`, "inbox"]));
       db.vendors.filter((v) => `${v.name} ${v.contact} ${v.city} ${v.kind}`.toLowerCase().includes(q)).forEach((v) => hits.push([`#/vendor/${v.id}`, v.name, `Vendor · ${v.kind}`, "megaphone"]));
     }
@@ -259,7 +269,7 @@ function settingsView(user) {
         <div class="cols">${field("Name", input("name", user.name, "text", "required"))}${field("Email", input("email", user.email, "email"))}${field("Phone", input("phone", user.phone, "tel"))}</div>
         <button class="btn">Save profile</button>
       </form>
-      ${isAff ? affiliate.payoutForm(user) : ""}
+      ${isAff || ["outreach", "designer", "freelancer"].includes(user.role) ? affiliate.payoutForm(user) : ""}
       <div class="card setlist">
         ${appSettingsRows()}
         ${isAdmin ? `

@@ -210,7 +210,8 @@ function overview(p, user) {
       </div>
       <form class="card form" data-form="pAssign" data-id="${p.id}">
         <h3>Assignment</h3>
-        ${field("Designer", select("designerId", [["", "— unassigned —"], ...staff(["designer", "freelancer"])], p.designerId))}
+        ${field("Client manager", select("clientManagerId", [["", "— unassigned —"], ...staff(["outreach", "admin"])], p.clientManagerId), "earns team commission")}
+        ${field("Designer", select("designerId", [["", "— unassigned —"], ...staff(["designer", "freelancer"])], p.designerId), "earns team commission")}
         ${field("QA reviewer", select("qaId", [["", "— unassigned —"], ...staff(["qa", "admin"])], p.qaId))}
         ${field("Affiliate / vendor", select("affiliateId", partners, p.affiliateId || ""))}
         <div class="cols">${field("Due date", input("dueDate", p.dueDate, "date"))}${field("Template", select("templateId", db.templates.filter((t) => t.status === "active" || t.id === p.templateId).map((t) => [t.id, t.name]), p.templateId))}</div>
@@ -336,12 +337,26 @@ function moneyTab(p) {
     <form class="card form" data-form="pCosts" data-id="${p.id}">
       <h3>Order margin</h3>
       <div class="list small">
-        ${[["Revenue (net of refunds)", m.revenue], ["Design hours × rate", -m.labour], ["Hosting", -m.hosting], ["Payment fees", -m.fees], ["Affiliate commission", -m.commission], ["Revision cost", -m.revisions], ["Other", -m.other]].map(([l, v]) => `<div class="item"><div class="grow">${l}</div><b class="num">${C.money(v)}</b></div>`).join("")}
+        ${[["Revenue (net of refunds)", m.revenue], ["Design hours × rate", -m.labour], ["Hosting", -m.hosting], ["Payment fees", -m.fees], ["Commissions (vendor + team)", -m.commission], ["Revision cost", -m.revisions], ["Other", -m.other]].map(([l, v]) => `<div class="item"><div class="grow">${l}</div><b class="num">${C.money(v)}</b></div>`).join("")}
         <div class="item"><div class="grow"><b>Contribution margin</b></div><b class="num" style="color:var(--${m.contribution >= 0 ? "ok" : "bad"})">${C.money(m.contribution)} · ${C.pct(m.pct)}</b></div>
       </div>
       <div class="cols">${field("Design hours", input("hours", p.costs?.hours || 0, "number", 'min="0" step="0.5"'))}${field("Hosting ₹", input("hosting", p.costs?.hosting || 0, "number", 'min="0"'))}${field("Other ₹", input("other", p.costs?.other || 0, "number", 'min="0"'))}</div>
       <div><button class="btn">Update costs</button></div>
     </form>
+  </div>
+  ${commissionSplit(p)}`;
+}
+
+// Who earns what on this order (booked once delivered and fully paid).
+function commissionSplit(p) {
+  const booked = C.commissionsOf(p);
+  const rows = booked.length ? booked.map((c) => ({ userId: c.partnerId, role: C.commissionRole(c), rate: c.rate, amount: c.amount, status: c.status })) : C.commissionPlan(p).map((e) => ({ ...e, status: "projected" }));
+  const missing = [!p.clientManagerId && "client manager", !p.designerId && "designer"].filter(Boolean);
+  return `<div class="card pad0" style="margin-top:16px">
+    <div class="card-head" style="padding:16px 18px 0"><h3>Commission split</h3>${badge(C.isReferred(p) ? "Via vendor / affiliate" : "Direct order", C.isReferred(p) ? "violet" : "info")}</div>
+    ${rtable([{ label: "Person" }, { label: "As" }, { label: "Rate" }, { label: "Amount", cls: "num" }, { label: "Status", cls: "pill" }],
+      rows.map((r) => [esc(userName(r.userId)), esc(C.COMMISSION_ROLES[r.role]), `${r.rate}%`, C.money(r.amount), badge(r.status === "paid" ? "Paid" : r.status === "owed" ? "Owed" : "On delivery", r.status === "paid" ? "ok" : r.status === "owed" ? "warn" : "line")]), { empty: "No commission on this order." })}
+    ${missing.length ? `<p class="small" style="padding:0 18px 14px;margin:0;color:var(--warn)">No ${missing.join(" or ")} assigned, so that share isn't paid. Set it in Overview → Assignment.</p>` : ""}
   </div>`;
 }
 
@@ -392,8 +407,8 @@ act({
   },
   pAssign: (d, f) => {
     const p = P(f.dataset.id);
-    Object.assign(p, { designerId: d.designerId || null, qaId: d.qaId || null, affiliateId: d.affiliateId || null, dueDate: d.dueDate, templateId: d.templateId });
-    commit("Assigned", p.code, `Designer ${userName(p.designerId)}, QA ${userName(p.qaId)}, partner ${userName(p.affiliateId)}`);
+    Object.assign(p, { clientManagerId: d.clientManagerId || null, designerId: d.designerId || null, qaId: d.qaId || null, affiliateId: d.affiliateId || null, dueDate: d.dueDate, templateId: d.templateId });
+    commit("Assigned", p.code, `Client manager ${userName(p.clientManagerId)}, designer ${userName(p.designerId)}, QA ${userName(p.qaId)}, partner ${userName(p.affiliateId)}`);
     toast("Saved");
   },
   pOverride: (d, f) => {

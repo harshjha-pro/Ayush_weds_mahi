@@ -36,6 +36,9 @@ export function formData(form) {
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-act]");
   if (!el) return;
+  // The sheet backdrop only handles clicks on itself, never ones inside
+  // the sheet (those must still submit forms, follow links, tick boxes).
+  if (el.dataset.act === "closeSheetBg" && e.target !== el) return;
   const fn = actions[el.dataset.act];
   if (!fn) return;
   e.preventDefault();

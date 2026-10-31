@@ -18,28 +18,33 @@ const KINDS = { email: "Email campaign", social: "Social media", vendor: "Vendor
 // Marketing sub-navigation, shown to admin (marketing has these in the main nav).
 function growthTabs(active) {
   if (currentUser()?.role !== "admin") return "";
-  const T = [["outreach", "Outreach CRM"], ["campaigns", "Campaigns"], ["sources", "Lead Source & CAC"], ["testimonials", "Testimonials"], ["seo", "SEO"], ["ads", "Paid Ads"], ["referrals", "Referral codes"], ["library", "Assets"]];
+  // Admin sees each panel's pages as tabs: Marketing, or Outreach.
+  const MKT = [["campaigns", "Campaigns"], ["sources", "Lead Source & CAC"], ["testimonials", "Testimonials"], ["seo", "SEO"], ["ads", "Paid Ads"], ["library", "Assets"]];
+  const OUT = [["outreach", "Vendor CRM"], ["direct", "Direct outreach"], ["myclients", "Client managers"], ["referrals", "Referral codes"]];
+  const T = OUT.some(([k]) => k === active) ? OUT : MKT;
   return `<nav class="tabs">${T.map(([k, l]) => `<a href="#/${k}" class="${k === active ? "on" : ""}">${l}</a>`).join("")}</nav>`;
 }
 
 // ── Dashboard ───────────────────────────
 function mhome() {
-  const due = db.vendors.filter((v) => !["declined", "affiliate"].includes(v.stage) && v.nextFollowUp && v.nextFollowUp <= C.today());
   const soon = db.campaigns.filter((c) => c.status !== "posted" && c.date >= C.today() && c.date <= C.addDays(7));
   const monthLeads = db.leads.filter((l) => l.createdAt.slice(0, 7) === C.today().slice(0, 7));
   const tReq = db.projects.filter((p) => p.status === "delivered" && !p.review && !p.testimonialRequest?.declined);
+  const bySource = {};
+  monthLeads.forEach((l) => (bySource[l.source] = (bySource[l.source] || 0) + 1));
+  const live = db.seo.filter((x) => x.status === "live");
   return {
-    title: `Namaste, ${currentUser().name.split(" ")[0]}`, subtitle: "Build partnerships. Drive awareness.",
+    title: `Namaste, ${currentUser().name.split(" ")[0]}`, subtitle: "Drive awareness: campaigns, content, reviews and search.",
+    actions: `<button class="btn primary" data-act="campNewGo">${icon("plus", "icon sm")} Plan campaign</button>`,
     html: `<div class="stack lg">
       <div class="grid kpi">
-        ${kpi("Follow-ups due", due.length, due.length ? `<span style="color:var(--bad)">act today</span>` : "all caught up")}
-        ${kpi("Active partners", db.users.filter((u) => u.role === "affiliate" && u.active !== false).length)}
-        ${kpi("Leads this month", monthLeads.length, `${monthLeads.filter((l) => l.affiliateId || l.referrerProjectId).length} via referrals`, C.delta(db.leads, (l) => l.createdAt))}
+        ${kpi("Leads this month", monthLeads.length, "", C.delta(db.leads, (l) => l.createdAt))}
         ${kpi("Campaigns next 7 days", soon.length)}
+        ${kpi("Reviews to collect", tReq.length)}
+        ${kpi("SEO pages live", live.length, `${live.reduce((s, x) => s + Number(x.visits || 0), 0)} visits / month`)}
       </div>
       <div class="two">
-        <div class="card pad0"><div class="card-head" style="padding:16px 18px 0"><h3>Follow-ups due</h3><a class="small" href="#/outreach">Outreach CRM</a></div>
-          ${rtable([{ label: "Vendor" }, { label: "Type" }, { label: "Stage", cls: "pill" }, { label: "Next follow-up" }], due.map((v) => [`<span class="t">${esc(v.name)}</span>`, esc(v.kind), stageBadge(v.stage), C.date(v.nextFollowUp)]), { empty: "No follow-ups due.", href: (i) => `#/vendor/${due[i].id}` })}</div>
+        <div class="card"><div class="card-head"><h3>Leads by source</h3><a class="small" href="#/sources">Lead Source & CAC</a></div>${donut(bySource, "This month")}</div>
         <div class="stack">
           <div class="card"><div class="card-head"><h3>Coming up</h3><a class="small" href="#/campaigns">Calendar</a></div>
             ${soon.length ? `<div class="list">${soon.map((c) => `<div class="item"><span class="ev k-${c.kind || "social"}" style="padding:2px 6px;border-radius:4px;font-size:11px">${esc(KINDS[c.kind] || "Post")}</span><div class="grow small"><b>${esc(c.title)}</b><div class="muted">${C.date(c.date)} · ${esc(c.channel)}</div></div></div>`).join("")}</div>` : `<p class="small muted" style="margin:0">Nothing scheduled this week.</p>`}</div>
@@ -355,6 +360,7 @@ act({
     else { const t = new Date(ui.calY, ui.calM + d, 1); ui.calY = t.getFullYear(); ui.calM = t.getMonth(); }
     routesRefresh();
   },
+  campNewGo: () => { location.hash = "/campaigns"; setTimeout(() => document.querySelector("[data-act=campNew]")?.click(), 50); },
   campNew: () => sheet("Plan a campaign", document.getElementById("camp-form")?.innerHTML || ""),
   campAdd: (d) => { db.campaigns.push({ id: uid("cp"), ...d, projectId: d.projectId || null, assetId: d.assetId || null, status: "scheduled" }); closeSheet(); commit("Planned campaign", d.title); },
   campStatus: (el) => { const c = byId("campaigns", el.dataset.id); c.status = el.value; commit("Campaign status", c.title, el.value); },

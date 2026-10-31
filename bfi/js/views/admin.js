@@ -1,7 +1,7 @@
 // Admin panel: leads & quotes, projects, people, finance, content,
 // compliance, metrics, comms and studio settings.
 
-import { db, commit, byId, uid, now, token, userName, putFile, ensureClient, clientProjects } from "../db.js";
+import { db, commit, byId, uid, now, token, userName, putFile, ensureClient, clientProjects, currentUser } from "../db.js";
 import { STAGES, LEAD_STAGES, LOST_REASONS, SOURCES, ROLES, VENDOR_KINDS } from "../seed.js";
 import { icon } from "../icons.js";
 import { esc, attr, act, sheet, closeSheet, toast, badge, empty, kpi, field, input, textarea, select, checkbox, chips, tabs, stateTabs, stageBar, wa, avatar, bars, download, go, confirmSheet, rtable, lineChart, srcBadge, templateArt } from "../ui.js";
@@ -127,7 +127,8 @@ function leadForm(l = {}) {
     <div class="cols">${field("Name", input("name", l.name, "text", "required"))}${field("Phone (with country code)", input("phone", l.phone, "tel", 'placeholder="9198…"'))}</div>
     <div class="cols">${field("Email", input("email", l.email, "email"))}${field("City", input("city", l.city))}</div>
     <div class="cols">${field("Wedding date", input("weddingDate", l.weddingDate, "date"))}${field("Interested in", select("interest", [["", "Not sure"], ["basic", "Basic"], ["premium", "Premium"], ["luxury", "Luxury / Bespoke"]], l.interest))}</div>
-    <div class="cols">${field("Source", select("source", SOURCES, l.source || "Walk-in / phone"))}${field("Referral code", input("refCode", l.refCode, "text", 'placeholder="optional" style="text-transform:uppercase"'))}</div>
+    <div class="cols">${field("Source", select("source", SOURCES, l.source || (currentUser()?.role === "outreach" ? "Direct outreach" : "Walk-in / phone")))}${field("Referral code", input("refCode", l.refCode, "text", 'placeholder="optional" style="text-transform:uppercase"'))}</div>
+    ${field("Owner / client manager", select("ownerId", [["", "— unassigned —"], ...db.users.filter((u) => ["outreach", "admin"].includes(u.role) && u.active !== false).map((u) => [u.id, u.name])], l.id ? l.ownerId || "" : currentUser()?.role === "outreach" ? currentUser().id : ""), "becomes the client manager when converted")}
     ${!l.id ? field("Notes", textarea("note", "", 'placeholder="What did they ask for?"')) : ""}
     <button class="btn primary">${l.id ? "Save" : "Add lead"}</button>
   </form>`;
@@ -139,7 +140,7 @@ function leadDetail([id]) {
   const proj = db.projects.find((p) => p.leadId === l.id);
   const q = l.quote || { tier: l.interest || "premium", addons: [], items: [], discount: 0, rush: false };
   return {
-    title: l.name, subtitle: `${l.source}${l.city ? " · " + l.city : ""} · enquired ${C.date(l.createdAt)}`, back: "#/leads",
+    title: l.name, subtitle: `${l.source}${l.city ? " · " + l.city : ""} · enquired ${C.date(l.createdAt)}${l.ownerId ? ` · owner ${userName(l.ownerId)}` : ""}`, back: currentUser()?.role === "outreach" ? "#/direct" : "#/leads",
     html: `
     <div class="two">
       <div class="stack">
@@ -202,7 +203,7 @@ export function createProjectFromLead(l, q) {
   const client = (l.clientId && byId("clients", l.clientId)) || ensureClient({ name: l.name, phone: l.phone, email: l.email, city: l.city });
   db.counters.project++;
   const p = {
-    id: uid("p"), code: `BFI-${db.counters.project}`, token: token(), leadId: l.id, clientId: client.id, occasion: l.occasion || "", clientName: client.name, brideName: "", groomName: "",
+    id: uid("p"), code: `BFI-${db.counters.project}`, token: token(), leadId: l.id, clientId: client.id, clientManagerId: l.ownerId || null, occasion: l.occasion || "", clientName: client.name, brideName: "", groomName: "",
     phone: l.phone, email: l.email, weddingDate: l.weddingDate, city: l.city, tier: q.tier, addons: q.addons || [], items: q.items || [],
     discount: q.discount || 0, rush: !!q.rush, rushFeeAdded: !!q.rush, price: C.quoteTotal(q), templateId: l.templateId || db.templates.find((t) => t.status === "active" && t.tiers.includes(q.tier))?.id || "t1",
     designerId: null, qaId: db.users.find((u) => u.role === "qa")?.id || null, affiliateId: l.affiliateId || null, stage: 1, stageSince: now(), status: "active",
@@ -405,19 +406,26 @@ function finance([tab = "overview"]) {
           C.balance(p) > 0 ? `<a class="btn sm" target="_blank" rel="noopener" href="${attr(wa(p.phone, `Namaste ${p.clientName} 🙏 Your balance for ${p.code} is ${C.money(C.balance(p))}. Pay securely from your invitation page: ${clientLink(p)}`))}">${icon("message", "icon sm")} Remind</a>` : ""];
       }))}</div>`,
     commissions: () => {
-      const partners = db.users.filter((u) => u.role === "affiliate");
-      return `<div class="stack">${partners.map((u) => {
+      // Everyone who earns: vendors/affiliates, client managers, designers.
+      const earners = db.users.filter((u) => u.role === "affiliate" || db.commissions.some((c) => c.partnerId === u.id) || db.projects.some((p) => p.status === "active" && (p.clientManagerId === u.id || p.designerId === u.id)));
+      const groups = [["Vendors & affiliates", earners.filter((u) => u.role === "affiliate")], ["Team: client management & designers", earners.filter((u) => u.role !== "affiliate")]];
+      const card = (u) => {
         const cs = db.commissions.filter((c) => c.partnerId === u.id);
         const owed = cs.filter((c) => c.status === "owed");
-        const pending = db.projects.filter((p) => p.affiliateId === u.id && p.status === "active").reduce((s, p) => s + C.projectedCommission(p), 0);
+        const pending = db.projects.filter((p) => p.status === "active").reduce((s, p) => s + (C.commissionPlan(p).filter((e) => e.userId === u.id).reduce((t, e) => t + e.amount, 0)), 0);
+        const sub = u.role === "affiliate" ? (u.partnerType === "trade" ? "Trade partner — no cash commission" : `Code ${esc(u.refCode)}`) : esc(ROLES[u.role]?.name || "");
         return `<div class="card">
-          <div class="card-head"><div class="row nowrap">${avatar(u.name)}<div><h4>${esc(u.name)}</h4><div class="small muted">${u.partnerType === "trade" ? "Trade partner — no cash commission" : `Code ${esc(u.refCode)} · ${esc(u.payout?.upi || u.payout?.bank || "no payout details")}`}</div></div></div>
+          <div class="card-head"><div class="row nowrap" style="flex:1 1 220px;min-width:0">${avatar(u.name)}<div style="min-width:0"><h4>${esc(u.name)}</h4><div class="small muted">${sub} · ${esc(u.payout?.upi || u.payout?.bank || "no payout details")}</div></div></div>
             <div class="right"><div class="kpi-v" style="font-size:20px;margin:0">${C.money(owed.reduce((s, c) => s + c.amount, 0))}</div><div class="tiny muted">owed · ${C.money(pending)} in pipeline</div></div></div>
-          ${cs.length ? rtable([{ label: "Order" }, { label: "Rate" }, { label: "Amount", cls: "num" }, { label: "Status", cls: "pill" }], cs.map((c) => { const p = byId("projects", c.projectId); return [esc(p ? `${p.code} · ${projectTitle(p)}` : ""), `${c.rate}%`, C.money(c.amount), badge(c.status === "paid" ? "Paid" : "Owed", c.status === "paid" ? "ok" : "warn")]; })) : `<p class="small muted" style="margin:0">No completed, paid orders yet.</p>`}
+          ${cs.length ? rtable([{ label: "Order" }, { label: "As" }, { label: "Rate" }, { label: "Amount", cls: "num" }, { label: "Status", cls: "pill" }], cs.map((c) => { const p = byId("projects", c.projectId); return [esc(p ? `${p.code} · ${projectTitle(p)}` : ""), esc(C.COMMISSION_ROLES[C.commissionRole(c)]), `${c.rate}%`, C.money(c.amount), badge(c.status === "paid" ? "Paid" : "Owed", c.status === "paid" ? "ok" : "warn")]; })) : `<p class="small muted" style="margin:0">No completed, paid orders yet.</p>`}
           ${owed.length ? `<button class="btn primary sm" style="margin-top:10px" data-act="payoutNew" data-id="${u.id}">${icon("send", "icon sm")} Pay out ${C.money(owed.reduce((s, c) => s + c.amount, 0))}</button>` : ""}
         </div>`;
-      }).join("")}
-      <div class="card pad0"><div class="card-head" style="padding:16px 18px 0"><h3>Payout history</h3></div>${rtable([{ label: "Partner" }, { label: "Date" }, { label: "Reference" }, { label: "Amount", cls: "num" }], db.payouts.slice().reverse().map((po) => [esc(userName(po.partnerId)), C.date(po.at), esc(po.ref), `<b>${C.money(po.amount)}</b>`]), { empty: "No payouts yet." })}</div></div>`;
+      };
+      const s = C.S(), t = (o) => `${o.basic}/${o.premium}/${o.luxury}%`;
+      return `<div class="stack">
+        <div class="callout">${icon("info")}<div><b>Direct order:</b> client manager ${t(s.teamDirect)} + designer ${t(s.teamDirect)}. <b>Via vendor:</b> client manager ${t(s.teamReferred)} + designer ${t(s.teamReferred)} + vendor ${t(s.commission)} (Basic/Premium/Luxury, each person). Booked when an order is delivered and fully paid. <a href="#/studio">Change rates</a></div></div>
+        ${groups.map(([title, us]) => `<h3 style="margin-top:6px">${title}</h3>${us.map(card).join("") || `<p class="small muted">None yet.</p>`}`).join("")}
+        <div class="card pad0"><div class="card-head" style="padding:16px 18px 0"><h3>Payout history</h3></div>${rtable([{ label: "Paid to" }, { label: "Date" }, { label: "Reference" }, { label: "Amount", cls: "num" }], db.payouts.slice().reverse().map((po) => [esc(userName(po.partnerId)), C.date(po.at), esc(po.ref), `<b>${C.money(po.amount)}</b>`]), { empty: "No payouts yet." })}</div></div>`;
     },
     invoices: () => {
       const inv = db.projects.flatMap((p) => p.invoices.map((i) => ({ ...i, p }))).sort((a, b) => b.at.localeCompare(a.at));
@@ -643,8 +651,15 @@ function studio() {
         <p class="small muted" style="margin:0">Clients see how many new invitation orders you're accepting, e.g. “Only 3 of 5 slots left for the next 7 days”. When full, new requests join a waitlist.</p>
         ${checkbox("capEnabled", s.capacity?.enabled, "Show booking capacity to clients")}
         <div class="cols">${field("Orders accepted per window", input("capSlots", s.capacity?.slots || 5, "number", 'min="1" max="200"'))}${field("Window length (days)", input("capDays", s.capacity?.days || 7, "number", 'min="1" max="60"'))}${field("Window starts", input("capStart", s.capacity?.start || C.today(), "date"), "then repeats")}</div></div>
-      <div class="card form"><h3>Commission & costs</h3>
-        <div class="cols">${["basic", "premium", "luxury"].map((t) => field(`${s.tiers[t].name} commission %`, input(`c_${t}`, s.commission[t], "number", 'step="0.5"'))).join("")}</div>
+      <div class="card form"><h3>Commission</h3>
+        <p class="small muted" style="margin:0">Each person earns the full rate on an order. Booked when the order is delivered and fully paid.</p>
+        <div class="label">Direct order: client manager and designer, each</div>
+        <div class="cols">${["basic", "premium", "luxury"].map((t) => field(`${s.tiers[t].name} %`, input(`td_${t}`, s.teamDirect?.[t] ?? 0, "number", 'step="0.5" min="0"'))).join("")}</div>
+        <div class="label">Via vendor / affiliate: client manager and designer, each</div>
+        <div class="cols">${["basic", "premium", "luxury"].map((t) => field(`${s.tiers[t].name} %`, input(`tr_${t}`, s.teamReferred?.[t] ?? 0, "number", 'step="0.5" min="0"'))).join("")}</div>
+        <div class="label">Via vendor / affiliate: the vendor or affiliate (per-partner overrides in People)</div>
+        <div class="cols">${["basic", "premium", "luxury"].map((t) => field(`${s.tiers[t].name} %`, input(`c_${t}`, s.commission[t], "number", 'step="0.5" min="0"'))).join("")}</div></div>
+      <div class="card form"><h3>Costs</h3>
         <div class="cols">${field("Rush fee %", input("rushFee", s.rushFee, "number"))}${field("Design cost ₹/hour", input("hourlyCost", s.hourlyCost, "number"))}${field("Hosting ₹/order", input("hostingCost", s.hostingCost, "number"))}${field("Gateway fee %", input("gatewayFee", s.gatewayFee, "number", 'step="0.1"'))}${field("Cost per revision ₹", input("revisionCost", s.revisionCost, "number"))}</div></div>
       <div class="card form"><h3>SLA days per stage</h3><div class="cols">${STAGES.map((st, i) => field(st.name, input(`sla_${i}`, s.slaDays[i], "number", 'min="0"'))).join("")}</div></div>
       <div class="card form"><h3>Cancellation & refund policy</h3>${field("Policy text (shown to clients)", textarea("policyText", s.policy.text))}
@@ -669,8 +684,8 @@ act({
   leadSave: (d, f) => {
     let l = f.dataset.id && byId("leads", f.dataset.id);
     if (!l) { l = { id: uid("l"), stage: "new", notes: [], createdAt: now() }; db.leads.push(l); }
-    Object.assign(l, { name: d.name, phone: d.phone.replace(/\D/g, ""), email: d.email, city: d.city, weddingDate: d.weddingDate, interest: d.interest, source: d.source, refCode: d.refCode });
-    if (d.note) l.notes.push({ at: now(), by: "Admin", text: d.note });
+    Object.assign(l, { name: d.name, phone: d.phone.replace(/\D/g, ""), email: d.email, city: d.city, weddingDate: d.weddingDate, interest: d.interest, source: d.source, refCode: d.refCode, ownerId: d.ownerId || null });
+    if (d.note) l.notes.push({ at: now(), by: currentUser()?.name || "Admin", text: d.note });
     C.attributeLead(l);
     closeSheet();
     commit(f.dataset.id ? "Edited lead" : "Added lead", l.name, l.affiliateId ? `attributed to ${userName(l.affiliateId)}` : l.source);
@@ -702,8 +717,8 @@ act({
     const q = readQuote(el.closest("form"));
     const p = createProjectFromLead(l, q);
     commit("Converted lead", l.name, `${p.code} · ${C.money(p.price)}`);
-    toast(`${p.code} created — assign a designer`);
-    go(`/project/${p.id}`);
+    toast(`${p.code} created — ${currentUser()?.role === "admin" ? "assign a designer" : "the studio will assign a designer"}`);
+    go(currentUser()?.role === "admin" ? `/project/${p.id}` : "/myclients");
   },
   projChip: (el) => { ui.projFilter = el.dataset.v; routesRefresh(); },
   projSearch: (el) => { ui.projQ = el.value; routesRefresh(); },
@@ -855,6 +870,8 @@ act({
     for (const k of Object.keys(s.tiers)) ["price", "revisions", "days"].forEach((f) => (s.tiers[k][f] = Number(d[`t_${k}_${f}`]) || 0));
     s.addons.forEach((a) => { a.name = d[`a_${a.id}_name`]; a.price = Number(d[`a_${a.id}_price`]) || 0; });
     ["basic", "premium", "luxury"].forEach((t) => (s.commission[t] = Number(d[`c_${t}`]) || 0));
+    s.teamDirect = Object.fromEntries(["basic", "premium", "luxury"].map((t) => [t, Number(d[`td_${t}`]) || 0]));
+    s.teamReferred = Object.fromEntries(["basic", "premium", "luxury"].map((t) => [t, Number(d[`tr_${t}`]) || 0]));
     ["rushFee", "hourlyCost", "hostingCost", "gatewayFee", "revisionCost"].forEach((k) => (s[k] = Number(d[k]) || 0));
     s.slaDays = STAGES.map((_, i) => Number(d[`sla_${i}`]) || 0);
     s.capacity = { enabled: d.capEnabled, slots: Math.max(1, Number(d.capSlots) || 5), days: Math.max(1, Number(d.capDays) || 7), start: d.capStart || C.today() };
