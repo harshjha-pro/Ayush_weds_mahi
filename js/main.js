@@ -8,7 +8,7 @@ import { MemoriesSection } from "./components/memories.js";
 import { EventDetailsSection } from "./components/details.js";
 import { CountdownTimer } from "./components/countdown.js";
 import { VenueSection } from "./components/venue.js";
-import { SurpriseMessage } from "./components/surprise.js";
+import { StorybookSection } from "./components/storybook.js";
 import { ClosingSection } from "./components/closing.js";
 import { MusicControl } from "./components/music.js";
 import { startParallax, startMonogramVideos, startFilms, startSprings } from "./motion.js";
@@ -26,7 +26,7 @@ const sections = [
   [EventDetailsSection, "celebration"],
   [CountdownTimer, "countdown"],
   [VenueSection, "venue"],
-  [SurpriseMessage, "surprise"],
+  [StorybookSection, "surprise"],
   [ClosingSection, "closing"],
   [WeddingIntro, "intro"],
 ];

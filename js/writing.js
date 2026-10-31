@@ -17,7 +17,7 @@ const SKIP = [
   ".countdown-num",
   ".countdown-caption",
   ".countdown-done",
-  // The keepsake has its own reveal (surprise.js).
+  // The storybook has its own reveals (storybook.js).
   "#surprise",
   ".lightbox",
   // The Celebration has its own, gentler reveals (details.js).

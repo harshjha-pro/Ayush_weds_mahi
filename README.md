@@ -32,7 +32,7 @@ python3 -m http.server 8000
 | Story text | `story.paragraphs` (and `story.moreParagraphs` for "Read more") |
 | Quote | `story.quote` |
 | Memories films and their timing | `memories.videos`, `memories.interval` |
-| Secret message | `surprise.message` |
+| The storybook (chapters, copy, pictures) | `storybook` |
 | Public link used for sharing | `share.siteUrl` |
 | Background music | `music` |
 
@@ -53,11 +53,16 @@ The `<noscript>` block and the link-preview `<meta>` tags in `index.html` repeat
 
    The grid appears in the Memories section only when `memories.videos` is empty; while there are films, the film carousel is shown instead (see "Memories" below).
 
-### The surprise photo and message
+### The storybook: "The Story Behind the Yes"
 
-Set `surprise.photo` to `{ src: "assets/photos/surprise.jpg", thumb: "assets/photos/surprise-800.jpg", alt: "…" }` and replace `surprise.message` (`surprise.eyebrow` and `surprise.invite` are the small texts on the cover). The photo is shown whole in a 4:3 frame. Until a photo is set, the keepsake reveals the monogram.
+`js/components/storybook.js`, styles under "6 · The Story Behind the Yes", all content in `storybook` in `js/config.js` (it sits in the old "A Little Surprise" place, `#surprise`). A cream illustrated book: closed, a cover with a gold rule, corners, sprigs, the title drawn in gold script, MAHI & AYUSH, a small portrait, "A little story, a lifetime of love." and "Tap to open our story" (the whole cover opens it; Enter and Space too). Opening (about 1.5 s, then the first page's reveal): a small press, a lift, the cover swings open about its spine, gold light blooms and a few motes drift.
 
-**A Keepsake from Our Hearts** (`js/components/surprise.js`, styles under "6 · A Keepsake from Our Hearts"). A small illustrated memory book. Closed, its ivory cover has a fine double gold rule, flowering sprigs, gold corners, a sage wreath around a gold heart, JUST FOR YOU, "A Keepsake from Our Hearts" written in gold script, "A little memory, saved with love" and an "Open your keepsake" button (the whole cover is its tap area); a faint light passes across it now and then, and a blush ribbon marks the page. When it first comes into view it settles in and its title and ornaments draw. Opening takes about 3.2 s: the book presses in slightly, a light runs across the cover, the cover lifts away from its top edge, a soft gold glow blooms and fades, the inner page rises, the photograph emerges in its mat and gold frame, then the divider, the message, the "Mahi & Ayush" signature drawn in script, a small flourish and "Close keepsake". Closing runs back in about 1.4 s. The state is `data-state` on `.ks` (closed, opening, open, closing); taps during a sequence are ignored, so it never sticks half way. The open button carries `aria-expanded`; focus moves into the page on opening and back to the button on closing. With reduced motion it is a short fade either way.
+Ten chapters, each with its own title, line, illustration, layout (`bleed`, `framed`, `arch`, `vignette`, `polaroid` with tape and a small original-photo print, `finale` with the signature) and its own moving details (`ambient`: window light and motes, bokeh, clouds and floating paper, steam from the cup, birds and falling leaves, doodled hearts and sparkles, twinkling string lights and stars, sunset glow, water shimmer, a swaying palm frond, petals), placed at points on the picture. Every page has a slow 2–4% "camera" move (`camera`). Wide screens show a two-page spread and turn a real leaf about the spine (about 0.85 s, with shading); phones show one page that swings away (about 0.65 s) and can be swiped. A new page arrives as paper, then a watercolour wash, then the picture washing in through a soft mask, then its details, the chapter title written in script and the words. Previous/Next, arrow keys, clicking a page edge, swipes, a Contents list (any chapter) and "Close storybook". Turns never overlap (`data-state`: closed, opening, reading, turning, closing). The scenes pause off screen or in a hidden tab; only the open chapter and its neighbours load. With reduced motion there is no 3D, drawing or movement, just short fades.
+
+The chapter copy is a neutral draft that names no places, dates or milestones; edit it freely. A title that is also in `js/lettering.js` is drawn in script (rebuild with `tools/lettering/build_lettering.py` after changing one), any other is set in the serif.
+
+**The illustrations** (`assets/images/storybook/`, WebP with JPG) are cut from the couple's own storyboard (the illustrated contact sheet made from their photos) and enlarged three times, so they are soft at large sizes. To replace them with full-resolution art, use the prompts in `tools/storybook/PROMPTS.md` with an image tool that accepts the photos as references, save each as the same file name (any portrait size), and update `width`/`height` in config.
+
 
 ### Music
 
@@ -97,7 +102,7 @@ js/components/          One file per part of the page:
   calendar.js           Google Calendar link + .ics download
   countdown.js          Live countdown
   venue.js              Venue card, directions, copy address
-  surprise.js           A Keepsake from Our Hearts (the openable memory book)
+  storybook.js          The Story Behind the Yes (the illustrated storybook)
   closing.js            Closing section + sharing
   music.js              Optional music button
 assets/images/          Monogram (original + transparent web versions)
