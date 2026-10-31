@@ -53,6 +53,10 @@ The `<noscript>` block and the link-preview `<meta>` tags in `index.html` repeat
 
    The grid appears in the Memories section only when `memories.videos` is empty; while there are films, the film carousel is shown instead (see "Memories" below).
 
+### The last page
+
+`js/components/closing.js`, styles under "7 · Closing: the last page" (classes `fin-*`; the intro already uses `cl-*`). An ivory page with a fine double rule on a pale mint ground: flowering branches drawn in its upper corners (stems, then blossoms, the right a moment after the left), "We look forward to celebrating with you" word by word, a gold flourish drawn outwards from a small flower, "With love," written in script, the existing M&A monogram inside a fine gold ring that draws around it with one soft light passing across, the date, then the sharing: Share on WhatsApp (the same `wa.me` link and message), More options (the phone's share sheet, shown only where there is one) and Copy link (the site address, with an honest "Link copied" or "Could not copy" message). Then Event details, Directions and Back to top (to the very top of the page), and MAHI & AYUSH with the music credit, kept clear of the floating music button. Each group comes in once as it scrolls into view; two petals drift slowly while the page is on screen. With reduced motion it is all simply there.
+
 ### The storybook: "The Story Behind the Yes"
 
 `js/components/storybook.js`, styles under "6 · The Story Behind the Yes", all content in `storybook` in `js/config.js` (it sits in the old "A Little Surprise" place, `#surprise`). A cream illustrated book: closed, a cover with a gold rule, corners, sprigs, the title drawn in gold script, MAHI & AYUSH, a small portrait, "A little story, a lifetime of love." and "Tap to open our story" (the whole cover opens it; Enter and Space too). Opening (about 1.5 s, then the first page's reveal): a small press, a lift, the cover swings open about its spine, gold light blooms and a few motes drift.
@@ -103,7 +107,7 @@ js/components/          One file per part of the page:
   countdown.js          Live countdown
   venue.js              Venue card, directions, copy address
   storybook.js          The Story Behind the Yes (the illustrated storybook)
-  closing.js            Closing section + sharing
+  closing.js            The last page: closing line, seal, date, sharing, links
   music.js              Optional music button
 assets/images/          Monogram (original + transparent web versions)
 assets/intro/           Photographic layers for the opening intro (WebP)

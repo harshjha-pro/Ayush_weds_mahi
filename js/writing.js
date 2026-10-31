@@ -27,6 +27,8 @@ const SKIP = [
   // Our Story and Memories reveal paragraph by paragraph (story.js, memories.js).
   "#story",
   "#memories",
+  // The last page has its own reveal (closing.js).
+  "#closing",
   // The first screen's welcome has its own sequence (welcome.js).
   ".film-section",
   "#home",
