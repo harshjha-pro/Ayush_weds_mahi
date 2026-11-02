@@ -205,7 +205,7 @@ function scrollHint(film) {
     document.getElementById("home")?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
   });
   const start = () => {
-    setTimeout(update, prefersReducedMotion() ? 0 : 2600);
+    setTimeout(update, prefersReducedMotion() ? 0 : 1500);
     window.addEventListener("scroll", update, { passive: true });
   };
   setTimeout(() => {

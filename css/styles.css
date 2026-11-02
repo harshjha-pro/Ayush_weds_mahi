@@ -5906,66 +5906,84 @@ html.has-dialog {
   color: var(--ink-soft);
 }
 
-/* "Scroll down" at the foot of the first screen (welcome.js). */
+/* "Scroll down" at the foot of the first screen (welcome.js): always
+   centred, gold, with a soft glow and a bobbing arrow so it is noticed. */
 .scroll-hint {
   position: fixed;
   z-index: 29;
   left: 50%;
-  bottom: max(1rem, env(safe-area-inset-bottom));
-  display: inline-flex;
+  bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4px);
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
-  min-height: 52px;
-  padding: 0.45rem 1.1rem 0.3rem;
-  border: 1px solid rgba(195, 160, 100, 0.55);
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 9.5rem;
+  min-height: 56px;
+  padding: 0.55rem 1.4rem 0.4rem;
+  border: 1px solid #d9bd85;
   border-radius: 999px;
-  background: rgba(255, 253, 248, 0.92);
-  box-shadow: var(--shadow-soft);
+  background: linear-gradient(180deg, #9a7d40, #84682e);
+  box-shadow: 0 10px 24px -10px rgba(98, 76, 32, 0.75);
   font-family: "Montserrat", var(--sans);
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-align: center;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--gold-text);
+  color: #fffaf0;
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, 8px);
+  transform: translate(-50%, 10px);
   transition: opacity 0.5s ease, transform 0.5s var(--ease), visibility 0s linear 0.5s;
 }
+
+/* Letter spacing adds a gap after the last letter; take it back so the
+   word sits exactly in the middle. */
+.scroll-hint span { margin-right: -0.2em; }
 
 .scroll-hint.is-shown {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
   transition: opacity 0.6s ease, transform 0.6s var(--ease), visibility 0s;
+  animation: hint-glow 2.4s ease-in-out 0.6s infinite;
 }
 
 .scroll-hint svg {
-  width: 18px;
-  height: 18px;
-  animation: hint-bob 1.8s ease-in-out infinite;
+  display: block;
+  width: 20px;
+  height: 20px;
+  animation: hint-bob 1.6s ease-in-out infinite;
 }
+
+.scroll-hint:hover { background: linear-gradient(180deg, #a3864a, #8c7037); }
 
 .scroll-hint:focus-visible {
   outline: 2px solid var(--gold-deep);
   outline-offset: 3px;
 }
 
-/* On narrow phones it moves to the right, clear of the music button. */
-@media (max-width: 400px) {
-  .scroll-hint { left: auto; right: max(1rem, env(safe-area-inset-right)); transform: translateY(8px); }
-  .scroll-hint.is-shown { transform: none; }
+/* On phones it sits just above the music button's row, still centred. */
+@media (max-width: 480px) {
+  .scroll-hint { bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 64px); }
 }
 
 @keyframes hint-bob {
   0%, 100% { transform: translateY(-2px); }
-  50% { transform: translateY(3px); }
+  50% { transform: translateY(4px); }
+}
+
+@keyframes hint-glow {
+  0%, 100% { box-shadow: 0 10px 24px -10px rgba(98, 76, 32, 0.75), 0 0 0 0 rgba(214, 183, 121, 0.55); }
+  50% { box-shadow: 0 10px 24px -10px rgba(98, 76, 32, 0.75), 0 0 0 10px rgba(214, 183, 121, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-hint,
+  .scroll-hint.is-shown,
   .scroll-hint svg { animation: none; transition: none; }
 }
 
