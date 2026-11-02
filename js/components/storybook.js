@@ -309,7 +309,8 @@ export function StorybookSection(el, config) {
 }
 
 // The closed book's cover: gold rules and corners, sprigs, the title in
-// script, a small portrait of the two of them, and the way in.
+// script, a small illustration (or a portrait, if storybook.cover is set),
+// and the way in.
 function cover(book) {
   const [t1, t2] = Array.isArray(book.title) ? book.title : [book.title ?? "The Story Behind the Yes"];
   const c = book.cover;
@@ -327,7 +328,7 @@ function cover(book) {
       ${
         has(c?.src)
           ? `<figure class="sb-cover-portrait"><picture><source srcset="${esc(c.src)}" type="image/webp" /><img src="${esc(c.fallback || c.src)}" width="${c.width}" height="${c.height}" alt="${esc(c.alt ?? "")}" loading="lazy" decoding="async" /></picture></figure>`
-          : ""
+          : `<span class="sb-cover-art" aria-hidden="true">${lovebirds()}</span>`
       }
       ${has(book.tagline) ? `<p class="sb-cover-tagline">${esc(book.tagline)}</p>` : ""}
       <button class="sb-open" type="button" aria-expanded="false" aria-controls="sb-book">${bookIcon()}<span>${esc(book.cue || "Tap to open our story")}</span></button>
@@ -442,6 +443,46 @@ function ambientFront(a = {}) {
   if (a.petals || a.motes) for (let i = 0; i < 4; i++) out.push(`<i class="amb amb-petal${i % 2 ? " is-blush" : ""}" style="left:${12 + i * 24}%;--d:${(-i * 2.2).toFixed(1)}s;--x:${i % 2 ? 26 : -22}px"></i>`);
   return out.join("");
 }
+
+// The cover's little picture: two lovebirds on a blossoming branch beneath a
+// palace arch, with small hearts rising between them. The lines draw in and
+// the birds and blossoms bloom with the cover (.ld-draw / .ld-bloom).
+const lovebirds = () => {
+  const bird = (x, flip, body, wing) => `
+    <g transform="translate(${x} 0)${flip ? " translate(0 0) scale(-1 1)" : ""}">
+      <path d="M-30 120C-40 126 -46 134 -48 142C-40 138 -32 134 -24 128Z" fill="${wing}"/>
+      <ellipse cx="-10" cy="118" rx="19" ry="14" fill="${body}"/>
+      <circle cx="4" cy="100" r="10.5" fill="${body}"/>
+      <path d="M-22 114C-14 106 -2 110 2 120C-6 126 -18 124 -22 114Z" fill="${wing}"/>
+      <path d="M13 98L21 101L13 105Z" fill="#D6A85A"/>
+      <circle cx="7" cy="97" r="1.9" fill="#4a3826"/>
+      <circle cx="7.6" cy="96.4" r=".6" fill="#fff"/>
+      <ellipse cx="3" cy="104" rx="3" ry="1.8" fill="#F2B8AC" opacity=".8"/>
+      <path d="M-14 131V137M-6 131V137" stroke="#A8957A" stroke-width="1.4" stroke-linecap="round"/>
+    </g>`;
+  const blossom = (x, y, s) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="${-s * 0.55}" rx="${s * 0.42}" ry="${s * 0.58}" transform="rotate(${a})" fill="#F2D8D0" stroke="#E2B8AC" stroke-width=".4"/>`).join("")}<circle r="${s * 0.2}" fill="#D6B779"/></g>`;
+  const leaf = (x, y, r) => `<path d="M0 0C3 -4 9 -4 12 0C9 3.5 3 3.5 0 0Z" transform="translate(${x} ${y}) rotate(${r})" fill="#BCC4A6"/>`;
+  return `
+  <svg viewBox="0 0 240 170" class="sb-lovebirds">
+    <path class="ld-draw" pathLength="1" d="M62 160V86C62 56 92 44 108 33C114 29 118 22 120 14C122 22 126 29 132 33C148 44 178 56 178 86V160" fill="none" stroke="#C3A064" stroke-width="1.1" stroke-linejoin="round"/>
+    <path class="ld-draw" pathLength="1" d="M70 160V88C70 62 96 52 110 42C115 39 118 34 120 28C122 34 125 39 130 42C144 52 170 62 170 88V160" fill="none" stroke="#C3A064" stroke-width=".6" opacity=".7"/>
+    <g class="ld-bloom">
+      <path d="M120 14V8" stroke="#C3A064" stroke-width="1"/><circle cx="120" cy="7" r="2" fill="#D6B779"/>
+    </g>
+    <path class="ld-draw" pathLength="1" d="M14 146C56 136 92 134 120 136C150 138 186 136 226 144" fill="none" stroke="#A8957A" stroke-width="2" stroke-linecap="round"/>
+    <g class="ld-bloom">
+      ${leaf(30, 142, -150)}${leaf(46, 139, 30)}${leaf(196, 140, -30)}${leaf(212, 143, 150)}${leaf(66, 137, -170)}${leaf(176, 137, -10)}
+      ${blossom(22, 146, 8)}${blossom(220, 146, 8)}${blossom(56, 137, 6)}${blossom(186, 137, 6)}
+      ${bird(98, false, "#F2C9BE", "#E3A99B")}
+      ${bird(142, true, "#C9D5BE", "#A9B98F")}
+    </g>
+    <g class="sb-hearts">
+      <path d="M120 84C116 81 113 78 113 75C113 73 114.5 71.5 116.5 71.5C118 71.5 119.3 72.4 120 73.6C120.7 72.4 122 71.5 123.5 71.5C125.5 71.5 127 73 127 75C127 78 124 81 120 84Z" fill="#E7A9A0"/>
+      <path d="M109 66C107 64.5 105.5 63 105.5 61.5C105.5 60.5 106.3 59.7 107.3 59.7C108 59.7 108.7 60.1 109 60.7C109.3 60.1 110 59.7 110.7 59.7C111.7 59.7 112.5 60.5 112.5 61.5C112.5 63 111 64.5 109 66Z" fill="#EFC3BA"/>
+      <path d="M132 60C130.4 58.8 129.2 57.6 129.2 56.4C129.2 55.6 129.8 55 130.6 55C131.2 55 131.7 55.3 132 55.8C132.3 55.3 132.8 55 133.4 55C134.2 55 134.8 55.6 134.8 56.4C134.8 57.6 133.6 58.8 132 60Z" fill="#EFC3BA"/>
+    </g>
+  </svg>`;
+};
 
 const heart = () => `<svg viewBox="0 0 24 22" class="sb-heart-svg"><path class="ld-draw" pathLength="1" d="M12 19.5C7.4 16 3.5 12.9 3.5 8.6C3.5 5.9 5.6 4 8 4C9.8 4 11.2 5 12 6.5C12.8 5 14.2 4 16 4C18.4 4 20.5 5.9 20.5 8.6C20.5 12.9 16.6 16 12 19.5Z" fill="none" stroke="#B89255" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 

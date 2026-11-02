@@ -4790,6 +4790,24 @@ html.has-dialog {
   color: var(--gold-text);
 }
 
+/* The cover's little illustration: lovebirds beneath an arch. */
+.sb-cover-art {
+  display: block;
+  width: 78%;
+  margin: 0.1rem 0 0.2rem;
+}
+
+.sb-lovebirds { display: block; width: 100%; overflow: visible; }
+.sb-hearts path { transform-box: fill-box; transform-origin: center; }
+.js .sb.is-in[data-state="closed"] .sb-hearts path { animation: sb-heart-rise 4.5s ease-in-out infinite; }
+.js .sb.is-in[data-state="closed"] .sb-hearts path:nth-child(2) { animation-delay: -1.5s; }
+.js .sb.is-in[data-state="closed"] .sb-hearts path:nth-child(3) { animation-delay: -3s; }
+
+@keyframes sb-heart-rise {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.85; }
+  50% { transform: translateY(-5px) scale(1.08); opacity: 1; }
+}
+
 .sb-cover-portrait {
   width: 74%;
   margin: 0.2rem 0;
