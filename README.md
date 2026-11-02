@@ -65,7 +65,7 @@ Ten chapters, each with its own title, line, illustration, layout (`bleed`, `fra
 
 The chapter copy is a neutral draft that names no places, dates or milestones; edit it freely. A title that is also in `js/lettering.js` is drawn in script (rebuild with `tools/lettering/build_lettering.py` after changing one), any other is set in the serif.
 
-**The illustrations** (`assets/images/storybook/`, WebP with JPG) are cut from the couple's own storyboard (the illustrated contact sheet made from their photos) and enlarged three times, so they are soft at large sizes. To replace them with full-resolution art, use the prompts in `tools/storybook/PROMPTS.md` with an image tool that accepts the photos as references, save each as the same file name (any portrait size), and update `width`/`height` in config.
+**The illustrations** (`assets/images/storybook/`, WebP with JPG, 960×1200 and a 960×720 cover) were painted from the couple's own photos with the prompts in `tools/storybook/PROMPTS.md`. To replace one, save it under the same name and update its `width`/`height` in config; if the picture is composed differently, move its `ambient` points (lights, steam, sun, water) to match.
 
 
 ### Music
