@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BFI Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=Tiro+Devanagari+Hindi&display=swap">
+<style>
+  /* Royal Marwari tokens (proposed) */
+  :root {
+    --maroon: #641E2B; --maroon-700: #4E1520; --gold: #C6A15B; --gold-ink: #7E5F24;
+    --ivory: #FFF8EC; --paper: #FFFDF8; --beige: #E9DCC8; --tint: #F7EEDF;
+    --brown: #392820; --muted: #6E5A4E; --line: #E6D8C2;
+    --serif: "Cormorant Garamond", Georgia, serif; --sans: Inter, system-ui, sans-serif; --deva: "Tiro Devanagari Hindi", serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ivory); color: var(--brown); font: 16px/1.6 var(--sans); }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.08; margin: 0; color: var(--brown); }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+  .eyebrow { font: 600 12px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--gold-ink); margin-bottom: 10px; }
+  .deva { font-family: var(--deva); color: var(--gold-ink); letter-spacing: .02em; }
+  .divider { display: flex; align-items: center; gap: 12px; color: var(--gold); margin: 14px 0 0; max-width: 220px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--gold); opacity: .6; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 600 15px var(--sans); text-decoration: none; border: 1.5px solid var(--maroon); cursor: pointer; }
+  .btn.primary { background: var(--maroon); color: var(--ivory); }
+  .btn.primary:hover { background: var(--maroon-700); }
+  .btn.secondary { background: transparent; color: var(--maroon); }
+  .btn.gold { background: var(--gold); border-color: var(--gold); color: var(--maroon-700); }
+  section { padding: 64px 0; }
+  @media (min-width: 900px) { section { padding: 96px 0; } }
+  .tint { background: var(--tint); }
+
+  /* Intro / doc header */
+  .doc { background: var(--brown); color: #F4EBDD; padding: 28px 0; }
+  .doc h1 { color: #F4EBDD; font-size: 30px; }
+  .doc p { margin: 6px 0 0; color: #D9C9B5; max-width: 760px; }
+
+  /* Palette comparison */
+  .opts { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+  .opt { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+  .opt.pick { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .sw { display: flex; height: 64px; }
+  .sw span { flex: 1; display: flex; align-items: flex-end; padding: 6px; font: 600 10px var(--sans); }
+  .sample { padding: 20px; display: grid; gap: 12px; }
+  .sample h3 { font-size: 26px; }
+  .sample .b { display: inline-flex; padding: 10px 18px; border-radius: 999px; font: 600 13px var(--sans); }
+  .opt-name { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line); font-weight: 600; }
+  .tag { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--maroon); color: var(--ivory); }
+  .tag.no { background: var(--beige); color: var(--brown); }
+
+  /* Mock website */
+  .frame-label { font: 600 12px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  header.site { position: sticky; top: 0; z-index: 5; background: rgba(255,248,236,.94); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  header.site .wrap { display: flex; align-items: center; gap: 18px; height: 72px; }
+  .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--maroon); }
+  .mark svg { width: 34px; height: 34px; }
+  .mark b { font: 700 26px/1 var(--serif); letter-spacing: .06em; }
+  .mark small { display: block; font: 600 9px var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--gold-ink); margin-top: 3px; }
+  nav.links { display: none; gap: 26px; margin-left: auto; }
+  nav.links a { color: var(--brown); text-decoration: none; font-weight: 500; font-size: 15px; }
+  header .cta { margin-left: auto; white-space: nowrap; }
+  @media (max-width: 899px) { header .cta { min-height: 42px; padding: 0 16px; font-size: 14px; } .mark small { letter-spacing: .14em; } .mark b { font-size: 24px; } }
+  @media (max-width: 899px) { .arch { width: min(290px, 80vw); } .phone { width: 190px; } }
+  @media (min-width: 900px) { nav.links { display: flex; } header .cta { margin-left: 8px; } }
+
+  .cta .sm { display: none; } @media (max-width: 899px) { .cta .lg { display: none; } .cta .sm { display: inline; } }
+  .hero { padding: 40px 0 56px; background: radial-gradient(ellipse at 80% 20%, #FBEFD9 0%, transparent 60%), var(--ivory); }
+  .hero .wrap { display: grid; gap: 36px; align-items: center; }
+  @media (min-width: 900px) { .hero { padding: 72px 0 96px; } .hero .wrap { grid-template-columns: 1.1fr .9fr; } }
+  .hero h1 { font-size: clamp(38px, 6vw, 62px); color: var(--maroon); }
+  .hero h1 em { font-style: italic; color: var(--brown); }
+  .hero p.lead { color: var(--muted); font-size: 17px; max-width: 520px; margin: 16px 0 26px; }
+  .hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .slots { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; font-size: 14px; color: var(--muted); }
+  .slots i { width: 8px; height: 8px; border-radius: 50%; background: #2F6B4F; }
+
+  /* Arch-framed phone */
+  .arch { position: relative; margin: 0 auto; width: min(340px, 86vw); padding: 26px 22px 22px; background: var(--tint); border-radius: 170px 170px 18px 18px; border: 1.5px solid var(--gold); }
+  .arch::before { content: ""; position: absolute; inset: 8px; border-radius: 162px 162px 12px 12px; border: 1px solid rgba(198,161,91,.55); pointer-events: none; }
+  .phone { position: relative; margin: 34px auto 0; width: 230px; aspect-ratio: 9/18.5; border-radius: 30px; background: var(--brown); padding: 8px; box-shadow: 0 24px 50px rgba(57,40,32,.25); }
+  .screen { width: 100%; height: 100%; border-radius: 23px; overflow: hidden; background: var(--maroon); color: var(--ivory); text-align: center; display: grid; align-content: center; gap: 8px; padding: 18px; position: relative; }
+  .screen::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(198,161,91,.6); border-radius: 16px; }
+  .screen .deva { color: var(--gold); font-size: 13px; }
+  .screen .names { font: 600 30px/1 var(--serif); color: #F7E7C6; }
+  .screen .amp { font: italic 500 22px var(--serif); color: var(--gold); }
+  .screen .date { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #E9D5AE; }
+  .screen .rsvp { justify-self: center; margin-top: 6px; font-size: 11px; padding: 6px 14px; border-radius: 999px; background: var(--gold); color: var(--maroon-700); font-weight: 600; }
+
+  .promises { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+  .promise { display: flex; gap: 14px; align-items: flex-start; }
+  .promise svg { width: 30px; height: 30px; color: var(--gold); flex: none; margin-top: 2px; }
+  .promise b { font: 600 20px var(--serif); display: block; color: var(--brown); }
+  .promise span { color: var(--muted); font-size: 15px; }
+
+  .head { max-width: 640px; margin-bottom: 30px; }
+  .head h2 { font-size: clamp(30px, 4vw, 42px); }
+  .head p { color: var(--muted); margin: 10px 0 0; }
+
+  .carousel { display: grid; grid-auto-flow: column; grid-auto-columns: min(78%, 260px); gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+  @media (min-width: 900px) { .carousel { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); overflow: visible; } }
+  .design { scroll-snap-align: start; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px 16px; text-align: center; }
+  .design .mini { margin: 0 auto 14px; width: 150px; aspect-ratio: 9/17; border-radius: 22px; background: var(--brown); padding: 6px; }
+  .design .mini div { height: 100%; border-radius: 17px; display: grid; place-items: center; font: 600 18px/1.1 var(--serif); padding: 10px; }
+  .design b { font: 600 22px var(--serif); display: block; }
+  .design small { color: var(--muted); }
+
+  .rituals { display: flex; flex-wrap: wrap; gap: 10px; }
+  .rituals span { padding: 10px 18px; border-radius: 999px; border: 1px solid var(--gold); color: var(--brown); background: var(--paper); font-weight: 500; }
+  .rituals span:first-child { background: var(--maroon); color: var(--ivory); border-color: var(--maroon); }
+
+  .prices { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); align-items: stretch; }
+  .price { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .price h3 { font-size: 26px; }
+  .price .amt { font: 600 40px/1 var(--serif); color: var(--maroon); }
+  .price .amt small { font: 400 14px var(--sans); color: var(--muted); }
+  .price ul { list-style: none; padding: 0; margin: 4px 0 8px; display: grid; gap: 8px; font-size: 15px; }
+  .price li::before { content: "✦"; color: var(--gold); margin-right: 10px; }
+  .price .btn { margin-top: auto; }
+  .price.hl { background: var(--maroon); border-color: var(--maroon); color: var(--ivory); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 0 7px var(--maroon) inset, 0 0 0 8px rgba(198,161,91,.6) inset; }
+  .price.hl h3, .price.hl .amt { color: #F7E7C6; }
+  .price.hl .amt small, .price.hl li { color: #EAD8BD; }
+  .price.hl .pill { align-self: flex-start; font: 600 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--maroon-700); background: var(--gold); padding: 4px 10px; border-radius: 999px; }
+
+  .quote { max-width: 760px; margin: 0 auto; text-align: center; }
+  .quote blockquote { margin: 0; font: italic 500 clamp(24px, 3vw, 32px)/1.35 var(--serif); color: var(--brown); }
+  .quote cite { display: block; margin-top: 14px; font-style: normal; color: var(--muted); font-size: 14px; }
+
+  .closing { background: var(--maroon); color: var(--ivory); text-align: center; }
+  .closing h2 { color: #F7E7C6; font-size: clamp(30px, 4vw, 44px); }
+  .closing p { color: #EAD8BD; margin: 12px auto 24px; max-width: 520px; }
+  footer.site { background: var(--maroon-700); color: #EAD8BD; padding: 36px 0; font-size: 14px; border-top: 3px double var(--gold); }
+  footer.site .wrap { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: center; }
+  footer.site a { color: #F7E7C6; margin-right: 16px; }
+
+  .sticky-cta { position: sticky; bottom: 0; display: flex; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,248,236,.96); border-top: 1px solid var(--line); }
+  .sticky-cta .btn { flex: 1; min-height: 46px; padding: 0 12px; }
+  @media (min-width: 900px) { .sticky-cta { display: none; } }
+
+  .type { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .type .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+</style>
+</head>
+<body>
+
+<div class="doc"><div class="wrap">
+  <h1>BFI · Design direction preview</h1>
+  <p>A proposal for approval, not the live site. Part 1 compares the three palettes; part 2 shows the homepage redesigned in the recommended <b>Option A · Royal Marwari</b>. Resize the window (or open it on a phone) to see the mobile layout.</p>
+</div></div>
+
+<section><div class="wrap">
+  <div class="eyebrow">Part 1</div>
+  <div class="head"><h2>Three palettes, one choice</h2><p>Same content on each palette. Contrast figures are WCAG ratios for the main text colour on the background.</p></div>
+  <div class="opts">
+    <div class="opt pick">
+      <div class="sw"><span style="background:#641E2B;color:#FFF8EC">#641E2B</span><span style="background:#C6A15B;color:#392820">#C6A15B</span><span style="background:#FFF8EC;color:#392820">#FFF8EC</span><span style="background:#E9DCC8;color:#392820">#E9DCC8</span><span style="background:#392820;color:#FFF8EC">#392820</span></div>
+      <div class="sample" style="background:#FFF8EC;color:#392820"><div class="deva" style="color:#7E5F24">॥ शुभ विवाह ॥</div><h3 style="color:#641E2B">Wedding invitations, the Marwari way</h3><div><span class="b" style="background:#641E2B;color:#FFF8EC">Plan my invitation</span></div><small>Maroon on ivory 11.3 : 1 · gold on maroon 4.9 : 1</small></div>
+      <div class="opt-name">A · Royal Marwari <span class="tag">Recommended</span></div>
+    </div>
+    <div class="opt">
+      <div class="sw"><span style="background:#722F42;color:#FAF7F2">#722F42</span><span style="background:#D8BD8A;color:#302A2A">#D8BD8A</span><span style="background:#FAF7F2;color:#302A2A">#FAF7F2</span><span style="background:#D9B7B0;color:#302A2A">#D9B7B0</span><span style="background:#302A2A;color:#FAF7F2">#302A2A</span></div>
+      <div class="sample" style="background:#FAF7F2;color:#302A2A"><div style="color:#9c8452">— Shubh Vivah —</div><h3 style="color:#722F42">Wedding invitations, the Marwari way</h3><div><span class="b" style="background:#722F42;color:#FAF7F2">Plan my invitation</span></div><small>Burgundy on pearl 8.9 : 1 · champagne on pearl 1.7 : 1</small></div>
+      <div class="opt-name">B · Modern Luxury <span class="tag no">Too generic</span></div>
+    </div>
+    <div class="opt">
+      <div class="sw"><span style="background:#B94332;color:#FFF3DB">#B94332</span><span style="background:#D99A35;color:#302A2A">#D99A35</span><span style="background:#FFF3DB;color:#302A2A">#FFF3DB</span><span style="background:#285C46;color:#FFF3DB">#285C46</span><span style="background:#B99A55;color:#302A2A">#B99A55</span></div>
+      <div class="sample" style="background:#FFF3DB;color:#302A2A"><div class="deva" style="color:#285C46">॥ शुभ विवाह ॥</div><h3 style="color:#B94332">Wedding invitations, the Marwari way</h3><div><span class="b" style="background:#285C46;color:#FFF3DB">Plan my invitation</span></div><small>Vermilion on cream 4.9 : 1 · saffron on cream 2.2 : 1</small></div>
+      <div class="opt-name">C · Traditional Celebration <span class="tag no">Too busy</span></div>
+    </div>
+  </div>
+</div></section>
+
+<div class="wrap"><p class="frame-label">Part 2 · Proposed homepage — Option A · Royal Marwari</p></div>
+
+<header class="site"><div class="wrap">
+  <a class="mark" href="#"><svg viewBox="0 0 64 64" fill="none" stroke="#C6A15B" stroke-width="2" stroke-linecap="round"><path d="M12 58V30c0-11 9-19 20-22 11 3 20 11 20 22v28"/><path d="M18 58V31c0-8 6-14 14-17 8 3 14 9 14 17v27"/><path d="M8 58h48"/><path d="M32 8c-2-2-2-4 0-6 2 2 2 4 0 6z"/><circle cx="32" cy="34" r="4.5"/></svg><span><b>BFI</b><small>Marwari Invitations</small></span></a>
+  <nav class="links"><a href="#">Designs</a><a href="#">Pricing</a><a href="#">How it works</a><a href="#">Real weddings</a><a href="#">FAQ</a></nav>
+  <a class="btn primary cta" href="#"><span class="lg">Plan my invitation</span><span class="sm">Enquire</span></a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <div class="deva" style="font-size:17px;margin-bottom:14px">॥ श्री गणेशाय नमः ॥</div>
+    <h1>Wedding invitations, <em>the Marwari way</em></h1>
+    <p class="lead">From Ganesh puja to the pheras, every ritual and every elder's name, written with care and delivered as a beautiful invitation your family opens on their phones.</p>
+    <div class="ctas"><a class="btn primary" href="#">Explore designs</a><a class="btn secondary" href="#">Chat on WhatsApp</a></div>
+    <div class="slots"><i></i> 3 of 5 invitation slots open this week</div>
+  </div>
+  <div class="arch">
+    <div class="phone"><div class="screen">
+      <div class="deva">॥ श्री गणेशाय नमः ॥</div>
+      <div class="date">Together with their families</div>
+      <div class="names">Aditi</div><div class="amp">&amp;</div><div class="names">Varun</div>
+      <div class="date">12 · 02 · 2027 · Jaipur</div>
+      <span class="rsvp">RSVP</span>
+    </div></div>
+  </div>
+</div></section>
+
+<section class="tint" style="padding:40px 0"><div class="wrap promises">
+  <div class="promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20c-4 0-8-2-9-6 3-.5 6 .5 9 6zM12 20c4 0 8-2 9-6-3-.5-6 .5-9 6zM12 20c-2.5-3-3.5-7 0-13 3.5 6 2.5 10 0 13z"/></svg><div><b>Made for Marwari rituals</b><span>Mayra, Mahila sangeet, Baraat and every function you celebrate.</span></div></div>
+  <div class="promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><div><b>Every name checked by hand</b><span>Dada-Dadi to Nana-Nani, spelt exactly as your family writes them.</span></div></div>
+  <div class="promise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg><div><b>Private & consent-first</b><span>Your own private page. Nothing shared publicly without your yes.</span></div></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="head"><div class="eyebrow">Designs</div><h2>Invitations your family will forward with pride</h2><div class="divider">✦</div></div>
+  <div class="carousel">
+    <div class="design"><div class="mini"><div style="background:#641E2B;color:#F7E7C6;border:1px solid #C6A15B">Royal<br>Heritage</div></div><b>Royal Heritage</b><small>Premium · Luxury</small></div>
+    <div class="design"><div class="mini"><div style="background:#F4E6CF;color:#8A2B1D;border:1px solid #B8862F">Mandap<br>Magic</div></div><b>Mandap Magic</b><small>Basic · Premium</small></div>
+    <div class="design"><div class="mini"><div style="background:#5C0D18;color:#E2B65C;border:1px solid #E2B65C">Golden<br>Elegance</div></div><b>Golden Elegance</b><small>Luxury</small></div>
+    <div class="design"><div class="mini"><div style="background:#EFE0C4;color:#7A4A1F;border:1px solid #A8763A">Desert<br>Dreams</div></div><b>Desert Dreams</b><small>Basic · Premium</small></div>
+  </div>
+</div></section>
+
+<section class="tint"><div class="wrap">
+  <div class="head"><div class="eyebrow">Rituals we design for</div><h2>Every function, given its due</h2></div>
+  <div class="rituals"><span>Ganesh puja</span><span>Mayra / Bhaat</span><span>Haldi</span><span>Mehendi</span><span>Mahila sangeet</span><span>Baraat</span><span>Phera</span><span>Reception</span></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="head"><div class="eyebrow">Pricing</div><h2>Clear packages, no surprises</h2></div>
+  <div class="prices">
+    <div class="price"><h3>Basic</h3><div class="amt">₹4,999 <small>onwards</small></div><ul><li>Curated Marwari design</li><li>Names, dates, venue & RSVP</li><li>1 revision round</li><li>Ready in ~5 days</li></ul><a class="btn secondary" href="#">Choose Basic</a></div>
+    <div class="price hl"><span class="pill">Most chosen</span><h3>Premium</h3><div class="amt">₹11,999 <small>onwards</small></div><ul><li>Personalised design & photos</li><li>Every function, countdown, maps</li><li>2 revision rounds</li><li>Ready in ~10 days</li></ul><a class="btn gold" href="#">Choose Premium</a></div>
+    <div class="price"><h3>Luxury / Bespoke</h3><div class="amt">₹29,999 <small>onwards</small></div><ul><li>Fully custom, your story</li><li>Multiple function pages</li><li>Unlimited reasonable revisions</li><li>Ready in ~21 days</li></ul><a class="btn secondary" href="#">Choose Luxury</a></div>
+  </div>
+</div></section>
+
+<section class="tint"><div class="wrap quote">
+  <div class="divider" style="margin:0 auto 18px">✦</div>
+  <blockquote>“They understood every Marwari ritual we wanted. Our families loved the invitation.”</blockquote>
+  <cite>Aditi & Varun · Jaipur</cite>
+</div></section>
+
+<section class="closing"><div class="wrap">
+  <div class="deva" style="color:#C6A15B;font-size:17px">॥ शुभ विवाह ॥</div>
+  <h2>Let's write your invitation together</h2>
+  <p>Tell us your dates and functions. We'll share designs and a clear quote within a day.</p>
+  <a class="btn gold" href="#">Plan my invitation</a>
+</div></section>
+
+<footer class="site"><div class="wrap">
+  <span><b style="font-family:var(--serif);font-size:20px;color:#F7E7C6">BFI · Marwari Invitations</b><br>Jaipur, Rajasthan · serving families across India and abroad</span>
+  <span><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Refunds</a><a href="#">Partners</a></span>
+</div></footer>
+<div class="sticky-cta"><a class="btn primary" href="#">Explore designs</a><a class="btn secondary" href="#">WhatsApp</a></div>
+
+<section><div class="wrap">
+  <div class="eyebrow">Typography & buttons</div>
+  <div class="type">
+    <div class="card"><div class="eyebrow">Display · Cormorant Garamond</div><h2 style="font-size:44px;color:var(--maroon)">Shubh Vivah</h2><p class="deva" style="font-size:18px;margin:8px 0 0">श्री गणेशाय नमः · Tiro Devanagari Hindi</p></div>
+    <div class="card"><div class="eyebrow">Body · Inter</div><p style="margin:0">Fill in the names exactly as they should appear. Your designer checks every spelling before anything goes live.</p></div>
+    <div class="card"><div class="eyebrow">Buttons</div><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn primary" href="#">Plan my invitation</a><a class="btn secondary" href="#">Explore designs</a></div></div>
+  </div>
+</div></section>
+
+</body>
+</html>
