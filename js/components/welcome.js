@@ -44,7 +44,13 @@ export function WelcomeSection(el, config) {
         <p class="inv-eyebrow">${esc(invitation.eyebrow)}</p>
         ${celDivider()}
         <div class="hero-monogram inv-monogram">${monogramMedia(config, { preload: "auto" })}</div>
-        <p class="inv-couple">${esc(couple.partnerOne.first)} &amp; ${esc(couple.partnerTwo.first)}</p>
+        ${
+          // The small line repeats the names below, so it shows only when
+          // those carry more than the first names.
+          couple.partnerOne.full !== couple.partnerOne.first || couple.partnerTwo.full !== couple.partnerTwo.first
+            ? `<p class="inv-couple">${esc(couple.partnerOne.first)} &amp; ${esc(couple.partnerTwo.first)}</p>`
+            : ""
+        }
 
         <h1 class="hero-names" id="hero-title" tabindex="-1">
           <span class="name">${esc(couple.partnerOne.full)}</span>

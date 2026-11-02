@@ -15,8 +15,9 @@
 export const config = {
   couple: {
     // Order follows the approved monogram ("Mahi & Ayush", M&A).
-    partnerOne: { first: "Mahi", full: "Mahi Jagetiya" },
-    partnerTwo: { first: "Ayush", full: "Ayush Porwal" },
+    // Only their first names are used on the site (no surnames).
+    partnerOne: { first: "Mahi", full: "Mahi" },
+    partnerTwo: { first: "Ayush", full: "Ayush" },
     monogramLetters: "M&A",
     monogramImage: "assets/images/monogram-480.webp",
     monogramImageFallback: "assets/images/monogram-480.png",
@@ -53,8 +54,10 @@ export const config = {
     arrival: "2026-11-15T10:00:00+05:30",
     // The countdown counts down to the first function below.
     functions: [
-      { name: "Ring Ceremony", start: "2026-11-15T12:00:00+05:30" },
-      { name: "Lunch", start: "2026-11-15T14:00:00+05:30" },
+      // As printed on the invitation card: सगाई दस्तूर 10:15 am,
+      // स्वरुचि भोज 1:30 pm, 15-11-2026.
+      { name: "Ring Ceremony", start: "2026-11-15T10:15:00+05:30" },
+      { name: "Lunch", start: "2026-11-15T13:30:00+05:30" },
     ],
     // Only used for the calendar entry, never shown on the page.
     // Confirmed as 3:00 PM.
