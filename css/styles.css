@@ -5128,6 +5128,10 @@ html.has-dialog {
 .sb-page-S .sb-art-polaroid { inset: 20px 15% auto; height: calc(55% - 30px); }
 .sb-page-S .sb-art-polaroid .sb-window { inset: 8px 8px 30px; }
 .sb-page-S .sb-text { inset: 55% 0 0; align-content: start; gap: 0.5rem; padding: 0.9rem 1.4rem 1.4rem; }
+/* The last page carries more words and the signature: a shorter picture. */
+.sb-page-S.sb-l-finale .sb-art { height: 46%; }
+.sb-page-S.sb-l-finale .sb-text { inset: 46% 0 0; gap: 0.4rem; padding-top: 0.75rem; }
+.sb-page-S.sb-l-finale .sb-copy { line-height: 1.6; }
 .sb-page-S .sb-script { height: 2.25rem; }
 .sb-page-S .sb-copy { font-size: 0.98rem; line-height: 1.7; }
 .sb-page-S .sb-divider { width: 120px; }
@@ -5141,8 +5145,8 @@ html.has-dialog {
   .sb-page-S .sb-art-polaroid { height: calc(49% - 30px); }
   .sb-page-S .sb-text { inset: 49% 0 0; gap: 0.4rem; padding-top: 0.7rem; }
   .sb-page-S .sb-copy { font-size: 0.94rem; line-height: 1.6; }
-  .sb-page-S.sb-l-finale .sb-art { height: 43%; }
-  .sb-page-S.sb-l-finale .sb-text { inset: 43% 0 0; }
+  .sb-page-S.sb-l-finale .sb-art { height: 40%; }
+  .sb-page-S.sb-l-finale .sb-text { inset: 40% 0 0; }
 }
 
 /* ── The turning leaf */
