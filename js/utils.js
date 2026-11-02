@@ -21,6 +21,8 @@ export const divider = (cls = "divider") => ornament("divider", cls);
 export const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const toDate = (iso) => {
+  // An empty value (null) means "not set", not the start of 1970.
+  if (!iso) return null;
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
 };

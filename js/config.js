@@ -50,8 +50,8 @@ export const config = {
     title: "The Engagement",
     timeZone: "Asia/Kolkata",
     timeZoneLabel: "IST",
-    // Guests are asked to arrive at this time.
-    arrival: "2026-11-15T10:00:00+05:30",
+    // A separate arrival time (null: not shown; the card gives none).
+    arrival: null,
     // The countdown counts down to the first function below.
     functions: [
       // As printed on the invitation card: सगाई दस्तूर 10:15 am,

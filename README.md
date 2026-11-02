@@ -24,7 +24,7 @@ python3 -m http.server 8000
 |---|---|
 | Names or monogram | `couple` |
 | Welcome line, family names | `invitation.welcomeLine`, `invitation.families` |
-| Date and times | `event.arrival`, `event.functions` (keep the `+05:30`) |
+| Date and times | `event.functions` (keep the `+05:30`); `event.arrival` adds a separate arrival time (null: none) |
 | Calendar end time | `event.calendarEnd` |
 | Dress code or notes | `event.dressCode`, `event.notes` |
 | Venue, address, map link | `venue` |
