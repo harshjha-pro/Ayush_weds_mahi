@@ -367,7 +367,7 @@ function art(ch, layout) {
   return `
     <div class="sb-art sb-art-${layout}">
       <div class="sb-window">
-        <div class="sb-cam cam-${ch.camera || "push"}" style="--ar:${ar}">
+        <div class="sb-cam cam-${ch.camera || "push"}" style="--ar:${ar}${im.focus ? `;--fx:${im.focus[0]}%;--fy:${im.focus[1]}%` : ""}">
           <div class="sb-move">
             <picture>
               ${has(im.src) ? `<source srcset="${esc(im.src)}" type="image/webp" />` : ""}

@@ -180,6 +180,39 @@ export function FilmSection(el, config) {
   fitPortrait(el);
   landing(el);
   revealWords(el);
+  scrollHint(el);
+}
+
+// "Scroll down": a small hint at the foot of the first screen, so guests
+// know the invitation continues below. It appears once the opening has
+// finished, goes as soon as they scroll, and stays away once they have
+// gone well down the page. Tapping it glides to the invitation card.
+function scrollHint(film) {
+  const hint = document.createElement("a");
+  hint.className = "scroll-hint";
+  hint.href = "#home";
+  hint.innerHTML = `<span>Scroll down</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  document.body.append(hint);
+  let done = false;
+  const update = () => {
+    if (scrollY > window.innerHeight * 0.6) done = true;
+    hint.classList.toggle("is-shown", !done && scrollY < 60);
+  };
+  hint.addEventListener("click", (e) => {
+    e.preventDefault();
+    done = true;
+    update();
+    document.getElementById("home")?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  });
+  const start = () => {
+    setTimeout(update, prefersReducedMotion() ? 0 : 2600);
+    window.addEventListener("scroll", update, { passive: true });
+  };
+  setTimeout(() => {
+    const intro = document.getElementById("intro");
+    if (intro && !intro.hidden) document.addEventListener("invitation:opened", start, { once: true });
+    else start();
+  });
 }
 
 // The portrait fills the screen below the blessing, so the CSS needs the

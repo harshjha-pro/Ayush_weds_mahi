@@ -4975,13 +4975,15 @@ html.has-dialog {
 
 /* The picture fills its window without changing shape (like cover),
    anchored a little above the middle, where the faces are. */
+/* image.focus ([x%, y%], where the faces are) keeps that point in view
+   when the window is a different shape from the picture. */
 .sb-cam {
   position: absolute;
-  top: 40%;
-  left: 50%;
+  top: var(--fy, 40%);
+  left: var(--fx, 50%);
   width: max(100cqw, calc(100cqh * var(--ar)));
   aspect-ratio: var(--ar);
-  transform: translate(-50%, -40%);
+  transform: translate(calc(var(--fx, 50%) * -1), calc(var(--fy, 40%) * -1));
 }
 
 .sb-move,
@@ -5902,6 +5904,69 @@ html.has-dialog {
   letter-spacing: 0.04em;
   text-transform: none;
   color: var(--ink-soft);
+}
+
+/* "Scroll down" at the foot of the first screen (welcome.js). */
+.scroll-hint {
+  position: fixed;
+  z-index: 29;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-height: 52px;
+  padding: 0.45rem 1.1rem 0.3rem;
+  border: 1px solid rgba(195, 160, 100, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: var(--shadow-soft);
+  font-family: "Montserrat", var(--sans);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold-text);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.5s ease, transform 0.5s var(--ease), visibility 0s linear 0.5s;
+}
+
+.scroll-hint.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity 0.6s ease, transform 0.6s var(--ease), visibility 0s;
+}
+
+.scroll-hint svg {
+  width: 18px;
+  height: 18px;
+  animation: hint-bob 1.8s ease-in-out infinite;
+}
+
+.scroll-hint:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 3px;
+}
+
+/* On narrow phones it moves to the right, clear of the music button. */
+@media (max-width: 400px) {
+  .scroll-hint { left: auto; right: max(1rem, env(safe-area-inset-right)); transform: translateY(8px); }
+  .scroll-hint.is-shown { transform: none; }
+}
+
+@keyframes hint-bob {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint,
+  .scroll-hint svg { animation: none; transition: none; }
 }
 
 /* ── Floating controls and messages ───────── */

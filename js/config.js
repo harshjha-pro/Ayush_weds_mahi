@@ -116,31 +116,19 @@ export const config = {
     quote: { text: "Having walked seven steps together, be my friend.", attribution: "Sakhā saptapadī bhava · The Saptapadi" },
   },
 
-  // The Memories section: a carousel of short films that glides to the next
-  // one every few seconds (guests can also swipe, drag or use the arrows).
-  // Clips 02–04 and 06–08 are cut from the couple's photo slideshow
-  // (assets/video/story.mp4), 01 and 05 from the illustrated ring film.
-  // Clips 09–12 are the couple's own landscape videos (shown first, in wide
-  // cards: set landscape: true for 16:9 clips). The rest are portrait (9:16).
-  // H.264 clips with a poster each, no sound; add or remove freely.
+  // The Memories section: a carousel of the couple's own short clips
+  // (landscape, sound removed) that glides to the next one every few seconds
+  // (guests can also swipe, drag or use the arrows). Set landscape: true for
+  // 16:9 clips; add or remove freely.
   memories: {
     eyebrow: "Moments together",
     // Seconds each film stays in the centre before the next one comes in.
     interval: 5,
     videos: [
-      // The couple's own short clips (landscape, sound removed).
       { src: "assets/video/memories/09.mp4", poster: "assets/images/memories/09.webp", posterFallback: "assets/images/memories/09.jpg", landscape: true, alt: "Mahi and Ayush smiling together at a café" },
       { src: "assets/video/memories/10.mp4", poster: "assets/images/memories/10.webp", posterFallback: "assets/images/memories/10.jpg", landscape: true, alt: "Mahi and Ayush sitting side by side and laughing, with playful drawings around them" },
       { src: "assets/video/memories/11.mp4", poster: "assets/images/memories/11.webp", posterFallback: "assets/images/memories/11.jpg", landscape: true, alt: "Mahi and Ayush in a selfie at sunset beneath the palms" },
       { src: "assets/video/memories/12.mp4", poster: "assets/images/memories/12.webp", posterFallback: "assets/images/memories/12.jpg", landscape: true, alt: "Mahi and Ayush at a table under string lights, with a drawn crown and moustache" },
-      { src: "assets/video/memories/01.mp4", poster: "assets/images/memories/01.webp", posterFallback: "assets/images/memories/01.jpg", alt: "Illustrated film: Ayush and Mahi, in an ivory sari, in a softly lit palace hall" },
-      { src: "assets/video/memories/02.mp4", poster: "assets/images/memories/02.webp", posterFallback: "assets/images/memories/02.jpg", alt: "Photos of Mahi and Ayush together" },
-      { src: "assets/video/memories/03.mp4", poster: "assets/images/memories/03.webp", posterFallback: "assets/images/memories/03.jpg", alt: "Photos of Mahi and Ayush together" },
-      { src: "assets/video/memories/04.mp4", poster: "assets/images/memories/04.webp", posterFallback: "assets/images/memories/04.jpg", alt: "Photos of Mahi and Ayush together" },
-      { src: "assets/video/memories/05.mp4", poster: "assets/images/memories/05.webp", posterFallback: "assets/images/memories/05.jpg", alt: "Illustrated film: Mahi's hand with mehndi and her engagement ring" },
-      { src: "assets/video/memories/06.mp4", poster: "assets/images/memories/06.webp", posterFallback: "assets/images/memories/06.jpg", alt: "Photos of Mahi and Ayush together" },
-      { src: "assets/video/memories/07.mp4", poster: "assets/images/memories/07.webp", posterFallback: "assets/images/memories/07.jpg", alt: "Photos of Mahi and Ayush together" },
-      { src: "assets/video/memories/08.mp4", poster: "assets/images/memories/08.webp", posterFallback: "assets/images/memories/08.jpg", alt: "Photos of Mahi and Ayush together" },
     ],
   },
 
@@ -152,7 +140,9 @@ export const config = {
   },
 
   // "The Story Behind the Yes": the illustrated storybook (storybook.js).
-  // The illustrations were painted from the couple's own photos (Nov 2026).
+  // Chapters 1–9 use the couple's own illustrated photos, chapter 10 and the
+  // cover the watercolour paintings made from their photos.
+  //   image.focus: [x%, y%] of the picture to keep in view (the faces).
   // Everything on its pages lives here. The chapter copy is a neutral draft:
   // it names no places, dates or milestones; change any line freely.
   // A chapter title that is also in js/lettering.js is drawn in script;
@@ -174,66 +164,66 @@ export const config = {
       {
         title: "A Story Begins",
         text: "Some stories become our favourite memories.",
-        image: { src: "assets/images/storybook/s01.webp", fallback: "assets/images/storybook/s01.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Ayush and Mahi smiling together in a close selfie by a large window, leaves outside" },
+        image: { src: "assets/images/storybook/s01.webp", fallback: "assets/images/storybook/s01.jpg", width: 1200, height: 900, focus: [50, 35], alt: "Illustration of Ayush and Mahi smiling together in a close selfie by a large café window" },
         layout: "bleed", camera: "push",
         ambient: { beam: true, motes: true },
       },
       {
         title: "Little Moments",
         text: "The simplest moments can become the ones we treasure most.",
-        image: { src: "assets/images/storybook/s02.webp", fallback: "assets/images/storybook/s02.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Mahi and Ayush sitting together at an outdoor table at night, warm lights among the trees" },
+        image: { src: "assets/images/storybook/s02.webp", fallback: "assets/images/storybook/s02.jpg", width: 675, height: 1200, focus: [50, 16], alt: "Illustration of Mahi and Ayush sitting together at an outdoor table at night beneath the trees" },
         layout: "framed", camera: "pan-right",
-        ambient: { bokeh: [[8, 14], [15, 13], [30, 6], [37, 14], [88, 9]], lights: [[6, 12], [10, 17], [16, 14]] },
+        ambient: { bokeh: [[42, 9], [12, 6], [24, 4], [88, 14], [70, 6]] },
       },
       {
         title: "Side by Side",
         text: "Every shared moment adds another page to our story.",
-        image: { src: "assets/images/storybook/s03.webp", fallback: "assets/images/storybook/s03.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Ayush and Mahi sitting side by side indoors, smiling, her head on his shoulder" },
+        image: { src: "assets/images/storybook/s03.webp", fallback: "assets/images/storybook/s03.jpg", width: 900, height: 1200, focus: [50, 45], alt: "Illustration of Mahi and Ayush smiling together in a selfie at night" },
         layout: "arch", camera: "pan-left",
-        ambient: { beam: true, papers: true },
+        ambient: { motes: true },
       },
       {
         title: "A Little Sweetness",
         text: "Little things, lovely memories.",
-        image: { src: "assets/images/storybook/s04.webp", fallback: "assets/images/storybook/s04.jpg", width: 960, height: 1200, alt: "Watercolour portrait of Mahi smiling and winking as she holds up a small red cup" },
+        image: { src: "assets/images/storybook/s04.webp", fallback: "assets/images/storybook/s04.jpg", width: 900, height: 1200, focus: [48, 35], alt: "Illustration of Mahi smiling and winking as she holds up a small red coffee cup" },
         layout: "vignette", camera: "push",
-        ambient: { steam: [57, 27] },
+        ambient: { steam: [47, 26] },
       },
       {
         title: "Days to Remember",
         text: "Collecting moments, one day at a time.",
-        image: { src: "assets/images/storybook/s05.webp", fallback: "assets/images/storybook/s05.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Ayush and Mahi in a sunny selfie, palms and open ground behind them" },
+        image: { src: "assets/images/storybook/s05.webp", fallback: "assets/images/storybook/s05.jpg", width: 1200, height: 900, focus: [40, 30], alt: "Illustration of Ayush and Mahi in a sunny selfie, palms and an open ground behind them" },
         layout: "arch", camera: "rise",
         ambient: { birds: true, sun: [86, 6], leaves: true },
       },
       {
         title: "Our Silly Side",
         text: "The laughter is part of the love.",
-        image: { src: "assets/images/storybook/s06.webp", fallback: "assets/images/storybook/s06.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Mahi making a playful hand gesture beside a smiling Ayush" },
+        image: { src: "assets/images/storybook/s06.webp", fallback: "assets/images/storybook/s06.jpg", width: 900, height: 1200, focus: [45, 35], alt: "Illustration of Mahi making a playful hand gesture beside Ayush" },
         layout: "polaroid", camera: "pan-right",
-        ambient: { doodles: [[10, 18], [88, 12], [86, 72], [14, 78]] },
+        ambient: { doodles: [[78, 10], [92, 48], [70, 88], [16, 92]] },
         inset: { src: "assets/photos/05-800.jpg", alt: "The original photo: Mahi and Ayush being playful", width: 600, height: 800 },
       },
       {
         title: "More Memories",
         text: "And so many reasons to smile.",
-        image: { src: "assets/images/storybook/s07.webp", fallback: "assets/images/storybook/s07.jpg", width: 960, height: 1200, alt: "Watercolour close-up of Ayush and Mahi smiling together at night, warm lights among the leaves behind them" },
+        image: { src: "assets/images/storybook/s07.webp", fallback: "assets/images/storybook/s07.jpg", width: 900, height: 1200, focus: [50, 30], alt: "Illustration of Ayush and Mahi smiling together at night by a window, leaves and warm lights behind them" },
         layout: "framed", camera: "push",
-        ambient: { lights: [[56, 10], [63, 19], [71, 22], [77, 27], [84, 33], [91, 39], [95, 45], [60, 30]] },
+        ambient: { lights: [[63, 30], [72, 27], [79, 33], [85, 29], [90, 32], [68, 20]] },
       },
       {
         title: "Golden Moments",
         text: "Some memories stay warm in our hearts.",
-        image: { src: "assets/images/storybook/s08.webp", fallback: "assets/images/storybook/s08.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Ayush and Mahi close together beneath palms at sunset, his arm around her" },
+        image: { src: "assets/images/storybook/s08.webp", fallback: "assets/images/storybook/s08.jpg", width: 1200, height: 900, focus: [55, 35], alt: "Illustration of Mahi and Ayush close together beneath palms at sunset, his arm around her" },
         layout: "bleed", camera: "pan-left",
-        ambient: { glow: [76, 36], palms: true, petals: true },
+        ambient: { glow: [87, 44], palms: true, petals: true },
       },
       {
         title: "Together Through It All",
         text: "Every page is more beautiful with you beside me.",
-        image: { src: "assets/images/storybook/s09.webp", fallback: "assets/images/storybook/s09.jpg", width: 960, height: 1200, alt: "Watercolour illustration of Ayush and Mahi smiling together at night, city lights across the water and stars above" },
+        image: { src: "assets/images/storybook/s09.webp", fallback: "assets/images/storybook/s09.jpg", width: 900, height: 1200, focus: [50, 35], alt: "Illustration of Ayush and Mahi smiling together at night by the lake, a lit palace behind them" },
         layout: "polaroid", camera: "pan-left",
-        ambient: { lights: [[70, 36], [74, 32], [80, 30], [86, 34], [92, 31], [97, 36]], stars: [[62, 8], [72, 12], [84, 6], [92, 14], [78, 20]], shimmer: [[84, 44], [94, 46]] },
+        ambient: { lights: [[4, 46], [10, 44], [16, 47], [86, 44], [92, 42], [97, 45]], shimmer: [[8, 54], [92, 52]] },
         inset: { src: "assets/photos/03-800.jpg", alt: "The original photo: Mahi and Ayush together at night", width: 600, height: 800 },
       },
       {
