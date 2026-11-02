@@ -4,6 +4,10 @@ A single-page digital invitation for the engagement of **Mahi & Ayush**, Sunday 
 
 It is a plain static website (HTML, CSS and JavaScript modules). It has no build step, no backend and no tracking.
 
+## Two editions
+
+The same code serves two sites. **mahi-ayush.vercel.app** (Vercel project `mahi-ayush`, no build step) is the invitation as written in `js/config.js`. **ayush-mahi.vercel.app** (Vercel project `ayush-mahi`, build command `node tools/variant/ayush-first.mjs`) is the Ayush & Mahi edition: at build time that script swaps the couple (Ayush first), lists the groom's family first, turns every "Mahi & Ayush" into "Ayush & Mahi", points the share link at its own address and uses `assets/images/share-card-ayush-mahi.jpg` for link previews. Every change pushed reaches both. The M&A monogram artwork (images and animation) is the same on both.
+
 ## Run it on your computer
 
 Browsers block JavaScript modules on `file://` pages, so serve the folder:
