@@ -151,12 +151,11 @@ export const config = {
   },
 
   // Background music. The player never plays by itself.
-  // "Tum Tak" is a commercial film song, used here as a short excerpt (0:01–1:50)
-  // at the couple's request. To change it, put an MP3 in assets/audio/ and update
+  // "Nazm Nazm" is a commercial film song. To change it, put an MP3 in assets/audio/ and update
   // src. assets/audio/raag-bhupali.mp3 is an original, copyright-free alternative.
   music: {
-    src: "assets/audio/tum-tak-excerpt.mp3",
-    title: "Tum Tak",
-    credit: "Music: “Tum Tak”, A.R. Rahman · Raanjhanaa",
+    src: "assets/audio/nazm-nazm.mp3",
+    title: "Nazm Nazm",
+    credit: "Music: “Nazm Nazm”, Arko · Bareilly Ki Barfi",
   },
 };
