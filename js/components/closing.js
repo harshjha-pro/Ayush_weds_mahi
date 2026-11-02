@@ -32,7 +32,6 @@ export function ClosingSection(el, config) {
 
         <div class="fin-seal-group" data-fin>
           <div class="fin-seal">
-            <svg class="fin-ring" viewBox="0 0 200 200" aria-hidden="true"><circle class="fin-draw" pathLength="1" cx="100" cy="100" r="97" transform="rotate(-90 100 100)"/></svg>
             ${monogramMedia(config, { cls: "monogram closing-monogram", loading: "lazy" })}
             <span class="fin-shine" aria-hidden="true"></span>
           </div>
