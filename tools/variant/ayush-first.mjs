@@ -35,6 +35,8 @@ edit("js/config.js", (s) => {
   return names(s);
 });
 
-edit("index.html", (s) => names(s).replaceAll("https://mahi-ayush.vercel.app/", SITE).replace("assets/images/share-card.jpg", "assets/images/share-card-ayush-mahi.jpg"));
+edit("index.html", (s) => names(s)
+    // The no-script text lists the families too: groom's first.
+    .replace(/(Together with their families<br \/>)([^<]*Jagetiya[^<]*)<br \/>([^<]*Porwal[^<]*)</, "$1$3<br />$2<").replaceAll("https://mahi-ayush.vercel.app/", SITE).replace("assets/images/share-card.jpg", "assets/images/share-card-ayush-mahi.jpg"));
 
 console.log("Ayush & Mahi edition ready.");
