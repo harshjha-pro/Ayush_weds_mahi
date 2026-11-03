@@ -268,12 +268,10 @@ export const config = {
   },
 
   // Background music. The player never plays by itself.
-  // "Nazm Nazm" is a commercial film song, used here as a short excerpt
-  // (the first 1:50, faded in and out so it loops gently) at the couple's
-  // request. To change it, put an MP3 in assets/audio/ and update src.
-  // assets/audio/raag-bhupali.mp3 is an original, copyright-free alternative.
+  // "Nazm Nazm" is a commercial film song. To change it, put an MP3 in assets/audio/ and update
+  // src. assets/audio/raag-bhupali.mp3 is an original, copyright-free alternative.
   music: {
-    src: "assets/audio/nazm-nazm-excerpt.mp3",
+    src: "assets/audio/nazm-nazm.mp3",
     title: "Nazm Nazm",
     credit: "Music: “Nazm Nazm”, Arko · Bareilly Ki Barfi",
   },
