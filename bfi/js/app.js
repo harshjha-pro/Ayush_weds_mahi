@@ -1,5 +1,6 @@
 import { config } from './config.js';
-import { themes, fontsReady, drawCard } from './card.js';
+import { themes, fontsReady, drawCard, DURATION } from './card.js';
+import { canvasToPdf } from './pdf.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -125,7 +126,7 @@ function renderFaqs() {
   }
 }
 
-/* ---------- Invite maker ---------- */
+/* ---------- Card data ---------- */
 
 const mainCeremony = { name: 'Shubh Vivah', hindi: 'शुभ विवाह' };
 const ceremonyOptions = [mainCeremony, ...config.ceremonies];
@@ -143,7 +144,7 @@ function formatDate(date, time) {
   return line;
 }
 
-function cardData(values) {
+function cardData(values, watermark = '') {
   const c = ceremonyOptions[Number(values.ceremony) || 0] || mainCeremony;
   return {
     bride: values.bride?.trim() || 'Mahi',
@@ -153,14 +154,83 @@ function cardData(values) {
     dateLine: formatDate(values.date, values.time),
     venue: values.venue?.trim() || 'Venue, City',
     family: values.family?.trim() ? `With love, ${values.family.trim()}` : '',
+    watermark,
   };
 }
 
-function setupMaker() {
+
+/* ---------- Files: image, PDF, video ---------- */
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const slugOf = (d) => `${d.bride}-${d.groom}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'card';
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = el('a', { href: url, download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+// Renders at 2160 × 2700 so prints and zoomed images stay sharp.
+function renderHD(data, theme, opts = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2160;
+  canvas.height = 2700;
+  drawCard(canvas, data, theme, opts);
+  return canvas;
+}
+
+async function downloadImage(data, theme, opts, name) {
+  const canvas = renderHD(data, theme, opts);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  if (blob) saveBlob(blob, name + '.png');
+}
+
+// 5 × 6.25 inch page: the card's shape, a common invitation size.
+async function downloadPdf(data, theme, opts, name) {
+  const canvas = renderHD(data, theme, opts);
+  saveBlob(await canvasToPdf(canvas, 360, 450), name + '.pdf');
+}
+
+const videoType = (() => {
+  if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) return null;
+  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || null;
+})();
+
+// Plays the reveal on `canvas`. With `record`, also captures it as a video.
+function playCard(canvas, data, theme, { record = false } = {}) {
+  return new Promise((resolve) => {
+    let recorder;
+    const chunks = [];
+    if (record && videoType) {
+      recorder = new MediaRecorder(canvas.captureStream(30), { mimeType: videoType, videoBitsPerSecond: 6_000_000 });
+      recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      recorder.onstop = () => resolve(new Blob(chunks, { type: videoType.split(';')[0] }));
+      recorder.start();
+    }
+    const start = performance.now();
+    const frame = (now) => {
+      const t = (now - start) / 1000;
+      drawCard(canvas, data, theme, { t: Math.min(t, DURATION) });
+      if (t < DURATION) requestAnimationFrame(frame);
+      else if (recorder) setTimeout(() => recorder.stop(), 200);
+      else resolve(null);
+    };
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ---------- Invite maker ---------- */
+
+function setupMaker(onChange) {
   const form = $('#maker-form');
   const canvas = $('#maker-canvas');
   const select = $('#maker-ceremony');
   const note = $('#maker-note');
+  const playBtn = $('#maker-play');
+  const videoBtn = $('#maker-video');
 
   ceremonyOptions.forEach((c, i) => select.append(el('option', { value: i, text: `${c.name} · ${c.hindi}` })));
 
@@ -191,42 +261,61 @@ function setupMaker() {
 
   const values = () => Object.fromEntries(new FormData(form));
   const theme = () => themes.find((t) => t.id === values().theme) || themes[0];
-  const draw = () => drawCard(canvas, cardData(values()), theme());
+  const data = () => cardData(values(), `MADE WITH ${config.brand.short}`);
+  let playing = false;
+  const draw = () => { if (!playing) drawCard(canvas, data(), theme()); };
 
   let raf;
   form.addEventListener('input', () => {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(draw);
     store.set('bfi-maker', values());
+    onChange();
   });
   form.addEventListener('submit', (e) => e.preventDefault());
 
-  const fileName = () => {
-    const d = cardData(values());
-    const slug = `${d.bride}-${d.groom}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    return `bfi-invite-${slug || 'sample'}.png`;
-  };
-  const toBlob = () => new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  const name = () => `bfi-${theme().id}-${slugOf(data())}`;
 
-  async function download() {
-    const blob = await toBlob();
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = el('a', { href: url, download: fileName() });
-    document.body.append(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    note.textContent = 'Card downloaded. Send it to us and we will design the full set.';
+  async function play(record) {
+    if (playing) return null;
+    playing = true;
+    playBtn.classList.add('playing');
+    const result = await playCard(canvas, data(), theme(), { record });
+    playing = false;
+    playBtn.classList.remove('playing');
+    draw();
+    return result;
   }
 
-  $('#maker-download').addEventListener('click', download);
+  playBtn.addEventListener('click', () => play(false));
+
+  $('#maker-download').addEventListener('click', async () => {
+    await downloadImage(data(), theme(), {}, name());
+    note.textContent = 'Image saved. Send it on WhatsApp, or send it to us and we will design the full set.';
+  });
+  $('#maker-pdf').addEventListener('click', async () => {
+    await downloadPdf(data(), theme(), {}, name());
+    note.textContent = 'PDF saved. It prints at 5 × 6.25 inches.';
+  });
+
+  if (videoType) {
+    videoBtn.hidden = false;
+    videoBtn.addEventListener('click', async () => {
+      videoBtn.disabled = true;
+      note.textContent = 'Recording your animated card. This takes about 6 seconds…';
+      const blob = await play(true);
+      videoBtn.disabled = false;
+      if (!blob || !blob.size) { note.textContent = 'This browser could not record the video. Try Chrome.'; return; }
+      saveBlob(blob, name() + (videoType.startsWith('video/mp4') ? '.mp4' : '.webm'));
+      note.textContent = 'Video saved. Share it as a WhatsApp status or message.';
+    });
+  }
 
   $('#maker-share').addEventListener('click', async () => {
-    const d = cardData(values());
-    const text = `Sample ${d.ceremony} invite for ${d.bride} & ${d.groom}, made with ${config.brand.name}.`;
-    const blob = await toBlob();
-    const file = blob && new File([blob], fileName(), { type: 'image/png' });
+    const d = data();
+    const text = `${d.ceremony} invite for ${d.bride} & ${d.groom}, made with ${config.brand.name}.`;
+    const blob = await new Promise((resolve) => renderHD(d, theme()).toBlob(resolve, 'image/png'));
+    const file = blob && new File([blob], name() + '.png', { type: 'image/png' });
     if (file && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: `${config.brand.name} invite`, text });
@@ -235,53 +324,126 @@ function setupMaker() {
         if (err.name === 'AbortError') return;
       }
     }
+    if (blob) saveBlob(blob, name() + '.png');
     const link = whatsappLink(`${text} I'd like to get the full set designed.`);
     if (link) {
       window.open(link, '_blank', 'noopener');
-      note.textContent = 'Attach the downloaded card in WhatsApp to show us your sample.';
-      download();
+      note.textContent = 'Attach the downloaded card in WhatsApp to show us your design.';
     } else {
-      download();
+      note.textContent = 'Image saved. Attach it in WhatsApp to share.';
     }
   });
 
-  return draw;
+  // Lets the templates gallery read the visitor's details and pick a theme.
+  return {
+    draw,
+    values,
+    setTheme(id) {
+      const radio = form.querySelector(`input[name="theme"][value="${id}"]`);
+      if (radio) radio.checked = true;
+      store.set('bfi-maker', values());
+      draw();
+      onChange();
+      if (!reducedMotion) play(false);
+    },
+  };
+}
+
+/* ---------- Free templates ---------- */
+
+function setupTemplates(maker) {
+  const list = $('#template-list');
+  const note = $('#tpl-note');
+  const mode = () => document.querySelector('input[name="tpl-mode"]:checked')?.value || 'filled';
+  const cards = themes.map((t) => {
+    const canvas = el('canvas', { width: 432, height: 540, role: 'img', 'aria-label': `${t.label} template` });
+    const btn = (label, action) => el('button', { type: 'button', class: 'btn btn-ghost', 'data-action': action, 'data-theme': t.id, text: label });
+    list.append(el('article', { class: 'tpl reveal' }, [
+      el('div', { class: 'tpl-art' }, [el('span', { class: 'free-badge', text: 'Free' }), canvas]),
+      el('div', { class: 'tpl-head' }, [el('h3', { text: t.label }), el('span', { text: `Best for ${t.best}` })]),
+      el('div', { class: 'tpl-actions' }, [btn('Use', 'use'), btn('PNG', 'png'), btn('PDF', 'pdf')]),
+    ]));
+    return { t, canvas };
+  });
+
+  const data = () => cardData(maker.values(), `FREE TEMPLATE · ${config.brand.short}`);
+  const draw = () => {
+    const d = data();
+    const blank = mode() === 'blank';
+    cards.forEach(({ t, canvas }) => drawCard(canvas, d, t, { blank }));
+  };
+
+  document.querySelectorAll('input[name="tpl-mode"]').forEach((r) => r.addEventListener('change', () => {
+    draw();
+    note.textContent = mode() === 'blank' ? 'Blank cards keep the function name. Change it in the invite maker above.' : '';
+  }));
+
+  list.addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-action]');
+    if (!b) return;
+    const t = themes.find((x) => x.id === b.dataset.theme);
+    const blank = mode() === 'blank';
+    const name = `bfi-${t.id}-${blank ? 'blank' : slugOf(data())}`;
+    if (b.dataset.action === 'use') {
+      maker.setTheme(t.id);
+      $('#maker').scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+      return;
+    }
+    b.disabled = true;
+    if (b.dataset.action === 'png') await downloadImage(data(), t, { blank }, name);
+    else await downloadPdf(data(), t, { blank }, name);
+    b.disabled = false;
+    note.textContent = `${t.label} ${b.dataset.action.toUpperCase()} saved. Free to use for your wedding.`;
+  });
+
+  let timer;
+  return () => { clearTimeout(timer); timer = setTimeout(draw, 250); };
 }
 
 /* ---------- Hero card and gallery ---------- */
 
-const samples = [
-  { bride: 'Mahi', groom: 'Ayush', ceremony: 0, date: '2026-11-15', time: '19:00', venue: 'Chittorgarh, Rajasthan', family: 'The Jagetiya family' },
-  { bride: 'Riya', groom: 'Kunal', ceremony: 5, date: '2026-12-02', time: '16:00', venue: 'Jodhpur', family: 'The Maheshwari family' },
-  { bride: 'Ananya', groom: 'Harsh', ceremony: 4, date: '2027-01-21', time: '11:00', venue: 'Bikaner', family: 'The Agarwal family' },
-  { bride: 'Kavya', groom: 'Arjun', ceremony: 8, date: '2027-02-10', time: '20:30', venue: 'Udaipur', family: 'The Oswal family' },
-];
+const heroSample = { bride: 'Mahi', groom: 'Ayush', ceremony: 0, date: '2026-11-15', time: '19:00', venue: 'Chittorgarh, Rajasthan', family: 'The Jagetiya family' };
 
+// Real past work only. Hidden until config.portfolio has photos.
 function renderGallery() {
+  const section = $('#gallery');
+  if (!config.portfolio.length) { section.hidden = true; return; }
+  $('#gallery-lede').textContent = 'A few invitations we have made for families.';
   const list = $('#gallery-list');
-  const lede = $('#gallery-lede');
-  if (config.portfolio.length) {
-    lede.textContent = 'A few invitations we have made for families.';
-    for (const item of config.portfolio) {
-      list.append(el('figure', { class: 'reveal' }, [
-        el('img', { src: item.src, alt: item.caption || 'Invitation design', loading: 'lazy' }),
-        item.caption ? el('figcaption', { text: item.caption }) : null,
-      ]));
-    }
-    return () => {};
+  for (const item of config.portfolio) {
+    list.append(el('figure', { class: 'reveal' }, [
+      el('img', { src: item.src, alt: item.caption || 'Invitation design', loading: 'lazy' }),
+      item.caption ? el('figcaption', { text: item.caption }) : null,
+    ]));
   }
-
-  lede.textContent = 'Sample designs in our four signature themes, made with the invite maker above.';
-  const canvases = themes.map((t, i) => {
-    const canvas = el('canvas', { width: 540, height: 675, role: 'img', 'aria-label': `${t.label} theme sample card` });
-    list.append(el('figure', { class: 'reveal' }, [canvas, el('figcaption', { text: `${t.label} theme` })]));
-    return () => drawCard(canvas, cardData(samples[i % samples.length]), t);
-  });
-  return () => canvases.forEach((draw) => draw());
 }
 
-function drawHero() {
-  drawCard($('#hero-card'), cardData(samples[0]), themes[1]);
+// Plays the reveal once fonts are ready; otherwise draws the finished card.
+let heroPlaying = false;
+function drawHero(animate) {
+  const canvas = $('#hero-card');
+  const data = cardData(heroSample, `SAMPLE · ${config.brand.short}`);
+  if (animate && !reducedMotion) {
+    heroPlaying = true;
+    playCard(canvas, data, themes[1]).then(() => { heroPlaying = false; });
+  } else if (!heroPlaying) {
+    drawCard(canvas, data, themes[1]);
+  }
+}
+
+function spawnPetals() {
+  const box = $('#petals');
+  if (!box || reducedMotion) return;
+  const colors = ['#f4a10b', '#f7c331', '#e9661c', '#d4381c'];
+  for (let i = 0; i < 14; i++) {
+    const p = el('span', { class: 'petal' });
+    p.style.left = `${(i * 7.3 + Math.random() * 6) % 100}%`;
+    p.style.background = colors[i % colors.length];
+    p.style.animationDuration = `${9 + Math.random() * 7}s`;
+    p.style.animationDelay = `${-Math.random() * 14}s`;
+    p.style.scale = `${0.7 + Math.random() * 0.7}`;
+    box.append(p);
+  }
 }
 
 /* ---------- Enquiry ---------- */
@@ -430,11 +592,15 @@ renderPackages();
 renderFaqs();
 renderContact();
 setupEnquiry();
-const drawMaker = setupMaker();
-const drawGallery = renderGallery();
-const drawAll = () => { drawHero(); drawMaker(); drawGallery(); };
-drawAll();
-fontsReady.then(drawAll);
+renderGallery();
+let redrawTemplates = () => {};
+const maker = setupMaker(() => redrawTemplates());
+redrawTemplates = setupTemplates(maker);
+maker.draw();
+redrawTemplates();
+if (reducedMotion) drawHero(false);
+fontsReady.then(() => { maker.draw(); redrawTemplates(); drawHero(true); });
+spawnPetals();
 setupReveal();
 setupTabbar();
 setupInstall();

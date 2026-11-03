@@ -33,6 +33,7 @@
     <nav class="topnav" aria-label="Main">
       <a href="#services">Services</a>
       <a href="#maker">Invite maker</a>
+      <a href="#templates">Free templates</a>
       <a href="#ceremonies">Ceremonies</a>
       <a href="#packages">Packages</a>
       <a href="#enquire">Enquire</a>
@@ -43,6 +44,7 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-pattern" aria-hidden="true"></div>
+      <div class="petals" id="petals" aria-hidden="true"></div>
       <div class="hero-inner">
         <p class="hero-blessing" lang="hi">॥ श्री गणेशाय नमः ॥</p>
         <h1 id="hero-title">
@@ -52,7 +54,7 @@
         <p class="hero-sub" data-tagline-hi lang="hi"></p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#maker">Try the invite maker</a>
-          <a class="btn btn-ghost" href="#enquire">Plan our invites</a>
+          <a class="btn btn-ghost" href="#templates">Free templates</a>
         </div>
         <ul class="hero-chips" aria-label="What we make">
           <li>E-invites</li><li>Video invites</li><li>Wedding websites</li><li>Kankotri</li>
@@ -75,7 +77,7 @@
       <header class="section-head">
         <p class="eyebrow">Try it now</p>
         <h2 id="maker-title">Invite maker</h2>
-        <p class="section-lede">Type your names and date to see a quick sample card. Download it or send it to us as a starting point for your full set.</p>
+        <p class="section-lede">Type your names and date, pick one of 10 templates and watch your card come alive. Download it as an image, a print-ready PDF or a short animated video, free.</p>
       </header>
       <div class="maker">
         <form class="maker-form" id="maker-form" autocomplete="off">
@@ -116,18 +118,39 @@
             <div class="theme-list" id="theme-list"></div>
           </fieldset>
           <div class="maker-actions">
-            <button type="button" class="btn btn-primary" id="maker-download">Download card</button>
+            <button type="button" class="btn btn-primary" id="maker-download">Image</button>
+            <button type="button" class="btn btn-primary" id="maker-pdf">PDF</button>
+            <button type="button" class="btn btn-ghost" id="maker-video" hidden>Video</button>
             <button type="button" class="btn btn-ghost" id="maker-share">Share</button>
           </div>
           <p class="maker-note" id="maker-note" role="status" aria-live="polite"></p>
         </form>
         <div class="maker-preview">
           <canvas id="maker-canvas" width="1080" height="1350" role="img" aria-label="Preview of your invitation card"></canvas>
+          <button type="button" class="play-btn" id="maker-play" aria-label="Play the card animation">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Play animation</span>
+          </button>
         </div>
       </div>
     </section>
 
-    <section class="section" id="ceremonies" aria-labelledby="ceremonies-title">
+    <section class="section" id="templates" aria-labelledby="templates-title">
+      <header class="section-head">
+        <p class="eyebrow">Free to use</p>
+        <h2 id="templates-title">Free invitation templates</h2>
+        <p class="section-lede">Every template shows your names from the invite maker. Download it as an image for WhatsApp, or as a PDF to print. Want to write by hand? Switch to blank cards.</p>
+      </header>
+      <div class="tpl-bar">
+        <div class="seg" role="radiogroup" aria-label="Template style">
+          <label><input type="radio" name="tpl-mode" value="filled" checked><span>With my details</span></label>
+          <label><input type="radio" name="tpl-mode" value="blank"><span>Blank to fill by hand</span></label>
+        </div>
+        <p class="tpl-note" id="tpl-note" role="status" aria-live="polite"></p>
+      </div>
+      <div class="templates" id="template-list"></div>
+    </section>
+
+    <section class="section section-tinted" id="ceremonies" aria-labelledby="ceremonies-title">
       <header class="section-head">
         <p class="eyebrow">A card for each function</p>
         <h2 id="ceremonies-title">Marwari wedding ceremonies</h2>
@@ -136,7 +159,7 @@
       <ol class="ceremonies" id="ceremony-list"></ol>
     </section>
 
-    <section class="section section-tinted" id="gallery" aria-labelledby="gallery-title">
+    <section class="section" id="gallery" aria-labelledby="gallery-title">
       <header class="section-head">
         <p class="eyebrow">Designs</p>
         <h2 id="gallery-title">Our work</h2>
@@ -222,7 +245,7 @@
   <nav class="tabbar" aria-label="Quick links">
     <a href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>Home</a>
     <a href="#maker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg>Maker</a>
-    <a href="#gallery"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6"/></svg>Designs</a>
+    <a href="#templates"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6"/></svg>Templates</a>
     <a href="#enquire"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg>Enquire</a>
   </nav>
 

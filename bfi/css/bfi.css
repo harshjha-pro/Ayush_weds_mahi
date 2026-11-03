@@ -391,3 +391,108 @@ p { margin: 0; }
 @media (max-width: 420px) {
   .field-row { grid-template-columns: 1fr; }
 }
+
+/* ---------- Hero motion: falling marigold petals, staggered entrance ---------- */
+
+.petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.petal {
+  position: absolute; top: -40px; width: 14px; height: 9px; border-radius: 50%;
+  opacity: 0.85; animation: petal-fall linear infinite;
+}
+.petal::after { content: ''; position: absolute; inset: 2px 4px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); }
+@keyframes petal-fall {
+  0% { transform: translate3d(0, -40px, 0) rotate(0deg); }
+  25% { transform: translate3d(28px, 25vh, 0) rotate(120deg); }
+  50% { transform: translate3d(-18px, 50vh, 0) rotate(220deg); }
+  75% { transform: translate3d(22px, 75vh, 0) rotate(320deg); }
+  100% { transform: translate3d(-10px, 110vh, 0) rotate(420deg); }
+}
+.hero-inner > * { animation: rise 0.9s cubic-bezier(.2, .7, .2, 1) both; }
+.hero-inner > :nth-child(2) { animation-delay: 0.12s; }
+.hero-inner > :nth-child(3) { animation-delay: 0.24s; }
+.hero-inner > :nth-child(4) { animation-delay: 0.36s; }
+.hero-inner > :nth-child(5) { animation-delay: 0.48s; }
+.hero-arch { animation: arch-in 1.1s cubic-bezier(.2, .7, .2, 1) 0.2s both, sway 7s ease-in-out 1.4s infinite; }
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } }
+@keyframes arch-in { from { opacity: 0; transform: translateY(40px) rotate(6deg) scale(0.94); } }
+@keyframes sway { 0%, 100% { transform: rotate(2deg) translateY(0); } 50% { transform: rotate(0.5deg) translateY(-10px); } }
+
+/* Shine sweep on primary buttons */
+.btn-primary, .btn-gold { position: relative; overflow: hidden; }
+.btn-primary::after, .btn-gold::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg); transition: left 0.6s ease;
+}
+.btn-primary:hover::after, .btn-gold:hover::after { left: 120%; }
+
+/* Heading ornament dots draw in */
+.section-head h2::after { animation: dots-in 1.2s ease both; animation-timeline: view(); animation-range: entry 20% cover 35%; }
+@keyframes dots-in { from { width: 0; } }
+
+/* ---------- Invite maker: play button ---------- */
+
+.maker-preview { position: relative; }
+.play-btn {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px 8px 10px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(42, 20, 20, 0.78); color: var(--ivory); font: 500 0.9rem var(--font-body);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.3s ease, transform 0.2s ease;
+}
+.play-btn svg { width: 22px; height: 22px; fill: var(--marigold); }
+.play-btn:hover { transform: translateX(-50%) scale(1.04); }
+.play-btn.playing { opacity: 0; pointer-events: none; }
+.theme-list { max-height: 210px; overflow-y: auto; padding: 2px; }
+
+/* ---------- Free templates ---------- */
+
+.tpl-bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: center; margin-bottom: 26px; }
+.seg { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--ivory-deep); border: 1px solid var(--line); }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 8px 16px; border-radius: 999px; font-size: 0.92rem; font-weight: 500; color: var(--ink-soft); transition: background-color 0.2s ease, color 0.2s ease; }
+.seg input:checked + span { background: var(--maroon); color: var(--ivory); }
+.seg input:focus-visible + span { outline: 2px solid var(--kesariya); outline-offset: 2px; }
+.tpl-note { font-size: 0.9rem; color: var(--ink-soft); min-height: 1.4em; }
+.templates { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+@media (max-width: 560px) {
+  .templates { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .tpl-actions { gap: 4px; }
+  .tpl-actions .btn { min-height: 34px; padding: 0 4px; font-size: 0.78rem; }
+}
+.tpl { display: grid; gap: 10px; align-content: start; }
+.tpl-art {
+  position: relative; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+  transition: transform 0.35s cubic-bezier(.2, .7, .2, 1), box-shadow 0.35s ease;
+}
+.tpl-art canvas { width: 100%; height: auto; aspect-ratio: 4 / 5; }
+.tpl-art::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%);
+  transform: translateX(-120%); transition: transform 0.8s ease;
+}
+.tpl:hover .tpl-art { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 26px 50px -24px rgba(74, 10, 20, 0.6); }
+.tpl:hover .tpl-art::after { transform: translateX(120%); }
+.tpl-head { display: flex; align-items: baseline; gap: 8px; }
+.tpl-head h3 { font-size: 1.3rem; color: var(--maroon); }
+.tpl-head span { margin-left: auto; font-size: 0.8rem; color: var(--ink-soft); }
+.tpl-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.tpl-actions .btn { min-height: 38px; padding: 0 8px; font-size: 0.84rem; }
+.free-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 1;
+  padding: 3px 10px; border-radius: 999px; background: var(--marigold); color: var(--maroon-deep);
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petals, .play-btn { display: none; }
+  .hero-inner > *, .hero-arch, .section-head h2::after { animation: none; }
+  .tpl-art, .tpl-art::after, .btn-primary::after, .btn-gold::after { transition: none; }
+}
+
+@media (max-width: 560px) {
+  .tpl-head { flex-direction: column; gap: 0; }
+  .tpl-head span { margin-left: 0; }
+}

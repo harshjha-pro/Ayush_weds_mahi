@@ -19,6 +19,7 @@
   ],
   "shortcuts": [
     { "name": "Invite maker", "url": "./#maker", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Free templates", "url": "./#templates", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Enquire", "url": "./#enquire", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

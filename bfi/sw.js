@@ -1,7 +1,7 @@
 // BFI service worker. Its scope is only this bfi/ folder, so it never touches
 // the invitation site at the repository root.
 // Bump VERSION whenever any file below changes so visitors get the update.
-const VERSION = 'bfi-v1';
+const VERSION = 'bfi-v2';
 const SHELL = [
   './',
   'index.html',
@@ -9,6 +9,7 @@ const SHELL = [
   'css/bfi.css',
   'js/app.js',
   'js/card.js',
+  'js/pdf.js',
   'js/config.js',
   'icons/icon.svg',
   'icons/icon-192.png',
